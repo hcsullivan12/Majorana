@@ -70,7 +70,7 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
   CLHEP::RandFlat   flat(m_randomEngine);
 
   // Source scatter plot
-  TGraph g(m_nPrimaries);
+  //TGraph g(m_nPrimaries);
 
   // Loop over the primaries  
   for (unsigned primary = 0; primary < m_nPrimaries; primary++)
@@ -128,7 +128,7 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
     // Add this vertex
     G4PrimaryVertex* vertex = new G4PrimaryVertex(x*cm, y*cm, z*cm, 0);
     event->AddPrimaryVertex(vertex);
-    g.SetPoint(primary, x, y);
+    //g.SetPoint(primary, x, y);
 
     if (m_particleTable == 0)
     {
@@ -148,8 +148,8 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
   }
 
   
-  TFile f("/home/hunter/projects/Majorana/output/simulateOutput.root", "UPDATE");
-  g.Write();
-  f.Close();
+  //TFile f("/home/hunter/projects/Majorana/output/simulateOutput.root", "UPDATE");
+  //g.Write();
+  //f.Close();
 }
 }
