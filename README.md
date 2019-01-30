@@ -52,4 +52,60 @@ voxelID n
 Supply the following command at runtime
 ```
 ./simulate <path_to_config.json> --vis ON
-```
+
+
+
+## Prerequisits
+	* [GEANT4](https://geant4.web.cern.ch/support/download)
+	* [RapidJason](https://github.com/Tencent/rapidjson.git)
+
+## Installation help for Prerequisits
+	- GEANT4 (in GEANT4 directory)
+		```
+		mkdir build
+		cd build
+		cmake -DGEANT4_INSTALL_DATA=ON ..
+		make
+		sudo make install
+		```
+
+		After Installation do this to add enviroment variables to your profile
+		```
+		source geant4.sh
+		```
+		Note: You can open the bash file by		
+			```
+			sudo vim ~/.bashrc
+			```
+		
+		
+	- RapidJason
+	    if you dont have install [Doxygen](https://github.com/doxygen/doxygen) 
+		``` 
+		mkdir build
+		cd build
+		cmake ..
+		make
+		sudo make install
+        ```
+	
+## Installation
+
+    ```
+	git clone https://github.com/hcsullivan12/Majorana
+	git branch yourname
+	git checkout yourname
+	git add .
+	cd Majorana
+	mkdir build
+	cd build
+	cmake ..
+	make
+	```
+	# Adjust the file paths and mode configuration in config/Configuration.json
+	# Run the code
+		``` 
+		./simulate <path_to_config.json> --vis ON
+		```
+	
+
