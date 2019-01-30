@@ -8,8 +8,8 @@ An isotropic TPB emission generator simulates a slightly diffuse point-like sour
    * [GEANT4](https://geant4.web.cern.ch/support/download)
    * [RapidJason](https://github.com/Tencent/rapidjson.git)
 
-# Installation help for Prerequisits
-  ## GEANT4 (in GEANT4 directory)
+# Installation Help for Prerequisits
+  ## -GEANT4 (in GEANT4 directory)
 ```
  mkdir build
  cd build
@@ -18,7 +18,7 @@ An isotropic TPB emission generator simulates a slightly diffuse point-like sour
  sudo make install
 ```
 
-  ### Add enviroment variables to your profile for GEANT4
+   Add enviroment variables to your profile for GEANT4
 ```
  sudo vim ~/.bashrc
  source geant4.sh // Add this line to bash file
@@ -26,7 +26,7 @@ An isotropic TPB emission generator simulates a slightly diffuse point-like sour
 
 		
 		
-  ## RapidJason
+  ## -RapidJason
    if you dont have install [Doxygen](https://github.com/doxygen/doxygen) 
 ``` 
  mkdir build
