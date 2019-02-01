@@ -56,7 +56,7 @@ An isotropic TPB emission generator simulates a slightly diffuse point-like sour
   ### Adjust the file paths and mode configuration in config/Configuration.json
   ### Run the code
 ``` 
- ./simulate <path_to_config.json> --vis ON
+ ./simulate <path_to_config.json> --vis OFF // if you want visuals type ON instead of OFF
 ```
 		
 ## Configuration
