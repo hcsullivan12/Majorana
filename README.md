@@ -10,6 +10,10 @@ An isotropic TPB emission generator simulates a slightly diffuse point-like sour
 
 # Installation Help for Prerequisits
   ## -GEANT4 (in GEANT4 directory)
+ Run this before instaling GEANT4
+ ```
+ sudo apt-get install libx11-dev libxmu-dev
+```
 ```
  mkdir build
  cd build
