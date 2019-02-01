@@ -13,7 +13,7 @@ An isotropic TPB emission generator simulates a slightly diffuse point-like sour
 ```
  mkdir build
  cd build
- cmake -DGEANT4_INSTALL_DATA=ON ..
+ cmake -DGEANT4_USE_OPENGL_X11=ON -DGEANT_INSTAL_DATA=ON ..
  make
  sudo make install
 ```
