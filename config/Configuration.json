@@ -11,7 +11,7 @@
   "sourcePosSigma":     0.25,
   "surfaceRoughness":   0.8,
   "surfaceAbsorption":  0.03,
-  "nMPPCs":             32,
+  "nMPPCs":             4,
   "mppcArea":           0.01,
   "diskRadius":         14.5,
   "diskThickness":      1.0,

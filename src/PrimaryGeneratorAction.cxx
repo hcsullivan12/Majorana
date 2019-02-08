@@ -98,12 +98,12 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
       x = m_sourcePositionXYZ[0];
       y = m_sourcePositionXYZ[1];
     }
-    G4float z = m_sourcePositionXYZ[2] - 0.1;
+    G4float z = m_sourcePositionXYZ[2]*0.5;// - 0.1;
     // Sample the momentum
     float p = gauss.fire(m_sourcePeakE, m_sourcePeakESigma);
     // Keep generating until pZ < 0
     float pX(0), pY(0), pZ(1);
-    while (pZ >= 0)
+    //while (pZ >= 0)
     {
       float cosTheta = 2*flat.fire() - 1;
       float sinTheta = pow(1-pow(cosTheta,2),0.5);

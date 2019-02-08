@@ -1,5 +1,5 @@
 void make_class() {
-    TFile *f = new TFile("/home/hunter/projects/Majorana/production/voxelization1deg30.root");
+    TFile *f = new TFile("/home/hunter/projects/Majorana/production/thetaDep60DegNoDisk.root");
     TTree *t = (TTree*)f->Get("anatree");
-    t->MakeClass("angler_RAna");
+    t->MakeClass("angleNoDiskAna");
 }

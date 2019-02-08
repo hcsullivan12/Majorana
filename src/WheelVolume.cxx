@@ -67,12 +67,6 @@ void WheelVolume::ConstructVolume(G4VPhysicalVolume* worldPV,
   m_mppcLV    = new G4LogicalVolume(m_mppcSolid, 
                                     materialManager->FindMaterial("G4_Si"), "MPPCLV");  
 
-  /*// We will place each mppc inside a small LV of arcylic to act
-  // as our "coupling"
-  m_couplingSolid = new G4Box("CouplingSolid", 
-                              (couplingThickness/2.0)*cm, couplingHalfL*cm, couplingHalfL*cm);
-  m_couplingLV    = new G4LogicalVolume(m_couplingSolid, 
-                                        materialManager->FindMaterial("Acrylic"), "CouplingLV");*/
   // Place mppcs around the disk
   for (unsigned m = 1; m <= m_nMPPCs; m++)
   {
@@ -111,7 +105,6 @@ void WheelVolume::PlaceMPPC(G4LogicalVolume* worldLV,
 
   //G4PVPlacement* couplingPV = NULL;
   G4PVPlacement* mppcPV     = NULL; 
-  //couplingPV = new G4PVPlacement(zRot,transVec,m_couplingLV,couplingName,worldLV,false,m);
   mppcPV     = new G4PVPlacement(zRot,transVec,m_mppcLV,mppcName,worldLV,false,m);
  
   m_mppcPositions.push_back(transVec);
@@ -132,14 +125,6 @@ void WheelVolume::HandleSurfaces(G4VPhysicalVolume* worldPV)
                              m_diskPV, worldPV, airSurface);
   new G4LogicalBorderSurface("DiskBorderSurfaceIn",
                              worldPV, m_diskPV, airSurface); 
-
-  /*//**** 
-  // Acrylic coupling surface
-  //****
-  G4OpticalSurface* acrylicSurface(NULL);
-  acrylicSurface = new G4OpticalSurface("AcrylicSurface",
-                                        glisur, polished, 
-                                        dielectric_dielectric, 1.0); */
 
   //**** 
   // MPPC coupling surface
@@ -162,23 +147,7 @@ void WheelVolume::HandleSurfaces(G4VPhysicalVolume* worldPV)
 
     G4VPhysicalVolume* mppcPV     = pvStore->GetVolume(mppcName);
    // G4VPhysicalVolume* couplingPV = pvStore->GetVolume(couplingName);
-
-    /*// Disk coupling surface
-    std::string diskCouplingSurfaceNameOut = "DiskCouplingSurfaceOut" + std::to_string(mppc);
-    std::string diskCouplingSurfaceNameIn  = "DiskCouplingSurfaceIn"  + std::to_string(mppc);
-    new G4LogicalBorderSurface(diskCouplingSurfaceNameOut,
-                               m_diskPV, couplingPV, acrylicSurface);
-    new G4LogicalBorderSurface(diskCouplingSurfaceNameIn,
-                               couplingPV, m_diskPV, acrylicSurface);*/
-
-    /*// Coupling MPPC surface
-    std::string mppcCouplingSurfaceNameOut = "MPPCCouplingSurfaceOut" + std::to_string(mppc);
-    std::string mppcCouplingSurfaceNameIn  = "MPPCCouplingSurfaceIn"  + std::to_string(mppc);
-    new G4LogicalBorderSurface(mppcCouplingSurfaceNameOut,
-                               couplingPV, mppcPV, mppcCouplingSurface);
-    new G4LogicalBorderSurface(mppcCouplingSurfaceNameIn,
-                               mppcPV, couplingPV, mppcCouplingSurface); */
-
+ 
     // Disk MPPC surface
     std::string diskMPPCSurfaceNameOut = "DiskMPPCSurfaceOut" + std::to_string(mppc);
     std::string diskMPPCSurfaceNameIn  = "DiskMPPCSurfaceIn"  + std::to_string(mppc);

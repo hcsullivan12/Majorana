@@ -2,7 +2,7 @@
 #include <fstream>
 
 float  diskRadius = 14.5;
-double inc        = 0.1;
+double inc        = 0.5;
 double r          = 7.0; 
 unsigned nEvents    = 50;
 unsigned nPrim      = 50000;
@@ -34,7 +34,7 @@ void makeLightSteeringTheta()
   voxelID++;
 
   // Starting point
-  double alpha = 40;
+  double alpha = 70;
   while (alpha > 0)
   {
     // Compute x and y
@@ -56,17 +56,23 @@ void makeLightSteeringTheta()
     }
     voxelID++;
 
-    alpha = alpha - 0.5;
+    alpha = alpha - 1;
   }
 
 
   lssFile.close();
   vFile.close();
 
+  TF2* f = new TF2("f", "x*x + y*y", -15.5, 15.5, -15.5, 15.5);
+  double contours[1];
+  contours[0] = 14.5*14.5;
+  f->SetContour(1, contours);
+  f->Draw("cont3");
+
   g->SetMarkerStyle(21);
   g->SetMarkerSize(2);
   g->SetMaximum(14.5);
   g->SetMinimum(-14.5);
   g->GetXaxis()->SetLimits(-14.5,14.5);
-  g->Draw("ap");
+  g->Draw("p same");
 }
