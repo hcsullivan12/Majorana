@@ -39,8 +39,8 @@ class G4Helper
     using SteeringTable = std::vector<std::vector<float>>;
 
     void StartG4();
-    ActionInitialization* GetActionInitialization() const { return m_actionInitialization; };
-    DetectorConstruction* GetDetectorConstruction() const { return m_detector; };
+    ActionInitialization* GetActionInitialization() const { return fActionInitialization; };
+    DetectorConstruction* GetDetectorConstruction() const { return fDetector; };
 
   private:
     G4Helper();
@@ -64,19 +64,19 @@ class G4Helper
       if (x > 0 && y < 0) thetaDeg = 360 - thetaDeg;
     }
 
-    G4RunManager*           m_runManager;
-    G4UImanager*            m_uiManager;
-    G4VisExecutive*         m_visManager;
-    ActionInitialization*   m_actionInitialization;
-    PrimaryGeneratorAction* m_generatorAction;
-    DetectorConstruction*   m_detector;
-    PhysicsList*            m_physicsList;
-    SteeringTable           m_steeringTable;
-    std::string             m_steeringFilePath;
-    bool                    m_showVis;
-    std::string             m_visMacroPath;
-    std::string             m_simulateOutputPath;
-    std::string             m_recoAnaTreePath;
+    G4RunManager*           fRunManager;
+    G4UImanager*            fUIManager;
+    G4VisExecutive*         fVisManager;
+    ActionInitialization*   fActionInitialization;
+    PrimaryGeneratorAction* fGeneratorAction;
+    DetectorConstruction*   fDetector;
+    PhysicsList*            fPhysicsList;
+    SteeringTable           fSteeringTable;
+    std::string             fSteeringFilePath;
+    bool                    fShowVis;
+    std::string             fVisMacroPath;
+    std::string             fSimulateOutputPath;
+    std::string             fRecoAnaTreePath;
 };
 }
 

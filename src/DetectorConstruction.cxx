@@ -19,22 +19,21 @@ namespace majorana
 
 DetectorConstruction::DetectorConstruction()
 : G4VUserDetectorConstruction(),
-  m_wheelVolume(NULL),
-  m_worldSolid(NULL),
-  m_worldLV(NULL),
-  m_worldPV(NULL)
+  fWheel(NULL),
+  fVolWorld(NULL),
+  fPVWorld(NULL)
 {
   // Pass configuration to our other volumes
   Configuration* config = Configuration::Instance();
-  m_wheelVolume = new WheelVolume(config->NMPPCs(),
-                                  config->MPPCArea(),
-                                  config->DiskRadius(), 
-                                  config->DiskThickness());
+  fWheel = new Wheel(config->NMPPCs(),
+                                 config->MPPCHalfLength(),
+                                 config->DiskRadius(), 
+                                 config->DiskThickness());
 }
 
 DetectorConstruction::~DetectorConstruction()
 {
-  if (m_wheelVolume) delete m_wheelVolume;
+  if (fWheel) delete fWheel;
 }
 
 G4VPhysicalVolume* DetectorConstruction::Construct()
@@ -42,75 +41,73 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   InitializeMaterials();
   InitializeDetector();
 
-  if (!m_worldPV) 
+  if (!fPVWorld) 
   {
     G4cerr << "DetectorConstruction::Construct() Error! WorldPV not initialized!\n";
   }
 
-  return m_worldPV;
+  return fPVWorld;
 }
 
 void DetectorConstruction::InitializeMaterials()
 {
   // Construct materials
-  MaterialManager* materialManager = MaterialManager::Instance();
+  MaterialManager* matMan = MaterialManager::Instance();
 
-  if (!materialManager) 
+  if (!matMan) 
   {
     G4cerr << "DetectorConstruction::InitializeMaterials() Error! Material manager not initialized!\n";
   }
-  materialManager->ConstructMaterials();
+  matMan->ConstructMaterials();
 }
 
 void DetectorConstruction::InitializeDetector()
 {
-  if (!m_wheelVolume) 
+  if (!fWheel) 
   {
     G4cerr << "DetectorConstruction::InitializeDetector() Error! Disk volume not initialized!\n";
   }
   // Get instance of material manager
-  MaterialManager* materialManager = MaterialManager::Instance();
+  MaterialManager* matMan = MaterialManager::Instance();
 
   //**** World
-  G4double diskRadius    = m_wheelVolume->Radius();
-  G4double diskThickness = m_wheelVolume->Thickness();
-  m_worldSolid = new G4Box("WorldSolid", 
-                           diskRadius*4*cm, 
-                           diskRadius*4*cm, 
-                           diskThickness*4*cm);
-  m_worldLV    = new G4LogicalVolume(m_worldSolid, 
-                                     materialManager->FindMaterial("G4_AIR"), 
-                                     "WorldLV");
-  m_worldPV = new G4PVPlacement(0, 
-                                G4ThreeVector(), 
-                                m_worldLV, 
-                                "World", 
-                                0, 
-                                false, 
-                                0);
+  G4Box* solWorld = new G4Box("solWorld", 
+                               fWheel->Radius()*4, 
+                               fWheel->Radius()*4, 
+                               fWheel->Thickness()*4);
+  fVolWorld    = new G4LogicalVolume(solWorld, 
+                                     matMan->FindMaterial("G4_AIR"), 
+                                     "volWorld");
+  fPVWorld = new G4PVPlacement(0, 
+                               G4ThreeVector(), 
+                               fVolWorld, 
+                               fVolWorld->GetName(), 
+                               0, 
+                               false, 
+                               0);
+
   // vis
   G4Colour worldC(0,0,0);
   G4VisAttributes* worldVA = new G4VisAttributes(worldC);
   worldVA->SetForceWireframe(true);
-  m_worldLV->SetVisAttributes(worldVA); 
+  fVolWorld->SetVisAttributes(worldVA); 
 
   //**** Wheel
-  m_wheelVolume->ConstructVolume(m_worldPV, m_worldLV);
+  fWheel->ConstructVolume();
 }
 
 void DetectorConstruction::ConstructSDandField()
 {
-  if (!m_wheelVolume) return;
+  if (!fWheel) return;
  
   // MPPC SD
-  if (!m_mppcSD.Get()) 
+  if (!fMPPCSD.Get()) 
   {
     //G4cout << "Construction mppcSD..." << G4endl;
     MPPCSD* mppcSD = new MPPCSD("mppcSD");
-    G4SDManager::GetSDMpointer()->AddNewDetector(mppcSD);
-    m_mppcSD.Put(mppcSD);
+    fMPPCSD.Put(mppcSD);
   }
-  
-  SetSensitiveDetector("MPPCLV", m_mppcSD.Get(), true);
+  G4SDManager::GetSDMpointer()->AddNewDetector(fMPPCSD.Get());
+  SetSensitiveDetector(fWheel->GetMPPCVolume(), fMPPCSD.Get());
 }
 }

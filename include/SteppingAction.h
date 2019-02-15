@@ -12,7 +12,6 @@
 #include "G4UserSteppingAction.hh"
 #include "G4Track.hh"
 #include "G4StepPoint.hh"
-#include "G4OpBoundaryProcess.hh"
 #include "G4ProcessManager.hh"
 
 namespace majorana {
@@ -26,10 +25,7 @@ class SteppingAction : public G4UserSteppingAction
     virtual void UserSteppingAction(const G4Step*);
   
   private: 
-    G4OpBoundaryProcess* m_opProcess; 
-    CLHEP::HepJamesRandom m_randomEngine;
-    unsigned dead;
-    unsigned steps;
+    CLHEP::HepJamesRandom fRandomEngine;
 };
 }
 #endif

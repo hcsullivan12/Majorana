@@ -13,11 +13,11 @@ namespace majorana
 
 ActionInitialization::ActionInitialization()
  : G4VUserActionInitialization(),
-   m_generatorAction(NULL),
-   m_steppingAction(NULL)
+   fGeneratorAction(NULL),
+   fSteppingAction(NULL)
 {
-  m_generatorAction = new PrimaryGeneratorAction();
-  m_steppingAction  = new SteppingAction;
+  fGeneratorAction = new PrimaryGeneratorAction();
+  fSteppingAction  = new SteppingAction;
 }
 
 ActionInitialization::~ActionInitialization()
@@ -25,8 +25,8 @@ ActionInitialization::~ActionInitialization()
 
 void ActionInitialization::Build() const
 {
-  SetUserAction(m_generatorAction);
-  SetUserAction(m_steppingAction);
+  SetUserAction(fGeneratorAction);
+  SetUserAction(fSteppingAction);
 }
 
 }
