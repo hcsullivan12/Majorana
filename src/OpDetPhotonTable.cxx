@@ -17,7 +17,7 @@ namespace majorana
 {
 
 Photon::Photon(const std::vector<float>& photonVertex)
- : m_vertex(photonVertex)
+ : fVertex(photonVertex)
 {}
 
 Photon::~Photon()
@@ -36,8 +36,9 @@ OpDetPhotonTable* OpDetPhotonTable::Instance()
 }
 
 OpDetPhotonTable::OpDetPhotonTable()
+ : fNPhotonsAbs(0)
 {
-  m_photonsDetected.clear();
+  fPhotonsDetected.clear();
   Initialize();
 }
 
@@ -46,16 +47,16 @@ OpDetPhotonTable::~OpDetPhotonTable()
 
 void OpDetPhotonTable::AddPhoton(const unsigned& opchannel, const Photon& photon)
 { 
-  if (m_photonsDetected.find(opchannel) == m_photonsDetected.end())
+  if (fPhotonsDetected.find(opchannel) == fPhotonsDetected.end())
   {
-    m_photonsDetected.emplace(opchannel, std::vector<Photon>());
+    fPhotonsDetected.emplace(opchannel, std::vector<Photon>());
   }
-  m_photonsDetected.find(opchannel)->second.push_back(photon);
+  fPhotonsDetected.find(opchannel)->second.push_back(photon);
 }
 
 void OpDetPhotonTable::Print()
 {
-  for (const auto& k : m_photonsDetected)
+  for (const auto& k : fPhotonsDetected)
   {
     G4cout << "MPPC" << k.first << " detected " << k.second.size() << " photons" << G4endl;
   }
@@ -67,7 +68,7 @@ void OpDetPhotonTable::Initialize()
   std::vector<Photon> vec;
   for (unsigned m = 1; m <= config->NMPPCs(); m++)
   {
-    m_photonsDetected.emplace(m, vec);
+    fPhotonsDetected.emplace(m, vec);
   }
 }
 

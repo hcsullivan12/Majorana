@@ -31,6 +31,7 @@ class Analyzer
     int    fNMPPCs;
     double fDiskRadius;
     int    fNPrimaries;
+    int    fNPhotonsAbs;
     double fSourcePosXYZ[3];
     double fSourcePosRTZ[3];
     double fMPPCToLY[kMaxMPPCs];

@@ -20,10 +20,10 @@ class Photon
     Photon(const std::vector<float>& photonVertex);
     ~Photon();
 
-    const std::vector<float>& Vertex() const { return m_vertex; };
+    const std::vector<float>& Vertex() const { return fVertex; };
     
   private:
-    std::vector<float> m_vertex;
+    std::vector<float> fVertex;
 };
 
 class OpDetPhotonTable
@@ -35,17 +35,20 @@ class OpDetPhotonTable
     ~OpDetPhotonTable();
 
     void AddPhoton(const unsigned& opchannel, const Photon& photon);
-    inline void Reset() { m_photonsDetected.clear(); Initialize(); };
+    inline void Reset() { fPhotonsDetected.clear(); fNPhotonsAbs=0; Initialize(); };
+    inline void IncPhotonsAbs() { fNPhotonsAbs++; };
     void Print();
     void Initialize();
 
-    const PhotonsDetected& GetPhotonsDetected() const { return m_photonsDetected; };
+    const PhotonsDetected& GetPhotonsDetected() const { return fPhotonsDetected; };
+    const unsigned         GetNPhotonsAbsorbed() const { return fNPhotonsAbs; };
 
   private:
     OpDetPhotonTable();
     static OpDetPhotonTable* instance;
 
-    PhotonsDetected m_photonsDetected;
+    PhotonsDetected fPhotonsDetected;
+    unsigned        fNPhotonsAbs;
 };
 }
 #endif

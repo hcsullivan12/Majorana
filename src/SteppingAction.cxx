@@ -8,6 +8,7 @@
 
 #include "SteppingAction.h"
 #include "Configuration.h"
+#include "OpDetPhotonTable.h"
 
 #include "G4OpticalPhoton.hh"
 
@@ -47,7 +48,12 @@ void SteppingAction::UserSteppingAction(const G4Step* theStep)
     float surfaceAbs = config->SurfaceAbsorption();
     CLHEP::RandFlat   flat(fRandomEngine);
     float u = flat.fire();
-    if (u < surfaceAbs) theTrack->SetTrackStatus(fStopAndKill);
+    if (u < surfaceAbs) 
+    {
+      theTrack->SetTrackStatus(fStopAndKill);
+      OpDetPhotonTable* photonTable = OpDetPhotonTable::Instance();
+      photonTable->IncPhotonsAbs();
+    }
   }
 }
 }

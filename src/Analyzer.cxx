@@ -31,6 +31,7 @@ Analyzer::Analyzer(const std::string& simOutputPath)
   fAnaTree->Branch("mppcToLY", fMPPCToLY, "mppcToLY[nMPPCs]/D");
   fAnaTree->Branch("mppcToSourceR", fMPPCToSourceR, "mppcToSourceR[nMPPCs]/D");
   fAnaTree->Branch("mppcToSourceT", fMPPCToSourceT, "mppcToSourceT[nMPPCs]/D");
+  fAnaTree->Branch("nPhotonsAbsorbed", &fNPhotonsAbs, "nPhotonsAbsorbed/I");
 }
 
 Analyzer::~Analyzer()
@@ -68,6 +69,9 @@ void Analyzer::Fill(const unsigned& e)
   
   auto photonsDetected = photonTable->GetPhotonsDetected();
   photonTable->Print();
+
+  fNPhotonsAbs = photonTable->GetNPhotonsAbsorbed();
+
   for (unsigned m = 1; m <= fNMPPCs; m++)
   {
     int photons(0);
@@ -99,6 +103,7 @@ void Analyzer::ResetVars()
   fNMPPCs = -99999;
   fDiskRadius = -99999;
   fNPrimaries = -99999;
+  fNPhotonsAbs = -99999;
   fSourcePosXYZ[0] = -99999; fSourcePosXYZ[1] = -99999; fSourcePosXYZ[2] = -99999;
   fSourcePosRTZ[0] = -99999; fSourcePosRTZ[1] = -99999; fSourcePosRTZ[2] = -99999;
   for (unsigned k = 0; k < kMaxMPPCs; k++)
