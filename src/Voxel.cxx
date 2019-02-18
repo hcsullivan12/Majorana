@@ -28,4 +28,13 @@ Voxel::Voxel(const unsigned& voxelID,
 Voxel::~Voxel()
 {}
 
+void Voxel::AddReference(const unsigned& mppcID, const float& prob) 
+{
+  if (mppcID > m_referenceTable.size())
+  {
+    m_referenceTable.resize(mppcID);
+  } 
+  m_referenceTable[mppcID-1] = prob; 
+};
+
 }

@@ -12,11 +12,11 @@ namespace majorana {
 
 OpticalPhysics::OpticalPhysics()
  : G4VPhysicsConstructor("Optical"),
-   m_boundaryProcess(NULL),
-   m_absorptionProcess(NULL)
+   fBoundaryProcess(NULL),
+   fAbsorptionProcess(NULL)
 {
-  m_absorptionProcess = new G4OpAbsorption();
-  m_boundaryProcess   = new G4OpBoundaryProcess();
+  fAbsorptionProcess   = new G4OpAbsorption();
+  fBoundaryProcess     = new OpBoundaryProcess();
 }
 
 OpticalPhysics::~OpticalPhysics() 
@@ -35,10 +35,11 @@ void OpticalPhysics::ConstructProcess()
   {
      std::ostringstream o;
      o << "Optical Photon without a Process Manager";
-     G4Exception("WLSOpticalPhysics::ConstructProcess()", "", FatalException,o.str().c_str());
+     G4Exception("OpticalPhysics::ConstructProcess()", "", FatalException,o.str().c_str());
   }
-  pManager->AddDiscreteProcess(m_absorptionProcess); 
-  pManager->AddDiscreteProcess(m_boundaryProcess);
+
+  pManager->AddDiscreteProcess(fAbsorptionProcess); 
+  pManager->AddDiscreteProcess(fBoundaryProcess);
 }
 
 }

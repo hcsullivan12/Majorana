@@ -28,10 +28,10 @@ class PhysicsList : public G4VModularPhysicsList
     virtual void ConstructParticle();
     virtual void ConstructProcess();
 
-    OpticalPhysics* GetOpticalPhysics() const { return m_opticalPhysics; };
+    OpticalPhysics* GetOpticalPhysics() const { return fOpticalPhysics; };
  
 private: 
-    OpticalPhysics* m_opticalPhysics; 
+    OpticalPhysics* fOpticalPhysics; 
 };
 }
 #endif

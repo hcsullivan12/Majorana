@@ -9,7 +9,7 @@
 #ifndef VOXEL_H
 #define VOXEL_H
 
-#include <map>
+#include <vector>
 
 namespace majorana
 {
@@ -24,8 +24,6 @@ public:
         const float& r, 
         const float& theta);
 	~Voxel();
-		
-  using OpReferenceTable = std::map<unsigned, float>;
 
 	float       X()     const { return m_x; };
 	float       Y()     const { return m_y; };
@@ -35,11 +33,11 @@ public:
   unsigned    ID()    const { return m_id; };
   unsigned    NPrimaries() const { return m_nPrimaries; };
   float       Intensity() const { return m_intensity; };
+  std::vector<float> ReferenceTable() const { return m_referenceTable; };
 
   void SetSize(const float& s) { m_size = s; };
   void SetIntensity(const float& i) { m_intensity = i; };
-  void AddReference(const unsigned& mppcID, 
-                    const float& prob) { m_referenceTable.emplace(mppcID, prob); };
+  void AddReference(const unsigned& mppcID, const float& prob);
 
 private:
     
@@ -51,7 +49,7 @@ private:
   float  m_intensity;    ///< if reconstructing, this is the reconstructed intensity
   unsigned m_id;         ///< id number
   unsigned m_nPrimaries; ///< number of primaries to launch from this voxel
-  OpReferenceTable m_referenceTable; ///< stores mppc to probability map
+  std::vector<float> m_referenceTable; ///< stores mppc to probability map
 };
 }
 

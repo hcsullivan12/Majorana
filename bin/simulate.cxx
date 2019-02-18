@@ -7,11 +7,15 @@
 #include "G4Helper.h"
 #include "VoxelTable.h"
 
+// ROOT includes
+#include "TFile.h"
+
 // Visualization 
 static bool showVis = false;
 
 // Prototypes
 void HandleArgs(int argc, char **argv);
+void InitializeFiles(const majorana::Configuration*);
 
 int main(int argc, char **argv)
 {
@@ -22,6 +26,8 @@ int main(int argc, char **argv)
   // Pass visualization
   config->SetVisualization(showVis);
   config->Initialize(std::string(argv[1]));
+  // Initialize output files
+  InitializeFiles(config);
   // Initialize source configuration
   if (config->SourceMode() == "voxel")
   {
@@ -58,6 +64,17 @@ void HandleArgs(int argc, char **argv)
   if (argc == 4)
   {
     if (std::string(argv[2]) == "--vis" && std::string(argv[3]) == "ON") showVis = true;    
+  }
+}
+
+void InitializeFiles(const majorana::Configuration* config)
+{
+  TFile f1(config->SimulateOutputPath().c_str(), "RECREATE");
+  f1.Close();
+  if (config->Reconstruct())
+  {
+    TFile f2(config->RecoAnaTreePath().c_str(), "RECREATE");
+    f2.Close();
   }
 }
 

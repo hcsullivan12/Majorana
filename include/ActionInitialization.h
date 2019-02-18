@@ -11,7 +11,6 @@
 #define ACTIONINITIALIZATION_H 
 
 #include "PrimaryGeneratorAction.h"
-#include "Configuration.h"
 #include "SteppingAction.h"
  
 #include "G4VUserActionInitialization.hh"
@@ -27,11 +26,11 @@ class ActionInitialization : public G4VUserActionInitialization
 
     virtual void Build() const;
 
-    PrimaryGeneratorAction* GetGeneratorAction() const { return m_generatorAction; };
+    PrimaryGeneratorAction* GetGeneratorAction() const { return fGeneratorAction; };
 
   private:
-    PrimaryGeneratorAction*  m_generatorAction;
-    SteppingAction*          m_steppingAction;
+    PrimaryGeneratorAction*  fGeneratorAction;
+    SteppingAction*          fSteppingAction;
 };
 
 }
