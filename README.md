@@ -4,6 +4,61 @@ This project holds the Geant4 simulation code for the SiPM wheel.
 ## Physics
 An isotropic TPB emission generator simulates a slightly diffuse point-like source incident on an acrylic disk. The photons undergo total internal reflection until they are either detected by a surrounding SiPM or refracted. 
 
+# Prerequisits
+   * [GEANT4](https://geant4.web.cern.ch/support/download)
+   * [RapidJason](https://github.com/Tencent/rapidjson.git)
+
+# Installation Help for Prerequisits
+  ## -GEANT4 (in GEANT4 directory)
+ Run this before instaling GEANT4
+ ```
+ sudo apt-get install libx11-dev libxmu-dev
+```
+```
+ mkdir build
+ cd build
+ cmake -DGEANT4_USE_OPENGL_X11=ON -DGEANT_INSTAL_DATA=ON ..
+ make
+ sudo make install
+```
+
+   Add enviroment variables to your profile for GEANT4
+```
+ sudo vim ~/.bashrc
+ source geant4.sh // Add this line to bash file
+```
+
+		
+		
+  ## -RapidJason
+   if you dont have install [Doxygen](https://github.com/doxygen/doxygen) 
+``` 
+ mkdir build
+ cd build
+ cmake ..
+ make
+ sudo make install
+```
+	
+# Installation
+
+```
+ git clone https://github.com/hcsullivan12/Majorana
+ git branch yourname
+ git checkout yourname
+ git add .
+ cd Majorana
+ mkdir build
+ cd build
+ cmake ..
+ make
+```
+  ### Adjust the file paths and mode configuration in config/Configuration.json
+  ### Run the code
+``` 
+ ./simulate <path_to_config.json> --vis OFF // if you want visuals type ON instead of OFF
+```
+		
 ## Configuration
 The simulation uses the LightSourceSteering.txt file for placement of the emission generator. 
 There are two simulation modes which require different formats for the LightSourceSteering.txt.
@@ -52,4 +107,9 @@ voxelID n
 Supply the following command at runtime
 ```
 ./simulate <path_to_config.json> --vis ON
-```
+
+
+
+
+	
+
