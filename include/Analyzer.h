@@ -26,17 +26,18 @@ class Analyzer
   private: 
     void ResetVars();
 
-    TTree* m_anaTree;
-    int    m_event;
-    int    m_nMPPCs;
-    double m_diskRadius;
-    int    m_nPrimaries;
-    double m_sourcePosXYZ[3];
-    double m_sourcePosRTZ[3];
-    double m_mppcToLY[kMaxMPPCs];
-    double m_mppcToSourceR[kMaxMPPCs];
-    double m_mppcToSourceT[kMaxMPPCs];
-    std::string m_simulateOutputPath;
+    TTree* fAnaTree;
+    int    fEvent;
+    int    fNMPPCs;
+    double fDiskRadius;
+    int    fNPrimaries;
+    int    fNPhotonsAbs;
+    double fSourcePosXYZ[3];
+    double fSourcePosRTZ[3];
+    double fMPPCToLY[kMaxMPPCs];
+    double fMPPCToSourceR[kMaxMPPCs];
+    double fMPPCToSourceT[kMaxMPPCs];
+    std::string fSimulateOutputPath;
 };
 }
 #endif

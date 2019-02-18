@@ -44,7 +44,6 @@ Voxel* VoxelTable::GetVoxel(const unsigned& id)
   return &*it;
 }
 
-
 void VoxelTable::LoadReferenceTable(const std::string& path)
 {
   // Make sure voxels have been initialized

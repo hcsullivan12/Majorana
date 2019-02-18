@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(Majorana)
 
-add_definitions(-DVERSION="v01_05_00")
+add_definitions(-DVERSION="v01_06_00")
 
 set(CMAKE_CXX_STANDARD 11)
 

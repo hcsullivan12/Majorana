@@ -8,15 +8,17 @@
 
 #include "SteppingAction.h"
 #include "Configuration.h"
+#include "OpDetPhotonTable.h"
+
+#include "G4OpticalPhoton.hh"
 
 namespace majorana 
 {
 
 SteppingAction::SteppingAction()
- : m_opProcess(NULL)
 {
   time_t seed = time( NULL );
-  m_randomEngine.setSeed(static_cast<long>(seed+1));
+  fRandomEngine.setSeed(static_cast<long>(seed+1));
 }
 
 SteppingAction::~SteppingAction()
@@ -24,31 +26,33 @@ SteppingAction::~SteppingAction()
 
 void SteppingAction::UserSteppingAction(const G4Step* theStep)
 {
-  //**** 
-  // We have to check if the photons have hit our mppcs!
-  //****
   G4Track*           theTrack     = theStep->GetTrack();
   G4StepPoint*       thePrePoint  = theStep->GetPreStepPoint();
   G4StepPoint*       thePostPoint = theStep->GetPostStepPoint();
   G4VPhysicalVolume* thePostPV    = thePostPoint->GetPhysicalVolume();
   G4VPhysicalVolume* thePrePV     = thePrePoint->GetPhysicalVolume();
+  auto               thePosition  = thePrePoint->GetPosition();
 
   if (!thePostPV) return;
-
-  // We will handle surface absorption here
   G4ParticleDefinition* particleType = theTrack->GetDefinition();
-  if(particleType==G4OpticalPhoton::OpticalPhotonDefinition())
+  if(particleType!=G4OpticalPhoton::OpticalPhotonDefinition()) return;
+
+  //*************
+  // We will handle surface absorption here
+  // Make sure we're at the acrylic/air boundary
+  G4String preName  = thePrePV->GetName();
+  G4String postName = thePostPV->GetName();
+  if (preName == "volDisk" && postName == "volWorld")
   {
-    // Make sure we're at the acrylic/air boundary
-    G4String preName  = thePrePV->GetName();
-    G4String postName = thePostPV->GetName();
-    if (preName == "Disk" && postName == "World")
+    Configuration* config = Configuration::Instance();
+    float surfaceAbs = config->SurfaceAbsorption();
+    CLHEP::RandFlat   flat(fRandomEngine);
+    float u = flat.fire();
+    if (u < surfaceAbs) 
     {
-      Configuration* config = Configuration::Instance();
-      float surfaceAbs = config->SurfaceAbsorption();
-      CLHEP::RandFlat   flat(m_randomEngine);
-      float u = flat.fire();
-      if (u < surfaceAbs) theTrack->SetTrackStatus(fStopAndKill);
+      theTrack->SetTrackStatus(fStopAndKill);
+      OpDetPhotonTable* photonTable = OpDetPhotonTable::Instance();
+      photonTable->IncPhotonsAbs();
     }
   }
 }

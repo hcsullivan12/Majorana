@@ -3,7 +3,8 @@
 
 float    diskRadius = 14.5;
 float    inc        = 1.0;
-unsigned nEvents    = 50;
+unsigned nEvents    = 1;
+unsigned nPrim      = 1000000;
 
 TGraph* g = new TGraph(665);
 
@@ -60,7 +61,7 @@ void makeLightSteering1cm()
       unsigned event = 1;
       while (event <= nEvents)
       {
-        lssFile << voxelID << " " << 50000 << std::endl;
+        lssFile << voxelID << " " << nPrim << std::endl;
         event++;
       }
       voxelID++;
@@ -83,7 +84,7 @@ void makeLightSteering1cm()
       unsigned event = 1;
       while (event <= nEvents)
       {
-        lssFile << voxelID << " " << 50000 << std::endl;
+        lssFile << voxelID << " " << nPrim << std::endl;
         event++;
       }
       voxelID++;

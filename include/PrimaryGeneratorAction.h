@@ -9,8 +9,6 @@
 #ifndef PRIMARYGENERATORACTION_H
 #define PRIMARYGENERATORACTION_H
 
-#include "Configuration.h"
-
 #include "G4VUserPrimaryGeneratorAction.hh"
 #include "globals.hh"
 #include "G4SystemOfUnits.hh"
@@ -22,8 +20,6 @@
 #include "CLHEP/Random/JamesRandom.h"
 #include "CLHEP/Random/RandFlat.h"
 #include "CLHEP/Random/RandGaussQ.h"
-
-#include "TVector3.h"
 
 class G4Event;
 
@@ -37,29 +33,29 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 
     virtual void GeneratePrimaries(G4Event*);         
 
-    void Reset(const G4float& r,
-               const G4float& thetaDeg,
-               const G4float& x,
-               const G4float& y,
-               const G4float& z,
+    void Reset(const G4double& r,
+               const G4double& thetaDeg,
+               const G4double& x,
+               const G4double& y,
+               const G4double& z,
                const G4int&   n,
-               const G4float& voxelSize = 0);
+               const G4double& voxelSize = 0);
     void Append();
-    std::vector<float> GetSourcePositionRTZ() const { return m_sourcePositionRTZ; };
-    std::vector<float> GetSourcePositionXYZ() const { return m_sourcePositionXYZ; };
-    unsigned           GetNPrimaries()        const { return m_nPrimaries; };
+    std::vector<G4double> GetSourcePositionRTZ() const { return fSourcePositionRTZ; };
+    std::vector<G4double> GetSourcePositionXYZ() const { return fSourcePositionXYZ; };
+    unsigned           GetNPrimaries()           const { return fNPrimaries; };
 
   private:
-    G4ParticleTable*   m_particleTable;
-    unsigned           m_nPrimaries;
-    std::vector<float> m_sourcePositionRTZ;
-    std::vector<float> m_sourcePositionXYZ;
-    float              m_sourcePosSigma;
-    float              m_sourcePeakE;
-    float              m_sourcePeakESigma;
-    float              m_voxelSize;
-    std::string        m_sourceMode;
-    CLHEP::HepJamesRandom m_randomEngine;
+    G4ParticleTable*      fParticleTable;
+    unsigned              fNPrimaries;
+    std::vector<G4double> fSourcePositionRTZ;
+    std::vector<G4double> fSourcePositionXYZ;
+    G4double              fSourcePosSigma;
+    G4double              fSourcePeakE;
+    G4double              fSourcePeakESigma;
+    G4double              fVoxelSize;
+    std::string           fSourceMode;
+    CLHEP::HepJamesRandom fRandomEngine;
 };
 
 }

@@ -12,21 +12,12 @@ namespace majorana {
 
 PhysicsList::PhysicsList() 
  : G4VModularPhysicsList(),
-    m_opticalPhysics(NULL)
+    fOpticalPhysics(NULL)
 {
   G4VModularPhysicsList* phys = new FTFP_BERT(0);
-
- /* for (G4int i = 0; ; ++i) 
-  {
-    G4VPhysicsConstructor* elem = const_cast<G4VPhysicsConstructor*> (phys->GetPhysics(i));
-    if (elem == NULL) break;
-     G4cout << "RegisterPhysics: " << elem->GetPhysicsName() << G4endl;
-     RegisterPhysics(elem);
-  }*/
     
-  m_opticalPhysics = new OpticalPhysics;
-  //G4cout << "RegisterPhysics: " << "OpticalPhysics" << G4endl;
-  RegisterPhysics(m_opticalPhysics);
+  fOpticalPhysics = new OpticalPhysics;
+  RegisterPhysics(fOpticalPhysics);
 }
 
 PhysicsList::~PhysicsList()
