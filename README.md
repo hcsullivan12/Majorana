@@ -110,4 +110,4 @@ Supply the following command at runtime
 ```
 
 ## Reconstruction
-Reconstruction uses a maximum likelihood method to reconstruct the light source position. The algorithm requires the probability that a photon leaving any position will be detected by any SiPM. For reconstruction, you must generate a probability lookup table using a particular voxelization schem in voxel mode. With the reconstruct variable set to true, the code will parse the lookup table into a data structure that is fed into the reconstruction algorithm. 
+Reconstruction uses a maximum likelihood method to reconstruct the light source position. The algorithm requires the probability that a photon leaving any position will be detected by any SiPM. For reconstruction, you must generate a probability lookup table using a particular voxelization scheme in voxel mode. With the reconstruct variable set to true, the code will parse the lookup table into a data structure that is fed into the reconstruction algorithm. 
