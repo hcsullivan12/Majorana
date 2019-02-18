@@ -55,17 +55,17 @@ void Analyzer::Fill(const unsigned& e)
   // Basically we want to look at the light yield as a function of position 
   fEvent        = e;
   fNMPPCs       = g4Helper->GetDetectorConstruction()->WheelGeometry()->NMPPCs();
-  fDiskRadius   = g4Helper->GetDetectorConstruction()->WheelGeometry()->Radius();
+  fDiskRadius   = g4Helper->GetDetectorConstruction()->WheelGeometry()->Radius()/10; // convert to cm
   fNPrimaries   = g4Helper->GetActionInitialization()->GetGeneratorAction()->GetNPrimaries();
 
   auto xyzVec = g4Helper->GetActionInitialization()->GetGeneratorAction()->GetSourcePositionXYZ();
   auto rtzVec = g4Helper->GetActionInitialization()->GetGeneratorAction()->GetSourcePositionRTZ();
-  fSourcePosXYZ[0] = xyzVec[0]; 
-  fSourcePosXYZ[1] = xyzVec[1]; 
-  fSourcePosXYZ[2] = xyzVec[2];
-  fSourcePosRTZ[0] = rtzVec[0]; 
-  fSourcePosRTZ[1] = rtzVec[1]; 
-  fSourcePosRTZ[2] = rtzVec[2];
+  fSourcePosXYZ[0] = xyzVec[0]/10; // convert to cm 
+  fSourcePosXYZ[1] = xyzVec[1]/10; // convert to cm 
+  fSourcePosXYZ[2] = xyzVec[2]/10; // convert to cm
+  fSourcePosRTZ[0] = rtzVec[0]/10; // convert to cm 
+  fSourcePosRTZ[1] = rtzVec[1]*180/pi; // convert to degrees   
+  fSourcePosRTZ[2] = rtzVec[2]/10; // convert to cm
   
   auto photonsDetected = photonTable->GetPhotonsDetected();
   photonTable->Print();
@@ -92,6 +92,8 @@ void Analyzer::Fill(const unsigned& e)
     
     fMPPCToSourceR[m-1] = R;
     fMPPCToSourceT[m-1] = alphaDeg;
+
+    std::cout << "SiPM = " << m << " R = " << R << " T = " << alphaDeg << std::endl;
   }
   
   fAnaTree->Fill();

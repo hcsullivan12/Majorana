@@ -95,12 +95,13 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
       x = fSourcePositionXYZ[0];
       y = fSourcePositionXYZ[1];
     }
-    G4double z = fSourcePositionXYZ[2]*0.5;// - 0.1;
+    // Just under the top surface
+    G4double z = fSourcePositionXYZ[2] - 0.1*cm;
     // Sample the momentum
     G4double p = gauss.fire(fSourcePeakE, fSourcePeakESigma);
     // Keep generating until pZ < 0
     G4double pX(0), pY(0), pZ(1);
-    while (pZ >= 0)
+    //while (pZ >= 0)
     {
       double cosTheta = 2*flat.fire() - 1;
       double sinTheta = pow(1-pow(cosTheta,2),0.5);

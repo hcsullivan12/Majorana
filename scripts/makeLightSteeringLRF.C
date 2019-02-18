@@ -3,7 +3,7 @@
 
 float    diskRadius = 14.5;
 double    inc        = 0.1;
-unsigned nEvents    = 50;
+unsigned nEvents    = 25;
 unsigned nPrim      = 50000;
 
 TGraph* g = new TGraph(665);
@@ -21,7 +21,6 @@ void makeLightSteeringLRF()
 
   // Make a vector of xAxis voxels, and then translate
   std::vector<std::pair<float, float>> xAxisVoxelPos;
-  // Start at edge
   double x(0), y(0);
   while (x < diskRadius)
   {
@@ -97,6 +96,6 @@ void makeLightSteeringLRF()
   vFile.close();
 
   g->SetMarkerStyle(21);
-  g->SetMarkerSize(2);
+  g->SetMarkerSize(1);
   g->Draw("ap");
 }

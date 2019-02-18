@@ -135,7 +135,7 @@ void G4Helper::RunG4()
       thetaDeg  = deg*voxel->Theta();
       x         = cm*voxel->X();
       y         = cm*voxel->Y();
-      z         = cm*fDetector->WheelGeometry()->Thickness();
+      z         = fDetector->WheelGeometry()->Thickness();
       n         = steeringTable[e].n;
       voxelSize = cm*voxel->Size(); 
       std::cout << "voxelID = " << voxel->ID() << std::endl;
@@ -153,6 +153,8 @@ void G4Helper::RunG4()
   
     // Start run!
     fRunManager->BeamOn(1);
+    //std::cin.get();
+
     // Fill our tree
     analyzer.Fill(e);
     // Reconstruct?

@@ -57,7 +57,7 @@ void Wheel::ConstructVolume()
   // Place the volumes
   PlaceVolumes();
   // Handle surfaces
-  HandleSurfaces();
+  //HandleSurfaces();
   // Handle vis effects
   HandleVisAttributes();
 
@@ -76,7 +76,7 @@ void Wheel::PlaceVolumes()
   // Place disk
   // xy plane is the bottom surface
   G4ThreeVector transVec(0,0,(fDiskThickness/2.0));
-  new G4PVPlacement(0, transVec, fVolDisk, fVolDisk->GetName(), volWorld, false, 0);
+  //new G4PVPlacement(0, transVec, fVolDisk, fVolDisk->GetName(), volWorld, false, 0);
 
   // Place mppcs around the disk
   for (unsigned m = 1; m <= fNMPPCs; m++)

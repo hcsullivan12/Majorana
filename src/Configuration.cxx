@@ -183,7 +183,7 @@ void Configuration::PrintConfiguration()
             << "SurfaceRoughness   " << fSurfaceRoughness   << std::endl
             << "SurfaceAbsorption  " << fSurfaceAbsorption  << std::endl
             << "NumberOfMPPCs      " << fNMPPCs             << std::endl
-            << "SipmArea           " << fMPPCHalfLength     << " cm2" << std::endl
+            << "SipmHalfLength     " << fMPPCHalfLength/cm     << " cm" << std::endl
             << "DiskRadius         " << fDiskRadius/cm         << " cm"  << std::endl
             << "DiskThickness      " << fDiskThickness/cm      << " cm"  << std::endl
             << "Reconstruct        "; 
