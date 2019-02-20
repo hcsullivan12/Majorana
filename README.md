@@ -4,12 +4,12 @@ This project holds the Geant4 simulation code for the SiPM wheel.
 ## Physics
 An isotropic TPB emission generator simulates a slightly diffuse point-like source incident on an acrylic disk. The photons undergo total internal reflection until they are either detected by a surrounding SiPM or refracted. 
 
-# Prerequisits
+## Prerequisites
    * [GEANT4](https://geant4.web.cern.ch/support/download)
    * [RapidJason](https://github.com/Tencent/rapidjson.git)
 
-# Installation Help for Prerequisits
-  ## -GEANT4 (in GEANT4 directory)
+## Installation Help for Prerequisites
+### -GEANT4 (in GEANT4 directory)
  Run this before instaling GEANT4
  ```
  sudo apt-get install libx11-dev libxmu-dev
@@ -28,9 +28,7 @@ An isotropic TPB emission generator simulates a slightly diffuse point-like sour
  source geant4.sh // Add this line to bash file
 ```
 
-		
-		
-  ## -RapidJason
+### -RapidJason
    if you dont have install [Doxygen](https://github.com/doxygen/doxygen) 
 ``` 
  mkdir build
@@ -40,8 +38,7 @@ An isotropic TPB emission generator simulates a slightly diffuse point-like sour
  sudo make install
 ```
 	
-# Installation
-
+## Installation
 ```
  git clone https://github.com/hcsullivan12/Majorana
  git branch yourname
@@ -53,8 +50,8 @@ An isotropic TPB emission generator simulates a slightly diffuse point-like sour
  cmake ..
  make
 ```
-  ### Adjust the file paths and mode configuration in config/Configuration.json
-  ### Run the code
+Adjust the file paths and mode configuration in config/Configuration.json
+## Run the code
 ``` 
  ./simulate <path_to_config.json> --vis OFF // if you want visuals type ON instead of OFF
 ```
@@ -93,7 +90,9 @@ voxelID x y
 .
 .
 ```
+
 Then the LightSourceSteering.txt file might read
+
 ```
 voxelID n
 1 5000
@@ -103,13 +102,12 @@ voxelID n
 .
 .
 ```
+
 ## Visualization
 Supply the following command at runtime
 ```
 ./simulate <path_to_config.json> --vis ON
+```
 
-
-
-
-	
-
+## Reconstruction
+Reconstruction uses a maximum likelihood method to reconstruct the light source position. The algorithm requires the probability that a photon leaving any position will be detected by any SiPM. For reconstruction, you must generate a probability lookup table using a particular voxelization scheme in voxel mode. With the reconstruct variable set to true, the code will parse the lookup table into a data structure that is fed into the reconstruction algorithm. 

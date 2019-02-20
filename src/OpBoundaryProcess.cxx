@@ -196,7 +196,7 @@ bool OpBoundaryProcess::CheckDetection(const G4Track& theTrack, const G4Step& th
   mppcPositions = g4Helper->GetDetectorConstruction()->WheelGeometry()->MPPCPositions();
 
   // Firstly, is the photon near the edge?
-  G4double eps   = 0.1*cm;
+  G4double eps   = 0.01*mm;
   G4double mppcZ = mppcPositions[0][2];  // They should all be at this z!
   G4double delT  = (mppcHalfL/diskRadius)*180*deg/pi;
   G4double x     = thePosition.x();
@@ -205,7 +205,7 @@ bool OpBoundaryProcess::CheckDetection(const G4Track& theTrack, const G4Step& th
   G4double r     = std::sqrt( x*x + y*y );
   G4double theta(0);
 
-  if ( r >= (diskRadius-eps) &&
+  if ( r >= (diskRadius-eps) && r <= (diskRadius+eps) &&
       (mppcZ-mppcHalfL) <= z && z <= (mppcZ+mppcHalfL) ) 
   {
     // "So you're saying there's a chance?"
