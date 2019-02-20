@@ -5,7 +5,7 @@ float  diskRadius = 14.5;
 double inc        = 0.5;
 double r          = 7.0; 
 unsigned nEvents  = 25;
-unsigned nPrim    = 500000;
+unsigned nPrim    = 50000;
 
 TGraph* g = new TGraph(81);
 
@@ -52,8 +52,8 @@ void makeLightSteeringTheta()
     voxelID++;
 
     // Now do the mirror image
-    x = -1*x;
-    y = y;
+    x = x;
+    y = -1*y;
     vFile << voxelID << " " << x << " " << y << std::endl;
     g->SetPoint(voxelID-1, x, y);
     for (unsigned e = 1; e <= nEvents; e++)
