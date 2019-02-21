@@ -33,6 +33,7 @@ int main(int argc, char **argv)
   {
     // Initialize voxels so we can make the reference table
     majorana::VoxelTable* voxelTable = majorana::VoxelTable::Instance();
+    std::cout << " " << config->VoxelizationPath() << std::endl;
     voxelTable->Initialize(config->VoxelizationPath());
   }
   // If we're wanting to reconstruct in point mode, it's 
