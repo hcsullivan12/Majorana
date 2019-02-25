@@ -11,7 +11,7 @@
 
 #include "TTree.h"
 
-const int kMaxMPPCs = 100;
+const int kMaxMPPCs = 128;
 
 namespace majorana {
 
@@ -22,7 +22,7 @@ class Analyzer
     ~Analyzer();
 
     void Fill(const unsigned& e);
-  
+      
   private: 
     void ResetVars();
 

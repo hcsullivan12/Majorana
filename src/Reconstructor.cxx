@@ -21,14 +21,14 @@ namespace majorana
 
 Reconstructor::Reconstructor(const std::map<unsigned, unsigned>& data,
                              const std::list<Voxel>& voxelList)
-: m_data(data),
-  m_voxelList(voxelList)
+: fData(data),
+  fVoxelList(voxelList)
 {
-  m_voxelEstimates.clear();
-  m_voxelEstimates.resize(m_voxelList.size());
-  m_denomSums.clear();
-  m_denomSums.resize(m_data.size());
-  m_number = 0;
+  fVoxelEstimates.clear();
+  fVoxelEstimates.resize(fVoxelList.size());
+  fDenomSums.clear();
+  fDenomSums.resize(fData.size());
+  fNumber = 0;
 }
 
 Reconstructor::~Reconstructor()
@@ -61,24 +61,28 @@ void Reconstructor::Initialize()
   // But I think we have to bias this slightly:
   //   voxels near the sipms need to have low intensities
   //   since the probabilities of detection are relatively 
-  //   high there
+  //   high there ??
   unsigned totalPE(0);
-  for (const auto& d : m_data) totalPE = totalPE + d.second;
+  for (const auto& d : fData) totalPE = totalPE + d.second;
 
   // Sample
   std::srand(time(NULL));
-  for (auto& v : m_voxelList)
+  for (auto& v : fVoxelList)
   {
     //if (v.R() > 12) { v.SetIntensity(rand()%10 + 1); continue;}
     double u = rand()%totalPE+1;
     v.SetIntensity(u);
   }
+  //***
+  // TEMPORARY
+  //***
+  MakePlots("/home/hunter/projects/Majorana/output/recoAnaTree.root");
 }
 
 void Reconstructor::Estimate(unsigned& iteration)
 {
   iteration++;
-  if (iteration > 200) return;
+  if (iteration > 100) return;
 
   // Log likelihood
   CalculateLL();
@@ -89,12 +93,12 @@ void Reconstructor::Estimate(unsigned& iteration)
   // To reduce complexity, find denominator sum seperately
   // Old: O(nSiPMS*nVoxels*nVoxels)
   // New: O(2*nSiPMS*nVoxels)
-  for (const auto& d : m_data)
+  for (const auto& d : fData)
   {
     float denomSum = DenominatorSum(d.first); 
-    m_denomSums[d.first-1] = denomSum;
+    fDenomSums[d.first-1] = denomSum;
   }
-  for (auto& voxel : m_voxelList)
+  for (auto& voxel : fVoxelList)
   {
     // voxelID
     unsigned voxelID = voxel.ID();
@@ -102,7 +106,7 @@ void Reconstructor::Estimate(unsigned& iteration)
     std::vector<float> opRefTable = voxel.ReferenceTable();
     // Apply the money formula
     float nextEst = MoneyFormula(voxelID, theEst, opRefTable);
-    m_voxelEstimates[voxelID-1] = nextEst;
+    fVoxelEstimates[voxelID-1] = nextEst;
   }
 
   // 3) 
@@ -119,7 +123,7 @@ void Reconstructor::CalculateLL()
 {
   // Loop over detectors
   float sum(0);
-  for (const auto& d : m_data)
+  for (const auto& d : fData)
   {
     float mean = CalculateMean(d.first);
     sum = sum + d.second*std::log(mean) - mean;
@@ -131,7 +135,7 @@ float Reconstructor::CalculateMean(const unsigned& sipmID)
 {
   // Loop over voxels
   float sum(0);
-  for (const auto& voxel : m_voxelList)
+  for (const auto& voxel : fVoxelList)
   {
     auto opRefTable = voxel.ReferenceTable();
     sum = sum + opRefTable[sipmID-1]*voxel.Intensity();
@@ -141,14 +145,14 @@ float Reconstructor::CalculateMean(const unsigned& sipmID)
 void Reconstructor::Reset()
 {
   // Update the intensities
-  for (auto& v : m_voxelList)
+  for (auto& v : fVoxelList)
   {
     unsigned id = v.ID();
-    float nextEst = m_voxelEstimates[id-1];
+    float nextEst = fVoxelEstimates[id-1];
     v.SetIntensity(nextEst);
   }
-  m_voxelEstimates.clear();
-  m_denomSums.clear();
+  fVoxelEstimates.clear();
+  fDenomSums.clear();
 }
 
 float Reconstructor::MoneyFormula(const unsigned& voxelID, 
@@ -158,7 +162,7 @@ float Reconstructor::MoneyFormula(const unsigned& voxelID,
   // Looping over detectors
   float sum(0);
   float totalP(0);
-  for (const auto& d : m_data)
+  for (const auto& d : fData)
   {
     // n p.e. and ref table
     unsigned n = d.second;
@@ -171,7 +175,7 @@ float Reconstructor::MoneyFormula(const unsigned& voxelID,
     // Add to totalP
     totalP = totalP + p;
 
-    sum = sum + n*p/m_denomSums[d.first-1];
+    sum = sum + n*p/fDenomSums[d.first-1];
   }
   return theEst*sum/totalP;
 }
@@ -180,7 +184,7 @@ float Reconstructor::DenominatorSum(const unsigned& mppcID)
 {
   // Loop over voxels
   float denomSum(0);
-  for (const auto& voxel : m_voxelList)
+  for (const auto& voxel : fVoxelList)
   {
     float theEst = voxel.Intensity();
     float p(0);
@@ -205,10 +209,10 @@ void Reconstructor::MakePlots(const std::string& filename)
 {
   TFile f(filename.c_str(), "UPDATE");
   unsigned n = 27;
-  std::string name = "hist"+std::to_string(m_number);
+  std::string name = "hist"+std::to_string(fNumber);
   TH2F hist(name.c_str(), name.c_str(), n, -14.5, 14.5, n, -14.5, 14.5);
 
-  for (const auto& v : m_voxelList)
+  for (const auto& v : fVoxelList)
   {
     unsigned xbin = hist.GetXaxis()->FindBin(v.X());
     unsigned ybin = hist.GetYaxis()->FindBin(v.Y());
@@ -217,6 +221,6 @@ void Reconstructor::MakePlots(const std::string& filename)
   } 
   hist.Write();
   f.Close();
-  m_number++;
+  fNumber++;
 }
 }

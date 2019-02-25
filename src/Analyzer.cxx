@@ -57,6 +57,14 @@ void Analyzer::Fill(const unsigned& e)
   fNMPPCs       = g4Helper->GetDetectorConstruction()->WheelGeometry()->NMPPCs();
   fDiskRadius   = g4Helper->GetDetectorConstruction()->WheelGeometry()->Radius()/10; // convert to cm
   fNPrimaries   = g4Helper->GetActionInitialization()->GetGeneratorAction()->GetNPrimaries();
+  // Check the number of sipms
+  if (fNMPPCs > kMaxMPPCs) 
+  { 
+    std::cout << "CAUTION! kMaxMPPCs is set to "     << kMaxMPPCs 
+              << ", but nMPPCs in config is set to " << fNMPPCs 
+              << ". Please increase kMaxMPPCs.\n";
+              exit(1);
+  }
 
   auto xyzVec = g4Helper->GetActionInitialization()->GetGeneratorAction()->GetSourcePositionXYZ();
   auto rtzVec = g4Helper->GetActionInitialization()->GetGeneratorAction()->GetSourcePositionRTZ();
@@ -93,7 +101,7 @@ void Analyzer::Fill(const unsigned& e)
     fMPPCToSourceR[m-1] = R;
     fMPPCToSourceT[m-1] = alphaDeg;
 
-    std::cout << "SiPM = " << m << " R = " << R << " T = " << alphaDeg << std::endl;
+    //std::cout << "SiPM = " << m << " R = " << R << " T = " << alphaDeg << std::endl;
   }
   
   fAnaTree->Fill();

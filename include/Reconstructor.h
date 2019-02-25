@@ -29,12 +29,12 @@ public:
   void Initialize();
   void MakePlots(const std::string& filename);
 
-  const double   ML()    { return m_mlLogLikelihood; }
-  const float    X()     { return m_mlX; }
-  const float    Y()     { return m_mlY; }
-  const float    R()     { return m_mlRadius; }
-  const float    Theta() { return m_mlTheta; }
-  const unsigned N0()    { return m_mlN0; }
+  const double   ML()    { return fMLLogLikelihood; }
+  const float    X()     { return fMLX; }
+  const float    Y()     { return fMLY; }
+  const float    R()     { return fMLRadius; }
+  const float    Theta() { return fMLTheta; }
+  const unsigned N0()    { return fMLN0; }
     
 private:
 
@@ -48,17 +48,17 @@ private:
   bool CheckConvergence();
   void Reset();
    
-  double                       m_mlLogLikelihood; //< Log likelihood for the MLE
-  float                        m_mlN0;            //< MLE for N0
-  float                        m_mlX;             //< MLE for x (cm)
-  float                        m_mlY;             //< MLE for y (cm)
-  float                        m_mlRadius;        //< MLE for r (cm)
-  float                        m_mlTheta;         //< MLE for theta (deg)
-  std::list<Voxel>             m_voxelList;          //< list of created voxels
-  std::vector<float>           m_voxelEstimates;     //< 
-  std::vector<float>           m_denomSums;
-  std::map<unsigned, unsigned> m_data;               //< measured counts (sipm, np.e.)
-  unsigned m_number;
+  double                       fMLLogLikelihood; //< Log likelihood for the MLE
+  float                        fMLN0;            //< MLE for N0
+  float                        fMLX;             //< MLE for x (cm)
+  float                        fMLY;             //< MLE for y (cm)
+  float                        fMLRadius;        //< MLE for r (cm)
+  float                        fMLTheta;         //< MLE for theta (deg)
+  std::list<Voxel>             fVoxelList;          //< list of created voxels
+  std::vector<float>           fVoxelEstimates;     //< 
+  std::vector<float>           fDenomSums;
+  std::map<unsigned, unsigned> fData;               //< measured counts (sipm, np.e.)
+  unsigned fNumber;
 };
 }
 
