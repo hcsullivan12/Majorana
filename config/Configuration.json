@@ -2,10 +2,10 @@
   "simulateOutputPath": "/home/hunter/projects/Majorana/output/simulateOutput.root",
   "recoAnaTreePath":    "/home/hunter/projects/Majorana/output/recoAnaTree.root",
   "steeringFilePath":   "/home/hunter/projects/Majorana/config/LightSourceSteering.txt",
-  "voxelizationPath":   "/home/hunter/projects/Majorana/config/voxelization.txt",
-  "opReferenceTablePath": "/home/hunter/projects/Majorana/config/voxels2/opReferenceTable.txt",
+  "pixelizationPath":   "/home/hunter/projects/Majorana/config/pixelization.txt",
+  "opReferenceTablePath": "/home/hunter/projects/Majorana/production/02_24_opReferenceTable.txt",
   "visMacroPath":       "/home/hunter/projects/Majorana/vis.mac",
-  "sourceMode":         "voxel",
+  "sourceMode":         "point",
   "sourcePeakE":        2.95,  
   "sourcePeakESigma":   0.42,   
   "sourcePosSigma":     0.25,
@@ -15,5 +15,5 @@
   "mppcHalfLength":     0.15,
   "diskRadius":         14.5,
   "diskThickness":      1.0,
-  "reconstruct":        false
+  "reconstruct":        true
 }

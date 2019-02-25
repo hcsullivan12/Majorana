@@ -5,7 +5,7 @@
 // Majorana includes
 #include "Configuration.h"
 #include "G4Helper.h"
-#include "VoxelTable.h"
+#include "PixelTable.h"
 
 // ROOT includes
 #include "TFile.h"
@@ -22,31 +22,30 @@ int main(int argc, char **argv)
   // Handle runtime args
   HandleArgs(argc, argv); 
   // Initialize configuration
-  majorana::Configuration* config = majorana::Configuration::Instance();
+  majorana::Configuration* config = majorana::Configuration::CreateInstance();
   // Pass visualization
   config->SetVisualization(showVis);
   config->Initialize(std::string(argv[1]));
   // Initialize output files
   InitializeFiles(config);
   // Initialize source configuration
-  if (config->SourceMode() == "voxel")
+  if (config->SourceMode() == "pixel")
   {
-    // Initialize voxels so we can make the reference table
-    majorana::VoxelTable* voxelTable = majorana::VoxelTable::Instance();
-    std::cout << " " << config->VoxelizationPath() << std::endl;
-    voxelTable->Initialize(config->VoxelizationPath());
+    // Initialize pixels so we can make the reference table
+    majorana::PixelTable* pixelTable = majorana::PixelTable::CreateInstance();
+    pixelTable->Initialize(config->PixelizationPath());
   }
   // If we're wanting to reconstruct in point mode, it's 
-  // easier if we still initialize voxels to load reference table
-  // in voxel table 
+  // easier if we still initialize pixels to load reference table
+  // in pixel table 
   if (config->SourceMode() == "point" && config->Reconstruct())
   {
-    majorana::VoxelTable* voxelTable = majorana::VoxelTable::Instance();
-    voxelTable->Initialize(config->VoxelizationPath());
-    voxelTable->LoadReferenceTable(config->OpReferenceTablePath());
+    majorana::PixelTable* pixelTable = majorana::PixelTable::CreateInstance();
+    pixelTable->Initialize(config->PixelizationPath());
+    pixelTable->LoadReferenceTable(config->OpReferenceTablePath());
   }
   // Start G4
-  majorana::G4Helper* g4Helper = majorana::G4Helper::Instance();
+  majorana::G4Helper* g4Helper = majorana::G4Helper::CreateInstance();
   g4Helper->StartG4();
 
   return 0;

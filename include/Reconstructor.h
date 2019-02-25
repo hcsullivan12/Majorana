@@ -9,7 +9,7 @@
 #ifndef RECONSTRUCTOR_H
 #define RECONSTRUCTOR_H
 
-#include "Voxel.h"
+#include "Pixel.h"
 
 #include <map>
 #include <list>
@@ -21,44 +21,44 @@ class Reconstructor
 {
 
 public:
-  Reconstructor(const std::map<unsigned, unsigned>& data,
-                const std::list<Voxel>& voxelList);
+  Reconstructor();
   ~Reconstructor();
   
   void Reconstruct();
-  void Initialize();
+  void Initialize(const std::map<unsigned, unsigned>& data,
+                  const std::list<Pixel>& pixelList);
   void MakePlots(const std::string& filename);
 
-  const double   ML()    { return m_mlLogLikelihood; }
-  const float    X()     { return m_mlX; }
-  const float    Y()     { return m_mlY; }
-  const float    R()     { return m_mlRadius; }
-  const float    Theta() { return m_mlTheta; }
-  const unsigned N0()    { return m_mlN0; }
+  const double   ML()    const { return fMLLogLikelihood; }
+  const float    X()     const { return fMLX; }
+  const float    Y()     const { return fMLY; }
+  const float    R()     const { return fMLRadius; }
+  const float    Theta() const { return fMLTheta; }
+  const std::vector<float> PixelEstimates() const { return fPixelEstimates; }
     
 private:
-
+  void InitPixelList();
   void Estimate(unsigned& iteration);  
   void CalculateLL();
   float CalculateMean(const unsigned& sipmID);
   float DenominatorSum(const unsigned& sipmID);
-  float MoneyFormula(const unsigned& voxelID,
+  float MoneyFormula(const unsigned& pixelID,
                      const float& theEst,
                      const std::vector<float>& referenceTable);
   bool CheckConvergence();
   void Reset();
    
-  double                       m_mlLogLikelihood; //< Log likelihood for the MLE
-  float                        m_mlN0;            //< MLE for N0
-  float                        m_mlX;             //< MLE for x (cm)
-  float                        m_mlY;             //< MLE for y (cm)
-  float                        m_mlRadius;        //< MLE for r (cm)
-  float                        m_mlTheta;         //< MLE for theta (deg)
-  std::list<Voxel>             m_voxelList;          //< list of created voxels
-  std::vector<float>           m_voxelEstimates;     //< 
-  std::vector<float>           m_denomSums;
-  std::map<unsigned, unsigned> m_data;               //< measured counts (sipm, np.e.)
-  unsigned m_number;
+  double                       fMLLogLikelihood; //< Log likelihood for the MLE
+  float                        fMLN0;            //< MLE for N0
+  float                        fMLX;             //< MLE for x (cm)
+  float                        fMLY;             //< MLE for y (cm)
+  float                        fMLRadius;        //< MLE for r (cm)
+  float                        fMLTheta;         //< MLE for theta (deg)
+  std::list<Pixel>             fPixelList;          //< list of created pixels
+  std::vector<float>           fPixelEstimates;     //< 
+  std::vector<float>           fDenomSums;
+  std::map<unsigned, unsigned> fData;               //< measured counts (sipm, np.e.)
+  unsigned fNumber;
 };
 }
 

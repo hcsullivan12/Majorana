@@ -28,6 +28,7 @@ class Configuration
 {
   public:
     static Configuration* Instance();
+    static Configuration* CreateInstance();
     ~Configuration();
 
     struct SteeringTableIndex
@@ -37,7 +38,7 @@ class Configuration
       G4double r;
       G4double thetaDeg;
 
-      G4int    voxelID;
+      G4int    pixelID;
       G4int    n;
     };
 
@@ -57,7 +58,7 @@ class Configuration
     std::string SteeringFilePath()     const { return fSteeringFilePath; };
     std::string SimulateOutputPath()   const { return fSimulateOutputPath; };
     std::string SourceMode()           const { return fSourceMode; };
-    std::string VoxelizationPath()     const { return fVoxelizationPath; };
+    std::string PixelizationPath()     const { return fPixelizationPath; };
     std::string OpReferenceTablePath() const { return fOpReferenceTablePath; };
     std::string RecoAnaTreePath()      const { return fRecoAnaTreePath; };
     G4double    SourcePosSigma()       const { return fSourcePosSigma; };
@@ -86,7 +87,7 @@ class Configuration
     std::string fSimulateOutputPath;
     std::string fRecoAnaTreePath;
     std::string fSteeringFilePath;
-    std::string fVoxelizationPath;
+    std::string fPixelizationPath;
     std::string fVisMacroPath;
     std::string fSourceMode;
     std::string fOpReferenceTablePath;

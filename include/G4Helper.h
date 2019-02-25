@@ -13,6 +13,7 @@
 #include "PrimaryGeneratorAction.h"
 #include "ActionInitialization.h"
 #include "PhysicsList.h"
+#include "Reconstructor.h"
 
 #include "TMath.h"
 
@@ -34,6 +35,7 @@ class G4Helper
 {
   public:
     static G4Helper* Instance();
+    static G4Helper* CreateInstance();
     ~G4Helper();
 
     using SteeringTable = std::vector<std::vector<float>>;
@@ -41,6 +43,7 @@ class G4Helper
     void StartG4();
     ActionInitialization* GetActionInitialization() const { return fActionInitialization; };
     DetectorConstruction* GetDetectorConstruction() const { return fDetector; };
+    const Reconstructor   GetReconstructor()        const { return fReconstructor; };
 
   private:
     G4Helper();
@@ -77,6 +80,7 @@ class G4Helper
     std::string             fVisMacroPath;
     std::string             fSimulateOutputPath;
     std::string             fRecoAnaTreePath;
+    Reconstructor           fReconstructor;
 };
 }
 

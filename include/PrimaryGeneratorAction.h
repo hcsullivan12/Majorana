@@ -39,7 +39,7 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
                const G4double& y,
                const G4double& z,
                const G4int&   n,
-               const G4double& voxelSize = 0);
+               const G4double& pixelSize = 0);
     void Append();
     std::vector<G4double> GetSourcePositionRTZ() const { return fSourcePositionRTZ; };
     std::vector<G4double> GetSourcePositionXYZ() const { return fSourcePositionXYZ; };
@@ -53,7 +53,7 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
     G4double              fSourcePosSigma;
     G4double              fSourcePeakE;
     G4double              fSourcePeakESigma;
-    G4double              fVoxelSize;
+    G4double              fPixelSize;
     std::string           fSourceMode;
     CLHEP::HepJamesRandom fRandomEngine;
 };

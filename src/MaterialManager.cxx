@@ -11,18 +11,26 @@
 #include "G4NistManager.hh"
 #include "G4SystemOfUnits.hh"
 
+#include <assert.h>
+
 namespace majorana
 {
 
 MaterialManager* MaterialManager::instance = 0;
 
-MaterialManager* MaterialManager::Instance()
+MaterialManager* MaterialManager::CreateInstance()
 {
   if (instance == 0) 
   {
     static MaterialManager manager;
     instance = &manager;
   }
+  return instance;
+}
+
+MaterialManager* MaterialManager::Instance()
+{
+  assert(instance);
   return instance;
 }
 

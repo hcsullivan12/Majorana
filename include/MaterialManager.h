@@ -18,6 +18,7 @@ class MaterialManager
 {
   public:
     static MaterialManager* Instance();
+    static MaterialManager* CreateInstance();
     ~MaterialManager();
 
     void        ConstructMaterials();
