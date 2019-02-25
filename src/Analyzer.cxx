@@ -10,7 +10,7 @@
 #include "TFile.h"
 #include "OpDetPhotonTable.h"
 #include "G4Helper.h"
-#include "VoxelTable.h"
+#include "PixelTable.h"
 #include "Reconstructor.h"
 #include "Configuration.h"
 
@@ -26,9 +26,9 @@ Analyzer::Analyzer(const std::string& simOutputPath)
   
   fAnaTree = new TTree("anatree", "analysis tree");
   fAnaTree->Branch("event",      &fEvent, "event/I");
-  fAnaTree->Branch("nVoxels",    &fNVoxels, "nVoxels/I");
-  fAnaTree->Branch("voxelX", fVoxelX, "voxelX/D")
-  fAnaTree->Branch("voxelY", fVoxelY, "voxelY/D")
+  fAnaTree->Branch("nPixels",    &fNPixels, "nPixels/I");
+  fAnaTree->Branch("pixelX", fPixelX, "pixelX/D");
+  fAnaTree->Branch("pixelY", fPixelY, "pixelY/D");
   fAnaTree->Branch("nMPPCs",     &fNMPPCs, "nMPPCs/I");
   fAnaTree->Branch("diskRadius", &fDiskRadius, "diskRadius/D");
   fAnaTree->Branch("nPrimaries", &fNPrimaries, "nPrimaries/I");
@@ -114,9 +114,14 @@ void Analyzer::Fill(const unsigned& e)
     //std::cout << "SiPM = " << m << " R = " << R << " T = " << alphaDeg << std::endl;
   }
 
-  // Voxel info
-  VoxelTable* voxelTable = VoxelTable::Instance();
-  fNVoxels = voxelTable->GetVoxels().size();
+  // Pixel info
+  PixelTable* pixelTable = PixelTable::Instance();
+  fNPixels = pixelTable->GetPixels().size();
+  for (const auto& p : pixelTable->GetPixels())
+  {
+    fPixelX[p.ID()-1] = p.X();
+    fPixelX[p.ID()-1] = p.Y();
+  }
 
   // Fill reconstruction info
   Reconstructor reconstructor = g4Helper->GetReconstructor();
@@ -126,11 +131,10 @@ void Analyzer::Fill(const unsigned& e)
     fMLY = reconstructor.Y();
     fMLR = reconstructor.R();
     fMLT = reconstructor.Theta();
-    std::vector<float> voxelEstimates = reconstructor.VoxelEstimates();
-    for (unsigned k = 0; k < voxelEstimates.size(); k++)
+    std::vector<float> pixelEstimates = reconstructor.PixelEstimates();
+    for (unsigned k = 0; k < pixelEstimates.size(); k++)
     {
-      fMLIntensities[k] = voxelEstimates[k];
-      std::cout << voxelEstimates[k] << std::endl;
+      fMLIntensities[k] = pixelEstimates[k];
     }
   }
   
@@ -140,8 +144,8 @@ void Analyzer::Fill(const unsigned& e)
 void Analyzer::ResetVars()
 {
   fEvent   = -99999;
-  fVoxelID = -99999;
-  fNVoxels = -99999;
+  fPixelID = -99999;
+  fNPixels = -99999;
   fNMPPCs  = -99999;
   fDiskRadius = -99999;
   fNPrimaries = -99999;
@@ -159,9 +163,11 @@ void Analyzer::ResetVars()
   fMLY = -99999;
   fMLR = -99999;
   fMLT = -99999;
-  for (unsigned k = 0; k < kMaxNVoxels; k++)
+  for (unsigned k = 0; k < kMaxNPixels; k++)
   {
     fMLIntensities[k] = -99999;
+    fPixelX[k] = -99999;
+    fPixelY[k] = -99999;
   }
 }
 

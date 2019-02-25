@@ -1,22 +1,22 @@
 //
-// File: Voxel.cxx
+// File: Pixel.cxx
 //
 // Author: Hunter Sullivan
 //
-// Description: Voxel structure.
+// Description: Pixel structure.
 //
 
-#include "Voxel.h"
+#include "Pixel.h"
 
 namespace majorana
 {
 
-Voxel::Voxel(const unsigned& voxelID,
+Pixel::Pixel(const unsigned& pixelID,
              const float&    x, 
              const float&    y, 
              const float&    r, 
              const float&    theta)
- : fID(voxelID),
+ : fID(pixelID),
    fX(x), 
    fY(y), 
    fR(r), 
@@ -25,10 +25,10 @@ Voxel::Voxel(const unsigned& voxelID,
   fReferenceTable.clear();
 }
 
-Voxel::~Voxel()
+Pixel::~Pixel()
 {}
 
-void Voxel::AddReference(const unsigned& mppcID, const float& prob) 
+void Pixel::AddReference(const unsigned& mppcID, const float& prob) 
 {
   if (mppcID > fReferenceTable.size())
   {

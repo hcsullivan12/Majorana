@@ -1,9 +1,9 @@
 // 
-// File: Voxel.h
+// File: Pixel.h
 //
 // Author: Hunter Sullivan
 //
-// Description: Simple voxel structure. 
+// Description: Simple pixel structure. 
 //
 
 #ifndef VOXEL_H
@@ -14,16 +14,16 @@
 namespace majorana
 {
 
-class Voxel 
+class Pixel 
 {
 
 public:
-	Voxel(const unsigned& id,
+	Pixel(const unsigned& id,
         const float& x, 
         const float& y, 
         const float& r, 
         const float& theta);
-	~Voxel();
+	~Pixel();
 
 	float       X()     const { return fX; };
 	float       Y()     const { return fY; };
@@ -41,14 +41,14 @@ public:
 
 private:
     
-  float  fX;      ///< x position that this voxel is centered on
-  float  fY;      ///< y position that this voxel is centered on
-  float  fR;      ///< radius from center for this voxel
+  float  fX;      ///< x position that this pixel is centered on
+  float  fY;      ///< y position that this pixel is centered on
+  float  fR;      ///< radius from center for this pixel
   float  fTheta;  ///< angle with respect to sipm 1 (in degrees)
-  float  fSize;   ///< size of voxel 
+  float  fSize;   ///< size of pixel 
   float  fIntensity;    ///< if reconstructing, this is the reconstructed intensity
   unsigned fID;         ///< id number
-  unsigned fNPrimaries; ///< number of primaries to launch from this voxel
+  unsigned fNPrimaries; ///< number of primaries to launch from this pixel
   std::vector<float> fReferenceTable; ///< stores mppc to probability map
 };
 }

@@ -1,4 +1,4 @@
-voxelID mppcID probability
+pixelID mppcID probability
 1 1 0.0004992
 1 2 0.00054
 1 3 0.0004744

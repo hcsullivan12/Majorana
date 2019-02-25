@@ -26,12 +26,12 @@ Reconstructor::~Reconstructor()
 {}
 
 void Reconstructor::Initialize(const std::map<unsigned, unsigned>& data,
-                               const std::list<Voxel>& voxelList)
+                               const std::list<Pixel>& pixelList)
 {
   fData      = data;
-  fVoxelList = voxelList;
-  fVoxelEstimates.clear();
-  fVoxelEstimates.resize(fVoxelList.size());
+  fPixelList = pixelList;
+  fPixelEstimates.clear();
+  fPixelEstimates.resize(fPixelList.size());
   fDenomSums.clear();
   fDenomSums.resize(fData.size());
   fNumber = 0;
@@ -41,7 +41,7 @@ void Reconstructor::Reconstruct()
 {
   // The procedure:
   //
-  //   1) Make initial estimates for voxel intensities
+  //   1) Make initial estimates for pixel intensities
   //   2) Make next prediction
   //   3) Check for convergence
   //        *if yes, save, return
@@ -49,20 +49,20 @@ void Reconstructor::Reconstruct()
   //
 
   // 1)
-  InitVoxelList();
+  InitPixelList();
   // 2)
   unsigned iteration(0);
   Estimate(iteration);
 }
 
-void Reconstructor::InitVoxelList()
+void Reconstructor::InitPixelList()
 {
   // We will fill the first iteration
   // We will sample from a uniform distribution
   // of the total amount of light seen at the
   // photodetectors
   // But I think we have to bias this slightly:
-  //   voxels near the sipms need to have low intensities
+  //   pixels near the sipms need to have low intensities
   //   since the probabilities of detection are relatively 
   //   high there ??
   unsigned totalPE(0);
@@ -70,7 +70,7 @@ void Reconstructor::InitVoxelList()
 
   // Sample
   std::srand(time(NULL));
-  for (auto& v : fVoxelList)
+  for (auto& v : fPixelList)
   {
     //if (v.R() > 12) { v.SetIntensity(rand()%10 + 1); continue;}
     double u = rand()%totalPE+1;
@@ -94,22 +94,22 @@ void Reconstructor::Estimate(unsigned& iteration)
   //MakePlots("/home/hunter/projects/Majorana/output/recoAnaTree.root");
 
   // To reduce complexity, find denominator sum seperately
-  // Old: O(nSiPMS*nVoxels*nVoxels)
-  // New: O(2*nSiPMS*nVoxels)
+  // Old: O(nSiPMS*nPixels*nPixels)
+  // New: O(2*nSiPMS*nPixels)
   for (const auto& d : fData)
   {
     float denomSum = DenominatorSum(d.first); 
     fDenomSums[d.first-1] = denomSum;
   }
-  for (auto& voxel : fVoxelList)
+  for (auto& pixel : fPixelList)
   {
-    // voxelID
-    unsigned voxelID = voxel.ID();
-    float    theEst  = voxel.Intensity(); 
-    std::vector<float> opRefTable = voxel.ReferenceTable();
+    // pixelID
+    unsigned pixelID = pixel.ID();
+    float    theEst  = pixel.Intensity(); 
+    std::vector<float> opRefTable = pixel.ReferenceTable();
     // Apply the money formula
-    float nextEst = MoneyFormula(voxelID, theEst, opRefTable);
-    fVoxelEstimates[voxelID-1] = nextEst;
+    float nextEst = MoneyFormula(pixelID, theEst, opRefTable);
+    fPixelEstimates[pixelID-1] = nextEst;
   }
 
   // 3) 
@@ -136,29 +136,29 @@ void Reconstructor::CalculateLL()
 
 float Reconstructor::CalculateMean(const unsigned& sipmID)
 {
-  // Loop over voxels
+  // Loop over pixels
   float sum(0);
-  for (const auto& voxel : fVoxelList)
+  for (const auto& pixel : fPixelList)
   {
-    auto opRefTable = voxel.ReferenceTable();
-    sum = sum + opRefTable[sipmID-1]*voxel.Intensity();
+    auto opRefTable = pixel.ReferenceTable();
+    sum = sum + opRefTable[sipmID-1]*pixel.Intensity();
   }
 }
 
 void Reconstructor::Reset()
 {
   // Update the intensities
-  for (auto& v : fVoxelList)
+  for (auto& v : fPixelList)
   {
     unsigned id = v.ID();
-    float nextEst = fVoxelEstimates[id-1];
+    float nextEst = fPixelEstimates[id-1];
     v.SetIntensity(nextEst);
   }
-  fVoxelEstimates.clear();
-  fDenomSums.clear();
+  //fPixelEstimates.clear();
+  //fDenomSums.clear();
 }
 
-float Reconstructor::MoneyFormula(const unsigned& voxelID, 
+float Reconstructor::MoneyFormula(const unsigned& pixelID, 
                                   const float&    theEst,
                                   const std::vector<float>& opRefTable)
 {
@@ -185,13 +185,13 @@ float Reconstructor::MoneyFormula(const unsigned& voxelID,
 
 float Reconstructor::DenominatorSum(const unsigned& mppcID)
 {
-  // Loop over voxels
+  // Loop over pixels
   float denomSum(0);
-  for (const auto& voxel : fVoxelList)
+  for (const auto& pixel : fPixelList)
   {
-    float theEst = voxel.Intensity();
+    float theEst = pixel.Intensity();
     float p(0);
-    auto opRefTable = voxel.ReferenceTable();
+    auto opRefTable = pixel.ReferenceTable();
     if (mppcID > opRefTable.size())
     {
       std::cerr << "Uh oh! Could not find MPPC" 
@@ -215,7 +215,7 @@ void Reconstructor::MakePlots(const std::string& filename)
   std::string name = "hist"+std::to_string(fNumber);
   TH2F hist(name.c_str(), name.c_str(), n, -14.5, 14.5, n, -14.5, 14.5);
 
-  for (const auto& v : fVoxelList)
+  for (const auto& v : fPixelList)
   {
     unsigned xbin = hist.GetXaxis()->FindBin(v.X());
     unsigned ybin = hist.GetYaxis()->FindBin(v.Y());

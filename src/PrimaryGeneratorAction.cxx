@@ -40,7 +40,7 @@ void PrimaryGeneratorAction::Reset(const G4double& r,
                                    const G4double& y,
                                    const G4double& z,
                                    const G4int&    n,
-                                   const G4double& voxelSize)
+                                   const G4double& pixelSize)
 {
   fSourcePositionRTZ.clear();
   fSourcePositionXYZ.clear();
@@ -53,7 +53,7 @@ void PrimaryGeneratorAction::Reset(const G4double& r,
   fSourcePositionXYZ.push_back(z);
   
   fNPrimaries = n;
-  fVoxelSize  = voxelSize; 
+  fPixelSize  = pixelSize; 
 }
 
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
@@ -74,7 +74,7 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
   {
     // Smear position of this photon
     // If source mode is point, gaussian smear
-    // If source mode is voxel, uniform smear
+    // If source mode is pixel, uniform smear
     // Initial z will be slightly below top
     G4double x(0), y(0);
     if (fSourceMode == "point")
@@ -84,10 +84,10 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
     }
     else
     {
-      G4double a1 = fSourcePositionXYZ[0] - fVoxelSize/2;
-      G4double b1 = fSourcePositionXYZ[0] + fVoxelSize/2;
-      G4double a2 = fSourcePositionXYZ[1] - fVoxelSize/2;
-      G4double b2 = fSourcePositionXYZ[1] + fVoxelSize/2;
+      G4double a1 = fSourcePositionXYZ[0] - fPixelSize/2;
+      G4double b1 = fSourcePositionXYZ[0] + fPixelSize/2;
+      G4double a2 = fSourcePositionXYZ[1] - fPixelSize/2;
+      G4double b2 = fSourcePositionXYZ[1] + fPixelSize/2;
 
       // smear
       //x = flat.fire(a1, b1);

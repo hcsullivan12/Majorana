@@ -13,7 +13,7 @@
 
 // This is so we don't run into any seg faults 
 static const int kMaxNMPPCs  = 128;
-static const int kMaxNVoxels = 10000;
+static const int kMaxNPixels = 10000;
 
 namespace majorana {
 
@@ -30,8 +30,10 @@ class Analyzer
 
     TTree* fAnaTree;
     int    fEvent;
-    int    fVoxelID;
-    int    fNVoxels;
+    int    fPixelID;
+    int    fNPixels;
+    double fPixelX[kMaxNPixels];
+    double fPixelY[kMaxNPixels];
     int    fNMPPCs;
     double fDiskRadius;
     int    fNPrimaries;
@@ -45,7 +47,7 @@ class Analyzer
     double fMLY;
     double fMLR;
     double fMLT;
-    double fMLIntensities[kMaxNVoxels];
+    double fMLIntensities[kMaxNPixels];
     std::string fSimulateOutputPath;
 };
 }

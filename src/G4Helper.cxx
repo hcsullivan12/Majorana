@@ -9,7 +9,7 @@
 #include "G4Helper.h"
 #include "Analyzer.h"
 #include "OpDetPhotonTable.h"
-#include "VoxelTable.h"
+#include "PixelTable.h"
 #include "Configuration.h"
 #include "Reconstructor.h"
 
@@ -127,22 +127,22 @@ void G4Helper::RunG4()
   {
     G4cout << "\n****  EVENT #" << e << "  ****" << G4endl;
     // Reset the generator
-    G4double r(0), thetaDeg(0), x(0), y(0), z(0), voxelSize(0);
+    G4double r(0), thetaDeg(0), x(0), y(0), z(0), pixelSize(0);
     G4int    n(0);
-    if (config->SourceMode() == "voxel")
+    if (config->SourceMode() == "pixel")
     {
-      // Get the voxel table
-      VoxelTable* voxelTable = VoxelTable::Instance();
-      const Voxel* voxel     = voxelTable->GetVoxel(steeringTable[e].voxelID);
+      // Get the pixel table
+      PixelTable* pixelTable = PixelTable::Instance();
+      const Pixel* pixel     = pixelTable->GetPixel(steeringTable[e].pixelID);
 
-      r         = cm*voxel->R();
-      thetaDeg  = deg*voxel->Theta();
-      x         = cm*voxel->X();
-      y         = cm*voxel->Y();
+      r         = cm*pixel->R();
+      thetaDeg  = deg*pixel->Theta();
+      x         = cm*pixel->X();
+      y         = cm*pixel->Y();
       z         = fDetector->WheelGeometry()->Thickness();
       n         = steeringTable[e].n;
-      voxelSize = cm*voxel->Size(); 
-      std::cout << "voxelID = " << voxel->ID() << std::endl;
+      pixelSize = cm*pixel->Size(); 
+      std::cout << "pixelID = " << pixel->ID() << std::endl;
     }
     else 
     {
@@ -153,7 +153,7 @@ void G4Helper::RunG4()
       z         = fDetector->WheelGeometry()->Thickness();
       n         = steeringTable[e].n;
     }
-    fGeneratorAction->Reset(r, thetaDeg, x, y, z, n, voxelSize);
+    fGeneratorAction->Reset(r, thetaDeg, x, y, z, n, pixelSize);
   
     // Start run!
     fRunManager->BeamOn(1);
@@ -164,14 +164,14 @@ void G4Helper::RunG4()
     {
       std::cout << "\nReconstructing...\n";
 
-      // Pass data and voxelization schema
+      // Pass data and pixelization schema
       auto tempData = photonTable->GetPhotonsDetected();
       std::map<unsigned, unsigned> data;
       for (const auto& d : tempData) data.emplace(d.first, d.second.size());
-      VoxelTable* voxelTable = VoxelTable::Instance();
-      auto voxelList = voxelTable->GetVoxels();
+      PixelTable* pixelTable = PixelTable::Instance();
+      auto pixelList = pixelTable->GetPixels();
 
-      fReconstructor.Initialize(data, voxelList);
+      fReconstructor.Initialize(data, pixelList);
       fReconstructor.Reconstruct(); 
       fReconstructor.MakePlots(fRecoAnaTreePath);
     }

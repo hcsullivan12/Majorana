@@ -9,7 +9,7 @@
 #ifndef RECONSTRUCTOR_H
 #define RECONSTRUCTOR_H
 
-#include "Voxel.h"
+#include "Pixel.h"
 
 #include <map>
 #include <list>
@@ -26,7 +26,7 @@ public:
   
   void Reconstruct();
   void Initialize(const std::map<unsigned, unsigned>& data,
-                  const std::list<Voxel>& voxelList);
+                  const std::list<Pixel>& pixelList);
   void MakePlots(const std::string& filename);
 
   const double   ML()    const { return fMLLogLikelihood; }
@@ -34,15 +34,15 @@ public:
   const float    Y()     const { return fMLY; }
   const float    R()     const { return fMLRadius; }
   const float    Theta() const { return fMLTheta; }
-  const std::vector<float> VoxelEstimates() const { return fVoxelEstimates; }
+  const std::vector<float> PixelEstimates() const { return fPixelEstimates; }
     
 private:
-  void InitVoxelList();
+  void InitPixelList();
   void Estimate(unsigned& iteration);  
   void CalculateLL();
   float CalculateMean(const unsigned& sipmID);
   float DenominatorSum(const unsigned& sipmID);
-  float MoneyFormula(const unsigned& voxelID,
+  float MoneyFormula(const unsigned& pixelID,
                      const float& theEst,
                      const std::vector<float>& referenceTable);
   bool CheckConvergence();
@@ -54,8 +54,8 @@ private:
   float                        fMLY;             //< MLE for y (cm)
   float                        fMLRadius;        //< MLE for r (cm)
   float                        fMLTheta;         //< MLE for theta (deg)
-  std::list<Voxel>             fVoxelList;          //< list of created voxels
-  std::vector<float>           fVoxelEstimates;     //< 
+  std::list<Pixel>             fPixelList;          //< list of created pixels
+  std::vector<float>           fPixelEstimates;     //< 
   std::vector<float>           fDenomSums;
   std::map<unsigned, unsigned> fData;               //< measured counts (sipm, np.e.)
   unsigned fNumber;

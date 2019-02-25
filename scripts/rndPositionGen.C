@@ -32,7 +32,7 @@ void rndPositionGen(unsigned nPositions)
     Double_t x, y;
     GetPosition(x,y);
     
-    file << x << " " << y << 50000 << std::endl;
+    file << x << " " << y << " 50000" << std::endl;
   }
 
   file.close();

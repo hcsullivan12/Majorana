@@ -2,7 +2,7 @@
   "simulateOutputPath": "/home/hunter/projects/Majorana/output/simulateOutput.root",
   "recoAnaTreePath":    "/home/hunter/projects/Majorana/output/recoAnaTree.root",
   "steeringFilePath":   "/home/hunter/projects/Majorana/config/LightSourceSteering.txt",
-  "voxelizationPath":   "/home/hunter/projects/Majorana/config/voxelization.txt",
+  "pixelizationPath":   "/home/hunter/projects/Majorana/config/pixelization.txt",
   "opReferenceTablePath": "/home/hunter/projects/Majorana/production/02_24_opReferenceTable.txt",
   "visMacroPath":       "/home/hunter/projects/Majorana/vis.mac",
   "sourceMode":         "point",
