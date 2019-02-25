@@ -9,22 +9,30 @@
 #include "G4Helper.h"
 #include "Analyzer.h"
 #include "OpDetPhotonTable.h"
-#include "VoxelTable.h"
+#include "PixelTable.h"
 #include "Configuration.h"
 #include "Reconstructor.h"
+
+#include <assert.h>
 
 namespace majorana
 {
 
 G4Helper* G4Helper::instance = 0;
 
-G4Helper* G4Helper::Instance()
+G4Helper* G4Helper::CreateInstance()
 {
   if (instance == 0)
   {
     static G4Helper g4Helper;
     instance = &g4Helper;
   }
+  return instance;
+}
+
+G4Helper* G4Helper::Instance()
+{
+  assert(instance);
   return instance;
 }
 
@@ -38,11 +46,7 @@ G4Helper::G4Helper()
 {
   // Get config
   Configuration* config = Configuration::Instance();
-  if (!config)
-  {
-    G4cout << "Error! Configuration not initialized!" << G4endl;
-    std::exit(1);
-  }
+
   // Visualization and outputs
   fShowVis            = config->ShowVis();
   fVisMacroPath       = config->VisMacroPath();
@@ -108,7 +112,7 @@ void G4Helper::RunG4()
 {
   // Initialize photon table
   // This will help reduce overhead
-  OpDetPhotonTable* photonTable = OpDetPhotonTable::Instance();
+  OpDetPhotonTable* photonTable = OpDetPhotonTable::CreateInstance();
   // Get config
   Configuration* config = Configuration::Instance();
   // Get steering table
@@ -123,22 +127,22 @@ void G4Helper::RunG4()
   {
     G4cout << "\n****  EVENT #" << e << "  ****" << G4endl;
     // Reset the generator
-    G4double r(0), thetaDeg(0), x(0), y(0), z(0), voxelSize(0);
+    G4double r(0), thetaDeg(0), x(0), y(0), z(0), pixelSize(0);
     G4int    n(0);
-    if (config->SourceMode() == "voxel")
+    if (config->SourceMode() == "pixel")
     {
-      // Get the voxel table
-      VoxelTable* voxelTable = VoxelTable::Instance();
-      const Voxel* voxel     = voxelTable->GetVoxel(steeringTable[e].voxelID);
+      // Get the pixel table
+      PixelTable* pixelTable = PixelTable::Instance();
+      const Pixel* pixel     = pixelTable->GetPixel(steeringTable[e].pixelID);
 
-      r         = cm*voxel->R();
-      thetaDeg  = deg*voxel->Theta();
-      x         = cm*voxel->X();
-      y         = cm*voxel->Y();
+      r         = cm*pixel->R();
+      thetaDeg  = deg*pixel->Theta();
+      x         = cm*pixel->X();
+      y         = cm*pixel->Y();
       z         = fDetector->WheelGeometry()->Thickness();
       n         = steeringTable[e].n;
-      voxelSize = cm*voxel->Size(); 
-      std::cout << "voxelID = " << voxel->ID() << std::endl;
+      pixelSize = cm*pixel->Size(); 
+      std::cout << "pixelID = " << pixel->ID() << std::endl;
     }
     else 
     {
@@ -149,37 +153,30 @@ void G4Helper::RunG4()
       z         = fDetector->WheelGeometry()->Thickness();
       n         = steeringTable[e].n;
     }
-    fGeneratorAction->Reset(r, thetaDeg, x, y, z, n, voxelSize);
+    fGeneratorAction->Reset(r, thetaDeg, x, y, z, n, pixelSize);
   
     // Start run!
     fRunManager->BeamOn(1);
     //std::cin.get();
 
-    // Fill our tree
-    analyzer.Fill(e);
     // Reconstruct?
     if (Configuration::Instance()->Reconstruct())
     {
-      if (!VoxelTable::Instance())
-      {
-        G4cerr << "Error! VoxelTable not initialized! Canceling reconstruction." << G4endl;
-      }
-      else 
-      {
-        std::cout << "\nReconstructing...\n";
+      std::cout << "\nReconstructing...\n";
 
-        // Pass data and voxelization schema
-        auto tempData = photonTable->GetPhotonsDetected();
-        std::map<unsigned, unsigned> data;
-        for (const auto& d : tempData) data.emplace(d.first, d.second.size());
-        VoxelTable* voxelTable = VoxelTable::Instance();
-        auto voxelList = voxelTable->GetVoxels();
+      // Pass data and pixelization schema
+      auto tempData = photonTable->GetPhotonsDetected();
+      std::map<unsigned, unsigned> data;
+      for (const auto& d : tempData) data.emplace(d.first, d.second.size());
+      PixelTable* pixelTable = PixelTable::Instance();
+      auto pixelList = pixelTable->GetPixels();
 
-        Reconstructor reconstructor(data, voxelList);
-        reconstructor.Reconstruct(); 
-        reconstructor.MakePlots(fRecoAnaTreePath);
-      }
+      fReconstructor.Initialize(data, pixelList);
+      fReconstructor.Reconstruct(); 
+      fReconstructor.MakePlots(fRecoAnaTreePath);
     }
+    // Fill our ntuple
+    analyzer.Fill(e);
     // Clear the photon table!
     photonTable->Reset();
   }

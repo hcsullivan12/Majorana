@@ -3,8 +3,8 @@
 
 float    diskRadius = 14.5;
 float    inc        = 1.0;
-unsigned nEvents    = 1;
-unsigned nPrim      = 1000000;
+unsigned nEvents    = 25;
+unsigned nPrim      = 50000;
 
 TGraph* g = new TGraph(665);
 

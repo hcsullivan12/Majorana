@@ -32,6 +32,7 @@ class OpDetPhotonTable
 
   public:
     static OpDetPhotonTable* Instance();
+    static OpDetPhotonTable* CreateInstance();
     ~OpDetPhotonTable();
 
     void AddPhoton(const unsigned& opchannel, const Photon& photon);

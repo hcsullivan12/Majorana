@@ -7,9 +7,11 @@
 //
 
 #include "Configuration.h"
+
 #include <iomanip>
 #include <math.h>
 #include <fstream>
+#include <assert.h>
 
 // Preprocessing variables
 #ifdef VERSION
@@ -21,13 +23,19 @@ namespace majorana
 
 Configuration* Configuration::instance = 0;
 
-Configuration* Configuration::Instance()
+Configuration* Configuration::CreateInstance()
 {
   if (instance == 0)
   {
     static Configuration config;
     instance = &config;
   }
+  return instance;
+}
+
+Configuration* Configuration::Instance()
+{
+  assert(instance);
   return instance;
 }
 
@@ -89,7 +97,8 @@ void Configuration::ReadJSONFile()
   }
   if (fShowVis)                               fVisMacroPath     = GetJSONMember("visMacroPath", rapidjson::kStringType).GetString();
   if (fSourceMode == "point")                 fSourcePosSigma   = cm*GetJSONMember("sourcePosSigma", rapidjson::kNumberType).GetDouble(); 
-  if (fSourceMode == "point" || fReconstruct) fVoxelizationPath = GetJSONMember("voxelizationPath", rapidjson::kStringType).GetString(); 
+  if (fSourceMode == "point" && fReconstruct) fPixelizationPath = GetJSONMember("pixelizationPath", rapidjson::kStringType).GetString();
+  if (fSourceMode == "pixel") fPixelizationPath = GetJSONMember("pixelizationPath", rapidjson::kStringType).GetString(); 
 }
 
 const rapidjson::Value& Configuration::GetJSONMember(const std::string&     memberName,
@@ -160,7 +169,7 @@ void Configuration::CheckConfiguration()
   if (fMPPCHalfLength < 0) { std::cerr << "ERROR. MPPC areas < 0."      << std::endl; exit(1); }
   if (fDiskRadius <= 0) { std::cerr << "ERROR. Disk radius < 0." << std::endl; exit(1); }
   if (fDiskThickness <= 0) { std::cerr << "ERROR. Disk thickness < 0." << std::endl; exit(1); }
-  if (fSourceMode != "voxel" &&
+  if (fSourceMode != "pixel" &&
       fSourceMode != "point") { std::cerr << "ERROR. Source mode listed as \'" << fSourceMode << "\'." << std::endl; exit(1); }
   if (fSurfaceRoughness < 0 || fSurfaceRoughness > 1) { std::cerr << "ERROR. 0 < Surface roughness < 1." << std::endl; exit(1); }
   if (fSurfaceAbsorption < 0 || fSurfaceAbsorption > 1) { std::cerr << "ERROR. 0 < Surface absorption < 1." << std::endl; exit(1); }
@@ -209,20 +218,20 @@ void Configuration::ReadSteeringFile()
   
   // We have different modes here:
   //
-  //   SteeringFile in voxel mode
-  //        voxelID n
+  //   SteeringFile in pixel mode
+  //        pixelID n
   //   SteeringFile in point mode
   //        r theta n or x y n
-  if (fSourceMode == "voxel")
+  if (fSourceMode == "pixel")
   {
     // First read top line 
     std::string string1, string2;
     std::getline(f, string1, ' ');
     std::getline(f, string2);
-    if (string1 != "voxelID" || string2 != "n")
+    if (string1 != "pixelID" || string2 != "n")
     {
-      std::cout << "Error! LightSteeringFile in voxel mode must have " 
-             << "\'voxelID n\' on the top row.\n"
+      std::cout << "Error! LightSteeringFile in pixel mode must have " 
+             << "\'pixelID n\' on the top row.\n"
              << std::endl;
       exit(1);
     }
@@ -230,11 +239,11 @@ void Configuration::ReadSteeringFile()
     while (std::getline(f, string1, ' '))
     {
       std::getline(f, string2);
-      G4int voxelID = std::stof(string1);
+      G4int pixelID = std::stof(string1);
       G4int n       = std::stof(string2);
 
       SteeringTableIndex s;
-      s.voxelID = voxelID;
+      s.pixelID = pixelID;
       s.n       = n;
       fSteeringTable.push_back(s);
     }
