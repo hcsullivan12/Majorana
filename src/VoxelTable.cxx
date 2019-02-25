@@ -9,6 +9,7 @@
 #include "VoxelTable.h"
 
 #include <fstream>
+#include <assert.h>
 
 #include "TMath.h"
 
@@ -19,7 +20,7 @@ namespace majorana
 
 VoxelTable* VoxelTable::instance = 0;
 
-VoxelTable* VoxelTable::Instance()
+VoxelTable* VoxelTable::CreateInstance()
 {
   if (instance == 0)
   {
@@ -29,15 +30,21 @@ VoxelTable* VoxelTable::Instance()
   return instance;
 }
 
+VoxelTable* VoxelTable::Instance()
+{
+  assert(instance);
+  return instance;
+}
+
 VoxelTable::VoxelTable()
 {
-  m_voxelList.clear();
+  fVoxelList.clear();
 }
 
 Voxel* VoxelTable::GetVoxel(const unsigned& id) 
 {
-  auto it = std::find_if(m_voxelList.begin(), m_voxelList.end(), [id](const Voxel& voxel){ return voxel.ID() == id; }); 
-  if (it == m_voxelList.end())
+  auto it = std::find_if(fVoxelList.begin(), fVoxelList.end(), [id](const Voxel& voxel){ return voxel.ID() == id; }); 
+  if (it == fVoxelList.end())
   {
     G4cout << "Voxel::GetVoxel() Error. Voxel #" << id << " not initialized!" << G4endl;
   }
@@ -47,7 +54,7 @@ Voxel* VoxelTable::GetVoxel(const unsigned& id)
 void VoxelTable::LoadReferenceTable(const std::string& path)
 {
   // Make sure voxels have been initialized
-  if (m_voxelList.size() == 0)
+  if (fVoxelList.size() == 0)
   {
     G4cerr << "Error! Voxels have not been initialized!\n" << G4endl;
     exit(1);
@@ -142,24 +149,24 @@ void VoxelTable::Initialize(const std::string& voxelizationPath)
     if (x >= 0 && y <  0) thetaDeg = 360 - thetaDeg; 
  
     Voxel v(voxelID, x, y, r, thetaDeg);
-    m_voxelList.emplace_back(v);
+    fVoxelList.emplace_back(v);
   }
   f.close();
 
   // Compute size 
   float min = std::numeric_limits<float>::max(); 
-  if (m_voxelList.size() > 0)
+  if (fVoxelList.size() > 0)
   {
-    float x1  = m_voxelList.front().X();
-    for (const auto& v : m_voxelList)
+    float x1  = fVoxelList.front().X();
+    for (const auto& v : fVoxelList)
     {
       float diff = std::abs(x1 - v.X());
       if (diff < min && diff > 0) min = diff;
     }
-    for (auto& v : m_voxelList) v.SetSize(min);
+    for (auto& v : fVoxelList) v.SetSize(min);
   }
 
-  G4cout << "Initialized " << m_voxelList.size() << " " << min << "x" << min << "cm2 voxels..." << G4endl;
+  G4cout << "Initialized " << fVoxelList.size() << " " << min << "x" << min << "cm2 voxels..." << G4endl;
 }
 
 VoxelTable::~VoxelTable()

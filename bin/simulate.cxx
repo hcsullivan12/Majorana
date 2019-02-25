@@ -22,7 +22,7 @@ int main(int argc, char **argv)
   // Handle runtime args
   HandleArgs(argc, argv); 
   // Initialize configuration
-  majorana::Configuration* config = majorana::Configuration::Instance();
+  majorana::Configuration* config = majorana::Configuration::CreateInstance();
   // Pass visualization
   config->SetVisualization(showVis);
   config->Initialize(std::string(argv[1]));
@@ -32,7 +32,7 @@ int main(int argc, char **argv)
   if (config->SourceMode() == "voxel")
   {
     // Initialize voxels so we can make the reference table
-    majorana::VoxelTable* voxelTable = majorana::VoxelTable::Instance();
+    majorana::VoxelTable* voxelTable = majorana::VoxelTable::CreateInstance();
     voxelTable->Initialize(config->VoxelizationPath());
   }
   // If we're wanting to reconstruct in point mode, it's 
@@ -40,12 +40,12 @@ int main(int argc, char **argv)
   // in voxel table 
   if (config->SourceMode() == "point" && config->Reconstruct())
   {
-    majorana::VoxelTable* voxelTable = majorana::VoxelTable::Instance();
+    majorana::VoxelTable* voxelTable = majorana::VoxelTable::CreateInstance();
     voxelTable->Initialize(config->VoxelizationPath());
     voxelTable->LoadReferenceTable(config->OpReferenceTablePath());
   }
   // Start G4
-  majorana::G4Helper* g4Helper = majorana::G4Helper::Instance();
+  majorana::G4Helper* g4Helper = majorana::G4Helper::CreateInstance();
   g4Helper->StartG4();
 
   return 0;

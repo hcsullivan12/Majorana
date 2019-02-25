@@ -12,6 +12,7 @@
 #include "globals.hh"
 
 #include <iostream> 
+#include <assert.h>
 
 namespace majorana 
 {
@@ -25,13 +26,19 @@ Photon::~Photon()
 
 OpDetPhotonTable* OpDetPhotonTable::instance = 0;
 
-OpDetPhotonTable* OpDetPhotonTable::Instance()
+OpDetPhotonTable* OpDetPhotonTable::CreateInstance()
 {
   if (instance == 0)
   {
     static OpDetPhotonTable opDetPhotonTable;
     instance = &opDetPhotonTable;
   }
+  return instance;
+}
+
+OpDetPhotonTable* OpDetPhotonTable::Instance()
+{
+  assert(instance);
   return instance;
 }
 
@@ -58,7 +65,7 @@ void OpDetPhotonTable::Print()
 {
   for (const auto& k : fPhotonsDetected)
   {
-    G4cout << "MPPC" << k.first << " detected " << k.second.size() << " photons" << G4endl;
+    std::cout << "MPPC" << k.first << " detected " << k.second.size() << " photons\n";
   }
 }
 

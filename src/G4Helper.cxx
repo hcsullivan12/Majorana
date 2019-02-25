@@ -13,18 +13,26 @@
 #include "Configuration.h"
 #include "Reconstructor.h"
 
+#include <assert.h>
+
 namespace majorana
 {
 
 G4Helper* G4Helper::instance = 0;
 
-G4Helper* G4Helper::Instance()
+G4Helper* G4Helper::CreateInstance()
 {
   if (instance == 0)
   {
     static G4Helper g4Helper;
     instance = &g4Helper;
   }
+  return instance;
+}
+
+G4Helper* G4Helper::Instance()
+{
+  assert(instance);
   return instance;
 }
 
@@ -38,11 +46,7 @@ G4Helper::G4Helper()
 {
   // Get config
   Configuration* config = Configuration::Instance();
-  if (!config)
-  {
-    G4cout << "Error! Configuration not initialized!" << G4endl;
-    std::exit(1);
-  }
+
   // Visualization and outputs
   fShowVis            = config->ShowVis();
   fVisMacroPath       = config->VisMacroPath();
@@ -108,7 +112,7 @@ void G4Helper::RunG4()
 {
   // Initialize photon table
   // This will help reduce overhead
-  OpDetPhotonTable* photonTable = OpDetPhotonTable::Instance();
+  OpDetPhotonTable* photonTable = OpDetPhotonTable::CreateInstance();
   // Get config
   Configuration* config = Configuration::Instance();
   // Get steering table
@@ -155,31 +159,24 @@ void G4Helper::RunG4()
     fRunManager->BeamOn(1);
     //std::cin.get();
 
-    // Fill our tree
-    analyzer.Fill(e);
     // Reconstruct?
     if (Configuration::Instance()->Reconstruct())
     {
-      if (!VoxelTable::Instance())
-      {
-        G4cerr << "Error! VoxelTable not initialized! Canceling reconstruction." << G4endl;
-      }
-      else 
-      {
-        std::cout << "\nReconstructing...\n";
+      std::cout << "\nReconstructing...\n";
 
-        // Pass data and voxelization schema
-        auto tempData = photonTable->GetPhotonsDetected();
-        std::map<unsigned, unsigned> data;
-        for (const auto& d : tempData) data.emplace(d.first, d.second.size());
-        VoxelTable* voxelTable = VoxelTable::Instance();
-        auto voxelList = voxelTable->GetVoxels();
+      // Pass data and voxelization schema
+      auto tempData = photonTable->GetPhotonsDetected();
+      std::map<unsigned, unsigned> data;
+      for (const auto& d : tempData) data.emplace(d.first, d.second.size());
+      VoxelTable* voxelTable = VoxelTable::Instance();
+      auto voxelList = voxelTable->GetVoxels();
 
-        Reconstructor reconstructor(data, voxelList);
-        reconstructor.Reconstruct(); 
-        reconstructor.MakePlots(fRecoAnaTreePath);
-      }
+      fReconstructor.Initialize(data, voxelList);
+      fReconstructor.Reconstruct(); 
+      fReconstructor.MakePlots(fRecoAnaTreePath);
     }
+    // Fill our ntuple
+    analyzer.Fill(e);
     // Clear the photon table!
     photonTable->Reset();
   }

@@ -23,12 +23,15 @@ DetectorConstruction::DetectorConstruction()
   fVolWorld(NULL),
   fPVWorld(NULL)
 {
+  // Initialize material manager
+  MaterialManager* matMan = MaterialManager::CreateInstance();
+
   // Pass configuration to our other volumes
   Configuration* config = Configuration::Instance();
   fWheel = new Wheel(config->NMPPCs(),
-                                 config->MPPCHalfLength(),
-                                 config->DiskRadius(), 
-                                 config->DiskThickness());
+                     config->MPPCHalfLength(),
+                     config->DiskRadius(), 
+                     config->DiskThickness());
 }
 
 DetectorConstruction::~DetectorConstruction()
@@ -53,11 +56,6 @@ void DetectorConstruction::InitializeMaterials()
 {
   // Construct materials
   MaterialManager* matMan = MaterialManager::Instance();
-
-  if (!matMan) 
-  {
-    G4cerr << "DetectorConstruction::InitializeMaterials() Error! Material manager not initialized!\n";
-  }
   matMan->ConstructMaterials();
 }
 

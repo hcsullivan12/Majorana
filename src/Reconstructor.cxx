@@ -19,20 +19,23 @@
 namespace majorana
 {
 
-Reconstructor::Reconstructor(const std::map<unsigned, unsigned>& data,
-                             const std::list<Voxel>& voxelList)
-: fData(data),
-  fVoxelList(voxelList)
+Reconstructor::Reconstructor()
+{}
+
+Reconstructor::~Reconstructor()
+{}
+
+void Reconstructor::Initialize(const std::map<unsigned, unsigned>& data,
+                               const std::list<Voxel>& voxelList)
 {
+  fData      = data;
+  fVoxelList = voxelList;
   fVoxelEstimates.clear();
   fVoxelEstimates.resize(fVoxelList.size());
   fDenomSums.clear();
   fDenomSums.resize(fData.size());
   fNumber = 0;
 }
-
-Reconstructor::~Reconstructor()
-{}
 
 void Reconstructor::Reconstruct()
 {
@@ -46,13 +49,13 @@ void Reconstructor::Reconstruct()
   //
 
   // 1)
-  Initialize();
+  InitVoxelList();
   // 2)
   unsigned iteration(0);
   Estimate(iteration);
 }
 
-void Reconstructor::Initialize()
+void Reconstructor::InitVoxelList()
 {
   // We will fill the first iteration
   // We will sample from a uniform distribution
@@ -76,7 +79,7 @@ void Reconstructor::Initialize()
   //***
   // TEMPORARY
   //***
-  MakePlots("/home/hunter/projects/Majorana/output/recoAnaTree.root");
+  //MakePlots("/home/hunter/projects/Majorana/output/recoAnaTree.root");
 }
 
 void Reconstructor::Estimate(unsigned& iteration)
@@ -88,7 +91,7 @@ void Reconstructor::Estimate(unsigned& iteration)
   CalculateLL();
 
   // Temp
-  MakePlots("/home/hunter/projects/Majorana/output/recoAnaTree.root");
+  //MakePlots("/home/hunter/projects/Majorana/output/recoAnaTree.root");
 
   // To reduce complexity, find denominator sum seperately
   // Old: O(nSiPMS*nVoxels*nVoxels)
@@ -128,7 +131,7 @@ void Reconstructor::CalculateLL()
     float mean = CalculateMean(d.first);
     sum = sum + d.second*std::log(mean) - mean;
   }
-  std::cout << sum << std::endl;
+  //std::cout << sum << std::endl;
 }
 
 float Reconstructor::CalculateMean(const unsigned& sipmID)

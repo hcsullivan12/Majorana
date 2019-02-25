@@ -7,9 +7,11 @@
 //
 
 #include "Configuration.h"
+
 #include <iomanip>
 #include <math.h>
 #include <fstream>
+#include <assert.h>
 
 // Preprocessing variables
 #ifdef VERSION
@@ -21,13 +23,19 @@ namespace majorana
 
 Configuration* Configuration::instance = 0;
 
-Configuration* Configuration::Instance()
+Configuration* Configuration::CreateInstance()
 {
   if (instance == 0)
   {
     static Configuration config;
     instance = &config;
   }
+  return instance;
+}
+
+Configuration* Configuration::Instance()
+{
+  assert(instance);
   return instance;
 }
 

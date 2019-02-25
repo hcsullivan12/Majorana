@@ -28,6 +28,7 @@ class Configuration
 {
   public:
     static Configuration* Instance();
+    static Configuration* CreateInstance();
     ~Configuration();
 
     struct SteeringTableIndex

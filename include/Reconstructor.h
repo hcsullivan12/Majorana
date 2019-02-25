@@ -21,23 +21,23 @@ class Reconstructor
 {
 
 public:
-  Reconstructor(const std::map<unsigned, unsigned>& data,
-                const std::list<Voxel>& voxelList);
+  Reconstructor();
   ~Reconstructor();
   
   void Reconstruct();
-  void Initialize();
+  void Initialize(const std::map<unsigned, unsigned>& data,
+                  const std::list<Voxel>& voxelList);
   void MakePlots(const std::string& filename);
 
-  const double   ML()    { return fMLLogLikelihood; }
-  const float    X()     { return fMLX; }
-  const float    Y()     { return fMLY; }
-  const float    R()     { return fMLRadius; }
-  const float    Theta() { return fMLTheta; }
-  const unsigned N0()    { return fMLN0; }
+  const double   ML()    const { return fMLLogLikelihood; }
+  const float    X()     const { return fMLX; }
+  const float    Y()     const { return fMLY; }
+  const float    R()     const { return fMLRadius; }
+  const float    Theta() const { return fMLTheta; }
+  const std::vector<float> VoxelEstimates() const { return fVoxelEstimates; }
     
 private:
-
+  void InitVoxelList();
   void Estimate(unsigned& iteration);  
   void CalculateLL();
   float CalculateMean(const unsigned& sipmID);

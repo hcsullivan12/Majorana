@@ -16,13 +16,13 @@ Voxel::Voxel(const unsigned& voxelID,
              const float&    y, 
              const float&    r, 
              const float&    theta)
- : m_id(voxelID),
-   m_x(x), 
-   m_y(y), 
-   m_r(r), 
-   m_theta(theta)
+ : fID(voxelID),
+   fX(x), 
+   fY(y), 
+   fR(r), 
+   fTheta(theta)
 {
-  m_referenceTable.clear();
+  fReferenceTable.clear();
 }
 
 Voxel::~Voxel()
@@ -30,11 +30,11 @@ Voxel::~Voxel()
 
 void Voxel::AddReference(const unsigned& mppcID, const float& prob) 
 {
-  if (mppcID > m_referenceTable.size())
+  if (mppcID > fReferenceTable.size())
   {
-    m_referenceTable.resize(mppcID);
+    fReferenceTable.resize(mppcID);
   } 
-  m_referenceTable[mppcID-1] = prob; 
+  fReferenceTable[mppcID-1] = prob; 
 };
 
 }

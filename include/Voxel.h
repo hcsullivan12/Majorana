@@ -25,31 +25,31 @@ public:
         const float& theta);
 	~Voxel();
 
-	float       X()     const { return m_x; };
-	float       Y()     const { return m_y; };
-  float       R()     const { return m_r; };
-  float       Theta() const { return m_theta; };
-  float       Size()  const { return m_size; };
-  unsigned    ID()    const { return m_id; };
-  unsigned    NPrimaries() const { return m_nPrimaries; };
-  float       Intensity() const { return m_intensity; };
-  std::vector<float> ReferenceTable() const { return m_referenceTable; };
+	float       X()     const { return fX; };
+	float       Y()     const { return fY; };
+  float       R()     const { return fR; };
+  float       Theta() const { return fTheta; };
+  float       Size()  const { return fSize; };
+  unsigned    ID()    const { return fID; };
+  unsigned    NPrimaries() const { return fNPrimaries; };
+  float       Intensity() const { return fIntensity; };
+  std::vector<float> ReferenceTable() const { return fReferenceTable; };
 
-  void SetSize(const float& s) { m_size = s; };
-  void SetIntensity(const float& i) { m_intensity = i; };
+  void SetSize(const float& s) { fSize = s; };
+  void SetIntensity(const float& i) { fIntensity = i; };
   void AddReference(const unsigned& mppcID, const float& prob);
 
 private:
     
-  float  m_x;      ///< x position that this voxel is centered on
-  float  m_y;      ///< y position that this voxel is centered on
-  float  m_r;      ///< radius from center for this voxel
-  float  m_theta;  ///< angle with respect to sipm 1 (in degrees)
-  float  m_size;   ///< size of voxel 
-  float  m_intensity;    ///< if reconstructing, this is the reconstructed intensity
-  unsigned m_id;         ///< id number
-  unsigned m_nPrimaries; ///< number of primaries to launch from this voxel
-  std::vector<float> m_referenceTable; ///< stores mppc to probability map
+  float  fX;      ///< x position that this voxel is centered on
+  float  fY;      ///< y position that this voxel is centered on
+  float  fR;      ///< radius from center for this voxel
+  float  fTheta;  ///< angle with respect to sipm 1 (in degrees)
+  float  fSize;   ///< size of voxel 
+  float  fIntensity;    ///< if reconstructing, this is the reconstructed intensity
+  unsigned fID;         ///< id number
+  unsigned fNPrimaries; ///< number of primaries to launch from this voxel
+  std::vector<float> fReferenceTable; ///< stores mppc to probability map
 };
 }
 

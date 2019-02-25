@@ -24,19 +24,20 @@ class VoxelTable
 
 public:
   static VoxelTable* Instance();
+  static VoxelTable* CreateInstance();
   ~VoxelTable();
 
   void Initialize(const std::string& voxelizationPath);
   void LoadReferenceTable(const std::string& path);
 
-  const std::list<Voxel>& GetVoxels() const { return m_voxelList; };
+  const std::list<Voxel>& GetVoxels() const { return fVoxelList; };
   Voxel*                  GetVoxel(const unsigned& id); 
   
 private:
   VoxelTable();
   static VoxelTable* instance;
 
-  std::list<Voxel> m_voxelList;
+  std::list<Voxel> fVoxelList;
 
 };
 }
