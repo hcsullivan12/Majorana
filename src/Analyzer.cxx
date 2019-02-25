@@ -27,8 +27,8 @@ Analyzer::Analyzer(const std::string& simOutputPath)
   fAnaTree = new TTree("anatree", "analysis tree");
   fAnaTree->Branch("event",      &fEvent, "event/I");
   fAnaTree->Branch("nPixels",    &fNPixels, "nPixels/I");
-  fAnaTree->Branch("pixelX", fPixelX, "pixelX/D");
-  fAnaTree->Branch("pixelY", fPixelY, "pixelY/D");
+  fAnaTree->Branch("pixelX", fPixelX, "pixelX[nPixels]/D");
+  fAnaTree->Branch("pixelY", fPixelY, "pixelY[nPixels]/D");
   fAnaTree->Branch("nMPPCs",     &fNMPPCs, "nMPPCs/I");
   fAnaTree->Branch("diskRadius", &fDiskRadius, "diskRadius/D");
   fAnaTree->Branch("nPrimaries", &fNPrimaries, "nPrimaries/I");
@@ -42,7 +42,7 @@ Analyzer::Analyzer(const std::string& simOutputPath)
   fAnaTree->Branch("mlY", &fMLY, "mlY/D");
   fAnaTree->Branch("mlR", &fMLR, "mlR/D");
   fAnaTree->Branch("mlT", &fMLT, "mlT/D");
-  fAnaTree->Branch("mlIntensities", fMLIntensities, "mlIntensities/D");
+  fAnaTree->Branch("mlIntensities", fMLIntensities, "mlIntensities[nPixels]/D");
 }
 
 Analyzer::~Analyzer()
@@ -120,7 +120,7 @@ void Analyzer::Fill(const unsigned& e)
   for (const auto& p : pixelTable->GetPixels())
   {
     fPixelX[p.ID()-1] = p.X();
-    fPixelX[p.ID()-1] = p.Y();
+    fPixelY[p.ID()-1] = p.Y();
   }
 
   // Fill reconstruction info
