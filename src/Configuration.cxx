@@ -18,6 +18,10 @@
 #define majoranaVersion VERSION
 #endif
 
+#ifdef PROJECTDIR
+#define majoranaDir PROJECTDIR
+#endif
+
 namespace majorana
 {
 
@@ -74,8 +78,9 @@ void Configuration::ReadJSONFile()
 {
   // Specific order 
   // CONVERT TO PROPER UNITS HERE
-  fSimulateOutputPath =    GetJSONMember("simulateOutputPath", rapidjson::kStringType).GetString();
-  fSteeringFilePath   =    GetJSONMember("steeringFilePath", rapidjson::kStringType).GetString();
+  // Prepend project directory
+  fSimulateOutputPath =    std::string(majoranaDir)+"/"+GetJSONMember("simulateOutputPath", rapidjson::kStringType).GetString();
+  fSteeringFilePath   =    std::string(majoranaDir)+"/"+GetJSONMember("steeringFilePath", rapidjson::kStringType).GetString();
   fSourceMode         =    GetJSONMember("sourceMode", rapidjson::kStringType).GetString();
 
   fNMPPCs             =    GetJSONMember("nMPPCs", rapidjson::kNumberType).GetUint();
@@ -92,13 +97,13 @@ void Configuration::ReadJSONFile()
 
   if (fReconstruct)  
   {
-    fRecoAnaTreePath      = GetJSONMember("recoAnaTreePath", rapidjson::kStringType).GetString();
-    fOpReferenceTablePath = GetJSONMember("opReferenceTablePath", rapidjson::kStringType).GetString();
+    fRecoAnaTreePath      = std::string(majoranaDir)+"/"+GetJSONMember("recoAnaTreePath", rapidjson::kStringType).GetString();
+    fOpReferenceTablePath = std::string(majoranaDir)+"/"+GetJSONMember("opReferenceTablePath", rapidjson::kStringType).GetString();
   }
-  if (fShowVis)                               fVisMacroPath     = GetJSONMember("visMacroPath", rapidjson::kStringType).GetString();
+  if (fShowVis)                               fVisMacroPath     = std::string(majoranaDir)+"/"+GetJSONMember("visMacroPath", rapidjson::kStringType).GetString();
   if (fSourceMode == "point")                 fSourcePosSigma   = cm*GetJSONMember("sourcePosSigma", rapidjson::kNumberType).GetDouble(); 
-  if (fSourceMode == "point" && fReconstruct) fPixelizationPath = GetJSONMember("pixelizationPath", rapidjson::kStringType).GetString();
-  if (fSourceMode == "pixel") fPixelizationPath = GetJSONMember("pixelizationPath", rapidjson::kStringType).GetString(); 
+  if (fSourceMode == "point" && fReconstruct) fPixelizationPath = std::string(majoranaDir)+"/"+GetJSONMember("pixelizationPath", rapidjson::kStringType).GetString();
+  if (fSourceMode == "pixel") fPixelizationPath = std::string(majoranaDir)+"/"+GetJSONMember("pixelizationPath", rapidjson::kStringType).GetString(); 
 }
 
 const rapidjson::Value& Configuration::GetJSONMember(const std::string&     memberName,
@@ -185,8 +190,17 @@ void Configuration::PrintConfiguration()
   std::cout << "Majorana Configuration:\n";
   std::cout << "SimulateOutputPath " << fSimulateOutputPath << std::endl
             << "SteeringFilePath   " << fSteeringFilePath   << std::endl
-            << "SourceMode         " << fSourceMode         << std::endl
-            << "SourcePosSigma     " << fSourcePosSigma/cm     << " cm"  << std::endl
+            << "SourceMode         " << fSourceMode         << std::endl;
+            if (fSourceMode == "pixel" || fReconstruct) std::cout << "PixelizationPath " << fPixelizationPath << std::endl;
+  std::cout << "Reconstruct        "; 
+            if (fReconstruct) 
+            { 
+              std::cout << "true\n"; 
+              std::cout << "RecoAnaTreePath    " << fRecoAnaTreePath << std::endl; 
+              std::cout << "OpReferenceTablePath " << fOpReferenceTablePath << std::endl;
+            }
+            else std::cout << "false\n";
+  std::cout << "SourcePosSigma     " << fSourcePosSigma/cm     << " cm"  << std::endl
             << "SourcePeakE        " << fSourcePeakE/eV        << " eV"  << std::endl
             << "SourcePeakESigma   " << fSourcePeakESigma/eV   << " eV"  << std::endl
             << "SurfaceRoughness   " << fSurfaceRoughness   << std::endl
@@ -194,15 +208,7 @@ void Configuration::PrintConfiguration()
             << "NumberOfMPPCs      " << fNMPPCs             << std::endl
             << "SipmHalfLength     " << fMPPCHalfLength/cm     << " cm" << std::endl
             << "DiskRadius         " << fDiskRadius/cm         << " cm"  << std::endl
-            << "DiskThickness      " << fDiskThickness/cm      << " cm"  << std::endl
-            << "Reconstruct        "; 
-  if (fReconstruct) 
-  { 
-    std::cout << "true\n"; 
-    std::cout << "RecoAnaTreePath    " << fRecoAnaTreePath << std::endl; 
-    std::cout << "OpReferenceTablePath " << fOpReferenceTablePath << std::endl;
-  }
-  else std::cout << "false\n";
+            << "DiskThickness      " << fDiskThickness/cm      << " cm"  << std::endl;
   std::cout << std::setfill('-') << std::setw(60) << "-" << std::setfill(' ')  << std::endl;
 }  
 
