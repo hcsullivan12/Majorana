@@ -1,3 +1,0 @@
-/home/hunter/projects/Majorana/build/CMakeFiles/rebuild_cache.dir
-/home/hunter/projects/Majorana/build/CMakeFiles/simulate.dir
-/home/hunter/projects/Majorana/build/CMakeFiles/edit_cache.dir

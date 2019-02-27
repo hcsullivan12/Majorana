@@ -50,17 +50,17 @@ An isotropic TPB emission generator simulates a slightly diffuse point-like sour
  cmake ..
  make
 ```
-Adjust the file paths and mode configuration in config/Configuration.json
+Adjust the file paths and mode configuration in `Configuration.json`
 ## Run the code
 ``` 
  ./simulate <path_to_config.json> --vis OFF // if you want visuals type ON instead of OFF
 ```
 		
 ## Configuration
-The simulation uses the LightSourceSteering.txt file for placement of the emission generator. 
-There are two simulation modes which require different formats for the LightSourceSteering.txt.
+The simulation uses the `LightSourceSteering.txt` file for placement of the emission generator. 
+There are two simulation modes which require different formats for the `LightSourceSteering.txt`.
 ### Point
-This mode place the center of the emission generator at the points listed in LightSourceSteering.txt, smearing the position using the sourcePosSigma parameter in config/Configuration.json, e.g.
+This mode place the center of the emission generator at the points listed in `LightSourceSteering.txt`, smearing the position using the sourcePosSigma parameter in `Configuration.json`, e.g.
 ```
 x y n
 0 0 5000
@@ -91,7 +91,7 @@ pixelID x y
 .
 ```
 
-Then the LightSourceSteering.txt file might read
+Then the `LightSourceSteering.txt` file might read
 
 ```
 pixelID n
@@ -112,10 +112,11 @@ Supply the following command at runtime
 ## Reconstruction
 Reconstruction uses a maximum likelihood method to reconstruct the light source position. The algorithm requires the probability that a photon leaving any position will be detected by any SiPM. 
 
-You must generate an optical reference table from the simulateOutput.root ntuple that was produced using a particular pixelization scheme in pixel mode. There is a sample script in script/makeOpRefTable/ that will produce the reference table. Simply make a class using the script/scripts/makeClass.C script that points to the ntuple, and copy over the code in the sample makeOpRefTable.C script. You will need to edit the parameters in the script to fit your application. The script also allows you to generate a reference table using fewer SiPMs than simulated. For example, if my ntuple was the result of a pixel simulation (iterating over all pixels) with 128 SiPMs and I wanted to generate a reference table of only 32 SiPMs (mocking a 32 SiPM setup), then I could set:
+You must generate an optical reference table from the `simulateOutput.root` ntuple that was produced using a particular pixelization scheme in pixel mode. There is a sample script in `script/makeOpRefTable/` that will produce the reference table. Simply make a class using the `scripts/makeClass.C` script that points to the ntuple, and copy over the code in the sample `makeOpRefTable.C`. You will need to edit the parameters in the script to fit your application. The script also allows you to generate a reference table using fewer SiPMs than simulated. For example, if my ntuple was the result of a pixel simulation (iterating over all pixels) with 128 SiPMs and I wanted to generate a reference table of only 32 SiPMs (mocking a 32 SiPM setup), then I could set:
 ```
 nSiPMs = 128 
 factor = 2 
 ```
+of course this only works if the number of SiPMs is a power of 2, e.g. `nSiPMs = 2^n`.
 
-Running this scipt will generate a text file named "<number_of_pixels>p_<number_of_sipms>s_opReferenceTable.txt." With the reconstruct variable set to true, the code will parse the reference table into a data structure that is fed into the reconstruction algorithm. 
+Running this script will generate a text file named `<number_of_pixels>p_<number_of_sipms>s_opReferenceTable.txt`. With the reconstruct variable set to true, the code will parse the reference table into a data structure that is fed into the reconstruction algorithm. 
