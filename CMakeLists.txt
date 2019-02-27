@@ -16,6 +16,12 @@ endif()
 include_directories(${Geant4_INCLUDE_DIRS})
 add_definitions(${Geant4_DEFINITIONS})
 
+if (DEFINED ENV{MAJORANADIR})
+  add_definitions(-DPROJECTDIR="$ENV{MAJORANADIR}")
+else()
+  message(FATAL_ERROR "Could not find MAJORANADIR environment variable")
+endif(DEFINED ENV{MAJORANADIR})
+
 # ROOT dependencies 
 list(APPEND CMAKE_MODULE_PATH $ENV{ROOTSYS}/etc/cmake)
 find_package(ROOT COMPONENTS REQUIRED)
@@ -32,7 +38,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 file(GLOB_RECURSE sources ${PROJECT_SOURCE_DIR}/src/*.cxx)
 file(GLOB_RECURSE headers ${PROJECT_SOURCE_DIR}/include/*.h)
-add_executable(simulate ${PROJECT_SOURCE_DIR}/bin/simulate.cxx ${sources} ${headers})
+add_executable(simulate ${PROJECT_SOURCE_DIR}/simulate.cxx ${sources} ${headers})
 
 target_link_libraries(simulate ${ROOT_LIBRARIES})
 target_link_libraries(simulate ${Geant4_LIBRARIES})
