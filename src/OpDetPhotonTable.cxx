@@ -63,9 +63,9 @@ void OpDetPhotonTable::AddPhoton(const unsigned& opchannel, const Photon& photon
 
 void OpDetPhotonTable::Print()
 {
-  for (const auto& k : fPhotonsDetected)
+  //for (const auto& k : fPhotonsDetected)
   {
-    std::cout << "MPPC" << k.first << " detected " << k.second.size() << " photons\n";
+    //std::cout << "MPPC" << k.first << " detected " << k.second.size() << " photons\n";
   }
 }
 

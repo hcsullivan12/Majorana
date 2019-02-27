@@ -1,0 +1,76 @@
+#define xAxisAna_cxx
+#include "xAxisAna.h"
+#include <TH2.h>
+#include <TStyle.h>
+#include <TCanvas.h>
+
+TH1S* mppc1Hist = new TH1S("mppc1Hist", "mppc1Hist", 100, 0, 1);
+TH1S* mppc5Hist = new TH1S("mppc5Hist", "mppc5Hist", 100, 0, 1);
+
+std::map<float, std::vector<unsigned>> mppc1Counts;
+std::map<float, std::vector<unsigned>> mppc5Counts;
+
+std::vector<std::pair<float, float>> mppc1Params;
+std::vector<std::pair<float, float>> mppc5Params;
+
+void xAxisAna::Loop()
+{
+  if (fChain == 0) return;
+
+  Long64_t nentries = fChain->GetEntriesFast();
+  Long64_t nbytes = 0, nb = 0;
+  for (Long64_t jentry=0; jentry<nentries;jentry++) 
+  {
+    Long64_t ientry = LoadTree(jentry);
+    if (ientry < 0) break;
+    nb = fChain->GetEntry(jentry);   nbytes += nb;
+  
+    if (mppc1Counts.find(mppcToSourceR[0]) == mppc1Counts.end())
+    {
+      std::vector<unsigned> vec = {static_cast<unsigned int>(mppcToLY[0])};
+      mppc1Counts.emplace(mppcToSourceR[0], vec);
+    }
+    else mppc1Counts.find(mppcToSourceR[0])->second.push_back(mppcToLY[0]);
+
+    if (mppc5Counts.find(mppcToSourceR[4]) == mppc5Counts.end())
+    {
+      std::vector<unsigned> vec = {static_cast<unsigned int>(mppcToLY[4])};
+      mppc5Counts.emplace(mppcToSourceR[4], vec);
+    }
+    else mppc5Counts.find(mppcToSourceR[4])->second.push_back(mppcToLY[4]);
+  }
+
+  for (const auto& pos : mppc1Counts)
+  {
+    TH1S mppc1Hist("temp", "temp", 100, , pos.second[0]+20);
+    for (const auto& ly : pos.second)
+    {
+      mppc1Hist.Fill(ly);
+    }
+    std::string name = "1_" + std::to_string(pos.first);
+    TCanvas *c = new TCanvas(name.c_str(), name.c_str(), 800, 800);
+    mppc1Hist.Draw("a");
+
+    TF1 fit("fit", "gaus");
+    mppc1Hist.Fit(&fit, "Q");
+    std::cout << fit.GetParameter(1) << std::endl;
+    std::pair<float, float> p = std::make_pair(fit.GetParameter(1), fit.GetParameter(2));
+    mppc1Params.push_back(p);
+  }
+  for (const auto& pos : mppc5Counts)
+  {
+    TH1S mppc5Hist("temp", "temp", 100, pos.second[0]-20, pos.second[0]+20);
+    for (const auto& ly : pos.second)
+    {
+      mppc5Hist.Fill(ly);
+    }
+    std::string name = "5_" + std::to_string(pos.first);
+    TCanvas *c = new TCanvas(name.c_str(), name.c_str(), 800, 800);
+    mppc5Hist.Draw();
+
+    TF1 fit("fit", "gaus");
+    mppc5Hist.Fit(&fit, "Q");
+    std::pair<float, float> p = std::make_pair(fit.GetParameter(1), fit.GetParameter(2));
+    mppc5Params.push_back(p);
+  }
+}

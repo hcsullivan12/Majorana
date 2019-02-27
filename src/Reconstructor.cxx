@@ -61,10 +61,6 @@ void Reconstructor::InitPixelList()
   // We will sample from a uniform distribution
   // of the total amount of light seen at the
   // photodetectors
-  // But I think we have to bias this slightly:
-  //   pixels near the sipms need to have low intensities
-  //   since the probabilities of detection are relatively 
-  //   high there ??
   unsigned totalPE(0);
   for (const auto& d : fData) totalPE = totalPE + d.second;
 
@@ -85,10 +81,10 @@ void Reconstructor::InitPixelList()
 void Reconstructor::Estimate(unsigned& iteration)
 {
   iteration++;
-  if (iteration > 100) return;
+  if (iteration > 150) return;
 
   // Log likelihood
-  CalculateLL();
+  //CalculateLL();
 
   // Temp
   //MakePlots("/home/hunter/projects/Majorana/output/recoAnaTree.root");
@@ -116,7 +112,7 @@ void Reconstructor::Estimate(unsigned& iteration)
 	//bool didConverge = CheckConvergence();
 	//if (!didConverge) 
   {
-    CalculateLL();
+    //CalculateLL();
     Reset();
     Estimate(iteration);
   }
@@ -205,7 +201,7 @@ float Reconstructor::DenominatorSum(const unsigned& mppcID)
 
 bool Reconstructor::CheckConvergence()
 {
-
+  return false;
 }
 
 void Reconstructor::MakePlots(const std::string& filename)

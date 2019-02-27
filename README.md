@@ -10,14 +10,14 @@ An isotropic TPB emission generator simulates a slightly diffuse point-like sour
 
 ## Installation Help for Prerequisites
 ### -GEANT4 (in GEANT4 directory)
- Run this before instaling GEANT4
+ Run this before installing GEANT4
  ```
  sudo apt-get install libx11-dev libxmu-dev
 ```
 ```
  mkdir build
  cd build
- cmake -DGEANT4_USE_OPENGL_X11=ON -DGEANT_INSTAL_DATA=ON ..
+ cmake -DGEANT4_USE_OPENGL_X11=ON -DGEANT4_INSTALL_DATA=ON ..
  make
  sudo make install
 ```
@@ -60,7 +60,7 @@ Adjust the file paths and mode configuration in config/Configuration.json
 The simulation uses the LightSourceSteering.txt file for placement of the emission generator. 
 There are two simulation modes which require different formats for the LightSourceSteering.txt.
 ### Point
-This mode place the center of the emission generator at the points listed in the LightSourceSteeringFile, smearing the position using the sourcePosSigma parameter in config/Configuration.json, e.g.
+This mode place the center of the emission generator at the points listed in LightSourceSteering.txt, smearing the position using the sourcePosSigma parameter in config/Configuration.json, e.g.
 ```
 x y n
 0 0 5000
@@ -79,10 +79,10 @@ r theta n
 ```
 where n is the number of photons to fire for the event. 
 
-### Voxel 
-This mode requires an input voxelization.txt file listing the voxelIDs and positions, e.g. assuming a 1 cm2 voxel size
+### Pixel 
+This mode requires an input pixelization.txt file listing the pixelIDs and positions, e.g. assuming a 1cm x 1cm pixel size
 ```
-voxelID x y
+pixelID x y
 1 0 0
 2 1 0
 3 2 0
@@ -94,7 +94,7 @@ voxelID x y
 Then the LightSourceSteering.txt file might read
 
 ```
-voxelID n
+pixelID n
 1 5000
 1 4500
 3 6000
@@ -110,4 +110,12 @@ Supply the following command at runtime
 ```
 
 ## Reconstruction
-Reconstruction uses a maximum likelihood method to reconstruct the light source position. The algorithm requires the probability that a photon leaving any position will be detected by any SiPM. For reconstruction, you must generate a probability lookup table using a particular voxelization scheme in voxel mode. With the reconstruct variable set to true, the code will parse the lookup table into a data structure that is fed into the reconstruction algorithm. 
+Reconstruction uses a maximum likelihood method to reconstruct the light source position. The algorithm requires the probability that a photon leaving any position will be detected by any SiPM. 
+
+You must generate an optical reference table from the simulateOutput.root ntuple that was produced using a particular pixelization scheme in pixel mode. There is a sample script in script/makeOpRefTable/ that will produce the reference table. Simply make a class using the script/scripts/makeClass.C script that points to the ntuple, and copy over the code in the sample makeOpRefTable.C script. You will need to edit the parameters in the script to fit your application. The script also allows you to generate a reference table using fewer SiPMs than simulated. For example, if my ntuple was the result of a pixel simulation (iterating over all pixels) with 128 SiPMs and I wanted to generate a reference table of only 32 SiPMs (mocking a 32 SiPM setup), then I could set:
+```
+nSiPMs = 128 
+factor = 2 
+```
+
+Running this scipt will generate a text file named "<number_of_pixels>p_<number_of_sipms>s_opReferenceTable.txt." With the reconstruct variable set to true, the code will parse the reference table into a data structure that is fed into the reconstruction algorithm. 

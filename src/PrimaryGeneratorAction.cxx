@@ -101,7 +101,7 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
     G4double p = gauss.fire(fSourcePeakE, fSourcePeakESigma);
     // Keep generating until pZ < 0
     G4double pX(0), pY(0), pZ(1);
-    //while (pZ >= 0)
+    while (pZ >= 0)
     {
       double cosTheta = 2*flat.fire() - 1;
       double sinTheta = pow(1-pow(cosTheta,2),0.5);
@@ -135,12 +135,8 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
     // Add this vertex
     G4PrimaryVertex* vertex = new G4PrimaryVertex(x, y, z, 0);
     event->AddPrimaryVertex(vertex);
-    //g.SetPoint(primary, x, y);
 
-    if (fParticleTable == 0)
-    {
-      fParticleTable = G4ParticleTable::GetParticleTable();
-    }
+    if (fParticleTable == 0) fParticleTable = G4ParticleTable::GetParticleTable();
 
     G4ParticleDefinition* particleDefinition = fParticleTable->FindParticle("opticalphoton");
     G4PrimaryParticle* g4Particle = new G4PrimaryParticle(particleDefinition,
