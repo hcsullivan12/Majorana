@@ -23,6 +23,8 @@ Analyzer::Analyzer(const std::string& simOutputPath)
 {
   // Reset variables
   ResetVars();
+  // Get config
+  Configuration* config = Configuration::Instance();
   
   fAnaTree = new TTree("anatree", "analysis tree");
   fAnaTree->Branch("event",      &fEvent, "event/I");
@@ -38,11 +40,14 @@ Analyzer::Analyzer(const std::string& simOutputPath)
   fAnaTree->Branch("mppcToSourceR", fMPPCToSourceR, "mppcToSourceR[nMPPCs]/D");
   fAnaTree->Branch("mppcToSourceT", fMPPCToSourceT, "mppcToSourceT[nMPPCs]/D");
   fAnaTree->Branch("nPhotonsAbsorbed", &fNPhotonsAbs, "nPhotonsAbsorbed/I");
-  fAnaTree->Branch("mlX", &fMLX, "mlX/D");
-  fAnaTree->Branch("mlY", &fMLY, "mlY/D");
-  fAnaTree->Branch("mlR", &fMLR, "mlR/D");
-  fAnaTree->Branch("mlT", &fMLT, "mlT/D");
-  fAnaTree->Branch("mlIntensities", fMLIntensities, "mlIntensities[nPixels]/D");
+  if (config->Reconstruct())
+  {
+    fAnaTree->Branch("mlX", &fMLX, "mlX/D");
+    fAnaTree->Branch("mlY", &fMLY, "mlY/D");
+    fAnaTree->Branch("mlR", &fMLR, "mlR/D");
+    fAnaTree->Branch("mlT", &fMLT, "mlT/D");
+    fAnaTree->Branch("mlIntensities", fMLIntensities, "mlIntensities[nPixels]/D");
+  }
 }
 
 Analyzer::~Analyzer()

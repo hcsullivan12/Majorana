@@ -1,7 +1,7 @@
 # Setup the needed environment
 packagesPath="/home/hunter/Software/packages"
 
-MAJORANA_DIR=$( cd $(dirname ${BASH_SOURCE[0]}) && pwd )
+export MAJORANADIR=$( cd $(dirname ${BASH_SOURCE[0]}) && pwd )
 
 # Export local root 
 export ROOTSYS=/home/hunter/Software/root-6.14.04-install
