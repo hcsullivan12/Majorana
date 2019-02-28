@@ -6,7 +6,6 @@ An isotropic TPB emission generator simulates a slightly diffuse point-like sour
 
 ## Prerequisites
    * [GEANT4](https://geant4.web.cern.ch/support/download)
-   * [RapidJason](https://github.com/Tencent/rapidjson.git)
 
 ## Installation Help for Prerequisites
 ### -GEANT4 (in GEANT4 directory)
@@ -28,14 +27,9 @@ An isotropic TPB emission generator simulates a slightly diffuse point-like sour
  source geant4.sh // Add this line to bash file
 ```
 
-### -RapidJason
-   if you dont have install [Doxygen](https://github.com/doxygen/doxygen) 
+### -Boost
 ``` 
- mkdir build
- cd build
- cmake ..
- make
- sudo make install
+sudo apt-get install libboost-all-dev
 ```
 	
 ## Installation
@@ -45,22 +39,26 @@ An isotropic TPB emission generator simulates a slightly diffuse point-like sour
  git checkout yourname
  git add .
  cd Majorana
+ ```
+ Adjust the file paths in the `envsetup.sh` script to fit your environment.
+ ```
+ source envsetup.sh 
  mkdir build
  cd build
  cmake ..
  make
 ```
-Adjust the file paths and mode configuration in `Configuration.json`
 ## Run the code
+Change the filepaths listed in `config/Configuration.ini` to fit your needs. Paths are relative. 
 ``` 
- ./simulate <path_to_config.json> --vis OFF // if you want visuals type ON instead of OFF
+ ./simulate <path_to_config.ini> --vis ON/OFF (default is OFF)
 ```
 		
 ## Configuration
 The simulation uses the `LightSourceSteering.txt` file for placement of the emission generator. 
 There are two simulation modes which require different formats for the `LightSourceSteering.txt`.
 ### Point
-This mode place the center of the emission generator at the points listed in `LightSourceSteering.txt`, smearing the position using the sourcePosSigma parameter in `Configuration.json`, e.g.
+This mode place the center of the emission generator at the points listed in `LightSourceSteering.txt`, smearing the position using the sourcePosSigma parameter in `config/Configuration.ini`, e.g.
 ```
 x y n
 0 0 5000

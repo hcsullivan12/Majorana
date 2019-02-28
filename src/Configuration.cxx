@@ -12,6 +12,9 @@
 #include <math.h>
 #include <fstream>
 #include <assert.h>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/ini_parser.hpp>
+#include <boost/lexical_cast.hpp>
 
 // Preprocessing variables
 #ifdef VERSION
@@ -52,119 +55,48 @@ Configuration::~Configuration()
 void Configuration::Initialize(const std::string& configPath)
 {
   fConfigPath = configPath;
-  // Read json file
-  FILE *configFile = fopen(fConfigPath.c_str(), "r");
-  char readBuffer[65536];
-  rapidjson::FileReadStream jsonStream(configFile, readBuffer, sizeof(readBuffer));
-
-  fJSONDoc.ParseStream(jsonStream);
-  fclose(configFile);
-
-  if (fJSONDoc.HasParseError() || !fJSONDoc.IsObject())
-  {
-    std::cerr << "Error. Failed to parse config file " << fConfigPath << "!" << std::endl;
-    std::exit(1);
-  }
-
   // Save the configuration
-  ReadJSONFile();
+  ReadConfigFile();
   // Safety checks
   CheckConfiguration();
   // Output to terminal
   PrintConfiguration();
 }
 
-void Configuration::ReadJSONFile()
+void Configuration::ReadConfigFile()
 {
-  // Specific order 
+  using boost::property_tree::ptree;
+  ptree pt;
+  read_ini(fConfigPath.c_str(), pt);
+
+  // Grab the values 
+  ptree& modeSect  = pt.get_child("Mode");
+  ptree& filesSect = pt.get_child("Files");
+  ptree& simSect   = pt.get_child("Simulation");
+  ptree& recoSect  = pt.get_child("Reconstruction");
+
+  // Mode
+  fSourceMode         = modeSect.get_child("sourceMode").get_value("");
+  // Reconstruction
+  fReconstruct        = "true" == recoSect.get_child("reconstruct").get_value("") ? true : false;
+  // Files
+  fSimulateOutputPath   = std::string(majoranaDir)+"/"+filesSect.get_child("simulateOutputPath").get_value("");
+  fSteeringFilePath     = std::string(majoranaDir)+"/"+filesSect.get_child("steeringFilePath").get_value("");
+  if (fReconstruct) fRecoAnaTreePath = std::string(majoranaDir)+"/"+filesSect.get_child("recoAnaTreePath").get_value("");
+  if (fReconstruct) fOpReferenceTablePath = std::string(majoranaDir)+"/"+filesSect.get_child("opReferenceTablePath").get_value("");
+  if (fShowVis) fVisMacroPath = std::string(majoranaDir)+"/"+filesSect.get_child("visMacroPath").get_value("");
+  if (fReconstruct || fSourceMode == "pixel") fPixelizationPath = std::string(majoranaDir)+"/"+filesSect.get_child("pixelizationPath").get_value(""); 
+  // Simulation
   // CONVERT TO PROPER UNITS HERE
-  // Prepend project directory
-  fSimulateOutputPath =    std::string(majoranaDir)+"/"+GetJSONMember("simulateOutputPath", rapidjson::kStringType).GetString();
-  fSteeringFilePath   =    std::string(majoranaDir)+"/"+GetJSONMember("steeringFilePath", rapidjson::kStringType).GetString();
-  fSourceMode         =    GetJSONMember("sourceMode", rapidjson::kStringType).GetString();
-
-  fNMPPCs             =    GetJSONMember("nMPPCs", rapidjson::kNumberType).GetUint();
-
-  fMPPCHalfLength     =    cm*GetJSONMember("mppcHalfLength", rapidjson::kNumberType).GetDouble();
-  fDiskRadius         =    cm*GetJSONMember("diskRadius", rapidjson::kNumberType).GetDouble();
-  fDiskThickness      =    cm*GetJSONMember("diskThickness", rapidjson::kNumberType).GetDouble();
-  fSourcePeakE        =    eV*GetJSONMember("sourcePeakE", rapidjson::kNumberType).GetDouble(); 
-  fSourcePeakESigma   =    eV*GetJSONMember("sourcePeakESigma", rapidjson::kNumberType).GetDouble(); 
-  fSurfaceRoughness   =       GetJSONMember("surfaceRoughness", rapidjson::kNumberType).GetDouble(); 
-  fSurfaceAbsorption  =       GetJSONMember("surfaceAbsorption", rapidjson::kNumberType).GetDouble();
-
-  fReconstruct        =    GetJSONMember("reconstruct", rapidjson::kFalseType).GetBool(); 
-
-  if (fReconstruct)  
-  {
-    fRecoAnaTreePath      = std::string(majoranaDir)+"/"+GetJSONMember("recoAnaTreePath", rapidjson::kStringType).GetString();
-    fOpReferenceTablePath = std::string(majoranaDir)+"/"+GetJSONMember("opReferenceTablePath", rapidjson::kStringType).GetString();
-  }
-  if (fShowVis)                               fVisMacroPath     = std::string(majoranaDir)+"/"+GetJSONMember("visMacroPath", rapidjson::kStringType).GetString();
-  if (fSourceMode == "point")                 fSourcePosSigma   = cm*GetJSONMember("sourcePosSigma", rapidjson::kNumberType).GetDouble(); 
-  if (fSourceMode == "point" && fReconstruct) fPixelizationPath = std::string(majoranaDir)+"/"+GetJSONMember("pixelizationPath", rapidjson::kStringType).GetString();
-  if (fSourceMode == "pixel") fPixelizationPath = std::string(majoranaDir)+"/"+GetJSONMember("pixelizationPath", rapidjson::kStringType).GetString(); 
-}
-
-const rapidjson::Value& Configuration::GetJSONMember(const std::string&     memberName,
-                                                     rapidjson::Type        memberType,
-                                                     const unsigned&        arraySize,
-                                                     const rapidjson::Type& arrayType)
-{
-   // Check to see if the document has memberName
-   if (!fJSONDoc.HasMember(memberName.c_str())) 
-   {
-     std::cerr << "ERROR: \"" << memberName << "\" in config file not found!" << std::endl;
-     exit(1);
-   }
-
-   // Get the value specified for memberName
-   rapidjson::Value& member = fJSONDoc[memberName.c_str()];
-
-   // Make sure the types match
-   if ( ((memberType       == rapidjson::kTrueType) || (memberType       == rapidjson::kFalseType)) &&
-       !((member.GetType() == rapidjson::kTrueType) || (member.GetType() == rapidjson::kFalseType)) ) 
-   {
-     std::cerr << "ERROR: \"" << memberName << "\" in config file has wrong type!"<< std::endl;
-     std::cerr << "Expected " << fJSONTypes.at(rapidjson::kTrueType)
-               << " or " << fJSONTypes.at(rapidjson::kFalseType)
-               << ", got " << fJSONTypes.at(member.GetType()) << "." << std::endl;
-     exit(1);
-   }
-   // Handle boolean
-   if ( (memberType == rapidjson::kTrueType) || (memberType == rapidjson::kFalseType) )
-   {
-     memberType = member.GetType();
-   }
-
-   if (member.GetType() != memberType) 
-   {
-     std::cerr << "ERROR: \"" << memberName << "\" in run config file has wrong type!"<< std::endl;
-     std::cerr << "Expected " << fJSONTypes.at(memberType) << ", got " << fJSONTypes.at(member.GetType())
-               << "." << std::endl;
-     exit(1);
-   }
-
-   if (member.GetType() == rapidjson::kArrayType) 
-   {
-     if (member.Size() != arraySize) 
-     {
-       std::cerr << "ERROR: Size mismatch for array \"" << memberName << "\" in config file!" << std::endl;
-       std::cerr << "Expected " << arraySize << ", got " << member.Size() << "." << std::endl;
-       exit(1);
-     }
-     for (const auto& value : member.GetArray()) 
-     {
-       if (value.GetType() != arrayType) 
-       {
-         std::cerr << "ERROR: Type mismatch in array \"" << memberName << "\" in config file!" << std::endl;
-         std::cerr << "Expected " << fJSONTypes.at(arrayType) << ", got "
-                   << fJSONTypes.at(value.GetType()) << "." << std::endl;
-         exit(1);
-       }
-     }
-   }
-   return member;
+  fNMPPCs               =    boost::lexical_cast<unsigned>(simSect.get_child("nMPPCs").get_value(""));
+  fMPPCHalfLength       = cm*boost::lexical_cast<double>(simSect.get_child("mppcHalfLength").get_value(""));
+  fDiskRadius           = cm*boost::lexical_cast<double>(simSect.get_child("diskRadius").get_value(""));
+  fDiskThickness        = cm*boost::lexical_cast<double>(simSect.get_child("diskThickness").get_value(""));
+  fSourcePeakE          = eV*boost::lexical_cast<double>(simSect.get_child("sourcePeakE").get_value(""));
+  fSourcePeakESigma     = eV*boost::lexical_cast<double>(simSect.get_child("sourcePeakESigma").get_value(""));
+  fSurfaceRoughness     =    boost::lexical_cast<double>(simSect.get_child("surfaceRoughness").get_value(""));
+  fSurfaceAbsorption    =    boost::lexical_cast<double>(simSect.get_child("surfaceAbsorption").get_value(""));
+  fSourcePosSigma       = cm*boost::lexical_cast<double>(simSect.get_child("sourcePosSigma").get_value(""));
 }
 
 void Configuration::CheckConfiguration()
@@ -191,7 +123,7 @@ void Configuration::PrintConfiguration()
   std::cout << "SimulateOutputPath " << fSimulateOutputPath << std::endl
             << "SteeringFilePath   " << fSteeringFilePath   << std::endl
             << "SourceMode         " << fSourceMode         << std::endl;
-            if (fSourceMode == "pixel" || fReconstruct) std::cout << "PixelizationPath " << fPixelizationPath << std::endl;
+            if (fSourceMode == "pixel" || fReconstruct) std::cout << "PixelizationPath   " << fPixelizationPath << std::endl;
   std::cout << "Reconstruct        "; 
             if (fReconstruct) 
             { 
