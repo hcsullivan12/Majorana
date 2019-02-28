@@ -13,9 +13,6 @@
 #include <array>
 #include <vector>
 #include <iostream>
-#include "rapidjson/document.h"
-#include "rapidjson/filereadstream.h"
-#include "rapidjson/rapidjson.h"
 
 #include "G4SystemOfUnits.hh"
 #include "G4PhysicalConstants.hh"
@@ -72,16 +69,9 @@ class Configuration
     Configuration();
     static Configuration* instance;
 
-    void ReadJSONFile();
-    const rapidjson::Value& GetJSONMember(const std::string&     memberName,
-                                          rapidjson::Type        memberType,
-                                          const unsigned&        arraySize = 0,
-                                          const rapidjson::Type& arrayType = rapidjson::kNullType);
+    void ReadConfigFile();
     void CheckConfiguration();
     void PrintConfiguration();
-
-    rapidjson::Document              fJSONDoc;
-    const std::array<std::string, 7> fJSONTypes = {{"Null", "False", "True", "Object", "Array", "String", "Number"}};
 
     std::string fConfigPath;
     std::string fSimulateOutputPath;

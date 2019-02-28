@@ -38,7 +38,7 @@ int main(int argc, char **argv)
   // If we're wanting to reconstruct in point mode, it's 
   // easier if we still initialize pixels to load reference table
   // in pixel table 
-  if (config->SourceMode() == "point" && config->Reconstruct())
+  if (config->Reconstruct())
   {
     majorana::PixelTable* pixelTable = majorana::PixelTable::CreateInstance();
     pixelTable->Initialize(config->PixelizationPath());
