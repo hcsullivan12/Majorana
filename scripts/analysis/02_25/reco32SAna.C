@@ -49,7 +49,7 @@ void reco32SAna::Loop()
 
 void Ana()
 {
-  TH1S* h = new TH1S("h32", "h32", 40, 0, 20);
+  TH1S* h = new TH1S("h21", "h21", 40, 0, 20);
   for (unsigned p = 0; p < rDiffVec.size(); p++)
   {
     //cout << rDiffVec[p] << endl;

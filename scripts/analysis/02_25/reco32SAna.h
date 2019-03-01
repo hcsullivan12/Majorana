@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Mon Feb 25 17:03:44 2019 by ROOT version 6.14/04
+// Thu Feb 28 21:04:54 2019 by ROOT version 6.14/04
 // from TTree anatree/analysis tree
-// found on file: /home/hunter/projects/Majorana/production/665Pixels/reconstructed/665p_32s_1000e.root
+// found on file: /home/hunter/projects/Majorana/output/simulateOutput.root
 //////////////////////////////////////////////////////////
 
 #ifndef reco32SAna_h
@@ -31,9 +31,9 @@ public :
    Int_t           nPrimaries;
    Double_t        sourcePosXYZ[3];
    Double_t        sourcePosRTZ[3];
-   Double_t        mppcToLY[128];   //[nMPPCs]
-   Double_t        mppcToSourceR[128];   //[nMPPCs]
-   Double_t        mppcToSourceT[128];   //[nMPPCs]
+   Double_t        mppcToLY[32];   //[nMPPCs]
+   Double_t        mppcToSourceR[32];   //[nMPPCs]
+   Double_t        mppcToSourceT[32];   //[nMPPCs]
    Int_t           nPhotonsAbsorbed;
    Double_t        mlX;
    Double_t        mlY;
@@ -80,9 +80,9 @@ reco32SAna::reco32SAna(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/home/hunter/projects/Majorana/production/665Pixels/reconstructed/665p_32s_1000e.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/home/hunter/projects/Majorana/output/simulateOutput.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("/home/hunter/projects/Majorana/production/665Pixels/reconstructed/665p_32s_1000e.root");
+         f = new TFile("/home/hunter/projects/Majorana/output/simulateOutput.root");
       }
       f->GetObject("anatree",tree);
 
