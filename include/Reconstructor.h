@@ -26,7 +26,8 @@ public:
   
   void Reconstruct();
   void Initialize(const std::map<unsigned, unsigned>& data,
-                  const std::list<Pixel>& pixelList);
+                  const std::list<Pixel>& pixelList,
+                  const float& diskRadius);
   void MakePlots(const std::string& filename);
 
   const double   ML()    const { return fMLLogLikelihood; }
@@ -54,6 +55,7 @@ private:
   float                        fMLY;             //< MLE for y (cm)
   float                        fMLRadius;        //< MLE for r (cm)
   float                        fMLTheta;         //< MLE for theta (deg)
+  float                        fDiskRadius;
   std::list<Pixel>             fPixelList;          //< list of created pixels
   std::vector<float>           fPixelEstimates;     //< 
   std::vector<float>           fDenomSums;

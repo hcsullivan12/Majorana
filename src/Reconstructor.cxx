@@ -10,8 +10,9 @@
 
 #include "TFile.h"
 #include "TH2F.h"
+#include "TF2.h"
 #include "TCanvas.h"
-#include "TImage.h"
+#include "TStyle.h"
 
 #include <iostream>
 #include <cmath>
@@ -26,7 +27,8 @@ Reconstructor::~Reconstructor()
 {}
 
 void Reconstructor::Initialize(const std::map<unsigned, unsigned>& data,
-                               const std::list<Pixel>& pixelList)
+                               const std::list<Pixel>& pixelList,
+                               const float& diskRadius)
 {
   fData      = data;
   fPixelList = pixelList;
@@ -35,6 +37,7 @@ void Reconstructor::Initialize(const std::map<unsigned, unsigned>& data,
   fDenomSums.clear();
   fDenomSums.resize(fData.size());
   fNumber = 0;
+  fDiskRadius = diskRadius;
 }
 
 void Reconstructor::Reconstruct()
@@ -81,7 +84,7 @@ void Reconstructor::InitPixelList()
 void Reconstructor::Estimate(unsigned& iteration)
 {
   iteration++;
-  if (iteration > 150) return;
+  if (iteration > 120) return;
 
   // Log likelihood
   //CalculateLL();
@@ -206,10 +209,16 @@ bool Reconstructor::CheckConvergence()
 
 void Reconstructor::MakePlots(const std::string& filename)
 {
+  gStyle->SetPalette(51);
+
   TFile f(filename.c_str(), "UPDATE");
-  unsigned n = 27;
+  // Set bin size
+  float pixelSpacing = fPixelList.front().Size();
+  unsigned n = 2*fDiskRadius/pixelSpacing - 1; // assuming pixel is in the center
+
   std::string name = "hist"+std::to_string(fNumber);
-  TH2F hist(name.c_str(), name.c_str(), n, -14.5, 14.5, n, -14.5, 14.5);
+  TH2F hist(name.c_str(), name.c_str(), n, -fDiskRadius, fDiskRadius, n, -fDiskRadius, fDiskRadius);
+  TH2F probProfile("ProbProfile", "ProbProfile", n, -fDiskRadius, fDiskRadius, n, -fDiskRadius, fDiskRadius);
 
   for (const auto& v : fPixelList)
   {
@@ -217,9 +226,20 @@ void Reconstructor::MakePlots(const std::string& filename)
     unsigned ybin = hist.GetYaxis()->FindBin(v.Y());
 
     hist.SetBinContent(xbin, ybin, v.Intensity());
+
+    probProfile.SetBinContent(xbin, ybin, v.ReferenceTable()[97-1]);
   } 
   hist.Write();
-  f.Close();
+  TCanvas c("probProfile", "probProfile", 800, 800);
+  probProfile.Draw("colz");
+  c.Write();
   fNumber++;
+
+  
+  // Apply gaussian mixture
+  TF2 g("g", "bigaus", -fDiskRadius, fDiskRadius, -fDiskRadius, fDiskRadius);
+  hist.Fit(&g);
+  g.Write();
+  f.Close();
 }
 }
