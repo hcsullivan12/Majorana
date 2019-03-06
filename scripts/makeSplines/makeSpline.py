@@ -5,12 +5,12 @@ The purpose of this script is to read in the OpReferenceTable for
 some pixelization scheme (ideally small pixel spacing), and produce 
 a single light detection probability profile in 2D. 
 The procedure:
-	1) Read in OpRefTable
+	1) Read in OpRefTable and pixelization
 	2) Average profiles for "4 corners" of the disk (since the mapping is trivial)
 	3) Blur the 2D profiles?
-	4) Produce a new reference table where now the pixel positions and 
+	4) Produce a splineKnot file where now the pixel IDs and 
 	   corresponding probabilities are spline knots.	   
-	5) The splineKnot file can be used to interpolate to a different pixelization
+	   The splineKnot file can be used to interpolate to a different pixelization
 	   scheme. This way, long production simulations have to be done only when 
 	   there is a change to the geometry or optical effects. 
 '''
@@ -83,17 +83,13 @@ class fileReader():
 			if sid not in self._map: self._map[sid] = []
  			theList = self._map[sid]
  			theList.append([xy[0], xy[1], p])
- 			self._map[sid] = theList							
-
-class splineProducer():
-
-	def __init__(self, inputFile):
-		self._opRefFile = inputFile
+ 			self._map[sid] = theList
 
 def makeImage(theMap, thePixelTable, theCount):
 	# initialize our arrays
 	xs, ys, ps, tempCont = ([] for i in range(4))
 	tempX = theMap[0][0]
+	print theMap
 	for x,y,p in theMap:
 		if x != tempX: tempCont.append(x)
 		xs.append(x)
@@ -123,7 +119,7 @@ def makeImage(theMap, thePixelTable, theCount):
 		yArr = np.append(yArr, p[1])
 		zArr = np.append(zArr, 1)
 	# convert z to logz
-	#zArr = np.log(zArr)
+	zArr = np.log(zArr)
 
 	# convert to grid coordinates
 	pixels = []
@@ -190,7 +186,7 @@ def writeNewOpRefTable(avgMap, pixelTable, outputFile):
 
 	# we have to convert from grid coordinates to pixel coordinates
 	for ((c,r), p), pixel in zip(np.ndenumerate(avgMap), thePixels):
-		pixel[2] = p #np.exp(p)
+		pixel[2] = np.exp(p)
 
 	# ignore the pixels outside our ROI
 	newPixels = {}
@@ -215,23 +211,23 @@ def writeNewOpRefTable(avgMap, pixelTable, outputFile):
 if __name__ == "__main__":
 	# first read the input op ref table
 	parser = argparse.ArgumentParser(description="Make Spline from OpReferenceTable")
-	parser.add_argument("-orf", "--inputOpRefFile", default=None, help="The input OpRefTable")
-	parser.add_argument("-pf", "--inputPixelizationFile", default=None, help="The pixelization scheme")
-	parser.add_argument("-o", "--outputFile", default=None, help="The output OpRefTable")
+	parser.add_argument("-orf", "--opreftable", default=None, help="The input OpRefTable")
+	parser.add_argument("-p", "--pixelization", default=None, help="The pixelization scheme")
+	parser.add_argument("-o", "--output", default=None, help="The output OpRefTable")
 	args = parser.parse_args()
 
 	# Step 1)
-	fr = fileReader(args.inputOpRefFile, args.inputPixelizationFile)
+	fr = fileReader(args.opreftable, args.pixelization)
 	print "Done"
 
 	# Step 2)
 	avgMap = averageRefTable(fr.theMap(), fr.count, fr.thePixelTable())
-	#plt.imshow(avgIm, interpolation='nearest', cmap='gist_heat')
-	#plt.colorbar()	
-	#plt.show()
+	plt.imshow(avgMap, interpolation='nearest', cmap='gist_heat')
+	plt.colorbar()	
+	plt.show()
 
 	# Step 3)
-	writeNewOpRefTable(avgMap, fr.thePixelTable(), args.outputFile)
+	writeNewOpRefTable(avgMap, fr.thePixelTable(), args.output)
 
 
 
