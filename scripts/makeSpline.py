@@ -1,0 +1,232 @@
+#!bin/python
+
+'''
+The purpose of this script is to read in the OpReferenceTable for
+some pixelization scheme (ideally small pixel spacing), and produce 
+a single light detection probability profile in 2D. 
+The procedure:
+	1) Read in OpRefTable
+	2) Average profiles for "4 corners" of the disk (since the mapping is trivial)
+	3) Blur the 2D profiles
+	4) Produce a new reference table where now the pixel positions and 
+	   corresponding probabilities are spline knots.	   
+	5) The splineKnot file can be used to interpolate to a different pixelization
+	   scheme. This way, long production simulations have to be done only when 
+	   there is a change to the geometry or optical effects. 
+'''
+
+import numpy as np
+import scipy.interpolate
+import matplotlib.pyplot as plt
+import argparse
+
+class fileReader():
+	
+	def __init__(self, opRefFile, pixelFile):
+		assert(opRefFile is not None)
+		assert(pixelFile is not None)
+		self._opRefFile = opRefFile
+		self._pixelFile = pixelFile
+		self._opRefTable = []
+		self._pixelTable = {}
+		self._map = {}
+		self.count = 0
+
+		self.parsePixelFile()
+		self.parseOpRefFile()
+		self.makeMap()
+		
+	def theOpRefTable(self):
+		return self._opRefTable
+
+	def thePixelTable(self):
+		return self._pixelTable		
+
+	def theMap(self):
+		return self._map
+
+	def parsePixelFile(self):
+		print "\nParsing pixelization file"
+		with open(self._pixelFile) as f:
+			# skip first line
+			line = f.readline()
+			while True:
+				# the scheme is:
+				# 	pixelID x y
+				line    = f.readline()
+				lineVec = line.split()
+				if len(lineVec) < 1: break
+				self._pixelTable[int(lineVec[0])] = [float(lineVec[1]), float(lineVec[2])]
+				if float(lineVec[2]) == 0: self.count = self.count+1
+
+	def parseOpRefFile(self):
+		print "\nParsing opRefTable"
+		# Open file for reading
+		with open(self._opRefFile) as f:
+			# skip first line
+			line = f.readline()
+			while True:
+				# the scheme is:
+				# 	pixelID sipm prob
+				line    = f.readline()
+				lineVec = line.split()
+				if len(lineVec) < 1: break
+				data = [int(lineVec[0]), int(lineVec[1]), float(lineVec[2])]
+				self._opRefTable.append(data)
+
+	def makeMap(self):
+		for pid, sid, p in self._opRefTable:
+			# what's the x y position for this pid
+			xy = self._pixelTable[pid]
+			if sid not in self._map: self._map[sid] = []
+ 			theList = self._map[sid]
+ 			theList.append([xy[0], xy[1], p])
+ 			self._map[sid] = theList							
+
+class splineProducer():
+
+	def __init__(self, inputFile):
+		self._opRefFile = inputFile
+
+def makeImage(theMap, thePixelTable):
+	# initialize our arrays
+	xs, ys, ps, tempCont = ([] for i in range(4))
+	tempX = theMap[0][0]
+	for x,y,p in theMap:
+		if x != tempX: tempCont.append(x)
+		xs.append(x)
+		ys.append(y)
+		ps.append(p)	
+	diffX = [np.absolute(tempX - t) for t in tempCont]
+	pixelSpacing = min(diffX)
+	xArr = np.array(xs)
+	yArr = np.array(ys)
+	zArr = np.array(ps)
+
+	# form our pixelization grid
+	pixelGrid = []
+	for k,v in thePixelTable.items():
+		pixelGrid.append(v)	
+
+	# form the full square grid
+	zeroGridX = np.arange(xArr.min(), xArr.max()+pixelSpacing, pixelSpacing)
+	zeroGridY = np.arange(yArr.min(), yArr.max()+pixelSpacing, pixelSpacing)
+	zeroGrid = []
+	for x in zeroGridX:
+		for y in zeroGridY:
+			zeroGrid.append([x,y])	
+	for p in zeroGrid:
+		if p in pixelGrid: continue			
+		xArr = np.append(xArr, p[0])
+		yArr = np.append(yArr, p[1])
+		zArr = np.append(zArr, 1)
+	# convert z to logz
+	zArr = np.log(zArr)
+
+	# convert to grid coordinates
+	pixels = []
+	for x,y,z in zip(xArr,yArr,zArr):
+		pixels.append([x,y,z])
+
+	def sortX(val): return val[0]
+	def sortY(val): return val[1]		
+	pixels.sort(key=sortX)
+	pixels.sort(key=sortY,reverse=True)
+
+	theX, theY = np.mgrid[xArr.min():xArr.max():(theCount*1j), yArr.min():yArr.max():(theCount*1j)]
+	theZ = np.zeros_like(theX)
+	r = 0
+	c = 0
+	for p in eIm:
+		if c == theCount: 
+			c = 0
+			r+=1
+		theZ[r][c] = p[2]
+		c+=1
+	return pixels
+
+def averageRefTable(theMapToAvg, theCount, thePixelTable):
+	# how many sipms did we pass?
+	# we're making an assumption that nSiPMs = 2^n
+	nSiPMs = len(theMapToAvg)
+	n = nSiPMs/4
+	theCorners = [1]
+	for c in range(0,3):
+		theCorners.append(theCorners[c]+n)
+	print "Averaging SiPMs ", theCorners
+
+	# get the corner maps
+	eMap = theMapToAvg[theCorners[0]]
+	nMap = theMapToAvg[theCorners[1]]
+	wMap = theMapToAvg[theCorners[2]]
+	sMap = theMapToAvg[theCorners[3]]
+
+	# make image
+	eIm = makeImage(eMap, thePixelTable)
+	
+	#temp
+	xs, ys, ps, tempCont = ([] for i in range(4))
+	tempX = eMap[0][0]
+	for x,y,p in eMap:
+		if x != tempX: tempCont.append(x)
+		xs.append(x)
+		ys.append(y)
+		ps.append(p)	
+	diffX = [np.absolute(tempX - t) for t in tempCont]
+	pixelSpacing = min(diffX)
+	xArr = np.array(xs)
+	yArr = np.array(ys)
+	zArr = np.array(ps)
+	znew = np.log(zArr)
+
+	theX, theY = np.mgrid[xArr.min():xArr.max():(theCount*1j), yArr.min():yArr.max():(theCount*1j)]
+	Z = np.zeros_like(theX)
+
+	r = 0
+	c = 0
+	for p in eIm:
+		if c == theCount: 
+			c = 0
+			r+=1
+		Z[r][c] = p[2]
+		c+=1
+
+	plt.imshow(Z, interpolation='nearest', cmap='gist_heat')
+	plt.colorbar()
+	plt.show()
+
+if __name__ == "__main__":
+	# first read the input op ref table
+	parser = argparse.ArgumentParser(description="Make Spline from OpReferenceTable")
+	parser.add_argument("-orf", "--inputOpRefFile", default=None, help="The input OpRefTable")
+	parser.add_argument("-pf", "--inputPixelizationFile", default=None, help="The pixelization scheme")
+	parser.add_argument("-o", "--outputFile", default=None, help="The output OpRefTable")
+	args = parser.parse_args()
+	fr = fileReader(args.inputOpRefFile, args.inputPixelizationFile)
+	print "Done"
+
+	avgMap = averageRefTable(fr.theMap(), fr.count, fr.thePixelTable())
+
+	'''
+	theFunctionList = []
+
+	aList = theMap[1]
+	xs = []
+	ys = []
+	rs = []
+	thetas = []
+	ps = []
+	for x,y,p in aList:
+		xs.append(x)
+		ys.append(y)
+		ps.append(p)
+
+	x = np.array(xs)
+	y = np.array(ys)
+	z = np.array(ps)
+	'''
+
+
+
+    
+
