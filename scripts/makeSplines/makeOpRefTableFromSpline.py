@@ -95,12 +95,16 @@ def interpolate(theMap):
     xArr = np.array(xs)
     yArr = np.array(ys)
     zArr = np.array(ps)
+    zArr = np.log(zArr)
 
     #Z = scipy.interpolate.griddata(xArr, yArr, zArr, method='cubic')
     #f = scipy.interpolate.interp2d(xArr,yArr,zArr,kind='cubic')
     f_interp = scipy.interpolate.Rbf(xArr, yArr, zArr, function='cubic')
     #plt.pcolor(XI, YI, zArr, cmap=cm.jet)
-    plt.pcolor(xArr, yArr, f_interp, cmap='gist_heat')
+    ti = np.linspace(-14.5,14.5)
+    xx, yy = np.meshgrid(ti, ti)
+    zz = f_interp(xx,yy)
+    plt.pcolor(xx, yy, zz, cmap='gist_heat')
     plt.colorbar()	
     plt.show()
 

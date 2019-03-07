@@ -89,7 +89,6 @@ def makeImage(theMap, thePixelTable, theCount):
 	# initialize our arrays
 	xs, ys, ps, tempCont = ([] for i in range(4))
 	tempX = theMap[0][0]
-	print theMap
 	for x,y,p in theMap:
 		if x != tempX: tempCont.append(x)
 		xs.append(x)
@@ -119,7 +118,7 @@ def makeImage(theMap, thePixelTable, theCount):
 		yArr = np.append(yArr, p[1])
 		zArr = np.append(zArr, 1)
 	# convert z to logz
-	zArr = np.log(zArr)
+	zArr = np.log10(zArr)
 
 	# convert to grid coordinates
 	pixels = []
@@ -179,6 +178,41 @@ def averageRefTable(theMapToAvg, theCount, thePixelTable):
 
 	# avg
 	avgIm = (eIm+nIm+wIm+sIm)/4.
+
+	# since the disk is symmetric, let's average over 
+	# the line of symmetry
+	# this assumes there is a pixel at the origin,
+	# giving an odd pixel dimension
+	top = []
+	bot = []
+	avg = []
+	size = len(avgIm)
+	symAxis = (size-1)/2 + 1
+	assert(size % 2 != 0)
+
+	for rt,rb in zip(range(0,symAxis-1), range(size-1, symAxis-1, -1)): # line of symmetry 
+		for c in range(0, size):
+			top.append(avgIm[rt][c])	
+			bot.append(avgIm[rb][c])
+
+	# avg top and bot
+	for t,b in zip(top,bot):
+		avg.append((t+b)/2.)
+
+	# refill
+	rt = 0
+	rb = size-1
+	c  = 0
+	for p in avg:
+		if rt == (symAxis-1): break # line of symmetry
+		if c == size: 
+			c = 0
+			rt+=1
+			rb-=1
+		avgIm[rt][c] = p	
+		avgIm[rb][c] = p
+		c+=1
+
 	return avgIm
 
 def writeNewOpRefTable(avgMap, pixelTable, outputFile):
@@ -186,7 +220,7 @@ def writeNewOpRefTable(avgMap, pixelTable, outputFile):
 
 	# we have to convert from grid coordinates to pixel coordinates
 	for ((c,r), p), pixel in zip(np.ndenumerate(avgMap), thePixels):
-		pixel[2] = np.exp(p)
+		pixel[2] = 10**(p)
 
 	# ignore the pixels outside our ROI
 	newPixels = {}
@@ -218,14 +252,12 @@ if __name__ == "__main__":
 
 	# Step 1)
 	fr = fileReader(args.opreftable, args.pixelization)
-	print "Done"
-
 	# Step 2)
 	avgMap = averageRefTable(fr.theMap(), fr.count, fr.thePixelTable())
-	plt.imshow(avgMap, interpolation='nearest', cmap='gist_heat')
+	avgMap = np.rot90(avgMap, 1)
+	plt.imshow(avgMap, interpolation='nearest', cmap='gist_stern')
 	plt.colorbar()	
 	plt.show()
-
 	# Step 3)
 	writeNewOpRefTable(avgMap, fr.thePixelTable(), args.output)
 
