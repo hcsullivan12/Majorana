@@ -5,7 +5,7 @@ import argparse
 
 if __name__== "__main__":
 
-    parser = argparse.ArgumentParser(description="Mass produce opRefTables from splines")
+    parser = argparse.ArgumentParser(description="Running ulitple simulations")
     parser.add_argument("-sp", "--spline", type=str, help="Spline table", required=True)
     parser.add_argument("-r", "--root", type=str, help="Top directory for production. This will search through the subdirectories for pixelization.txt", required=True)
     parser.add_argument('-s','--sipms', nargs='+', type=int, help='List of the number of sipms', required=True)

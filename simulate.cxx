@@ -10,22 +10,17 @@
 // ROOT includes
 #include "TFile.h"
 
-// Visualization 
-static bool showVis = false;
-
 // Prototypes
-void HandleArgs(int argc, char **argv);
+void HandleArgs(int argc, char **argv, majorana::Configuration* config);
 void InitializeFiles(const majorana::Configuration*);
+void DisplayHelp();
 
 int main(int argc, char **argv)
 {
-  // Handle runtime args
-  HandleArgs(argc, argv); 
   // Initialize configuration
   majorana::Configuration* config = majorana::Configuration::CreateInstance();
-  // Pass visualization
-  config->SetVisualization(showVis);
-  config->Initialize(std::string(argv[1]));
+  // Handle runtime args
+  HandleArgs(argc, argv, config); 
   // Initialize output files
   InitializeFiles(config);
   // Initialize source configuration
@@ -51,20 +46,66 @@ int main(int argc, char **argv)
   return 0;
 }
 
-void HandleArgs(int argc, char **argv)
+void HandleArgs(int argc, char **argv, majorana::Configuration* config)
 {
-  if (argc < 2 || argc > 4 || argc == 3) 
+  bool showVis = false;
+  std::string configPath = "";
+  std::string pixelPath  = "";
+  std::string opRefTPath = "";
+  std::string simOutputPath  = "";
+  std::string recoAnaTPath   = "";
+  
+  unsigned nsipms(0);
+  
+  if (argc < 2) DisplayHelp();
+  for (unsigned arg = 0; arg < argc; arg++) if (std::string(argv[arg]) == "--h") DisplayHelp();
+  for (unsigned arg = 0; arg < (argc-1); arg++)
   {
-    std::cout << "\nUsage: ./simulate PATH_TO_CONFIG <Options>\n";
-    std::cout << "Options:\n"
-              << "  --vis ON/OFF (If ON, render visualization. Default is OFF.)\n";
-    std::cout << std::endl;
-    std::exit(1);
+    std::cout << arg << " " << argv[arg] << std::endl;
+    if (std::string(argv[arg]) == "--vis" && std::string(argv[arg+1]) == "ON") showVis = true;    
+    if (std::string(argv[arg]) == "--c") configPath = std::string(argv[arg+1]);
+    if (std::string(argv[arg]) == "--ov" && (arg+5) < argc) 
+    {
+      nsipms        = std::stoi(argv[arg+1]);
+      pixelPath     = std::string(argv[arg+2]);
+      opRefTPath    = std::string(argv[arg+3]);
+      simOutputPath = std::string(argv[arg+4]);
+      recoAnaTPath  = std::string(argv[arg+5]);
+    }
   }
-  if (argc == 4)
+  // Pass configuration
+  config->SetVisualization(showVis);
+  assert(configPath != "");
+  config->Initialize(configPath);
+
+  // Overide 
+  if (nsipms > 0       && 
+      pixelPath  != "" && 
+      opRefTPath != "" &&
+      simOutputPath != "" &&
+      recoAnaTPath  != "")
   {
-    if (std::string(argv[2]) == "--vis" && std::string(argv[3]) == "ON") showVis = true;    
+    config->SetNSiPMs(nsipms);
+    config->SetPixelPath(pixelPath);
+    config->SetOpRefTablePath(opRefTPath);
+    config->SetSimOutputPath(simOutputPath);
+    config->SetRecoAnaPath(recoAnaTPath);
   }
+  // Safety check
+  config->CheckConfiguration();
+  // Output to terminal
+  config->PrintConfiguration();
+}
+
+void DisplayHelp()
+{
+  std::cout << "\nUsage: ./simulate --c PATH_TO_CONFIG <Options>\n";
+  std::cout << "Options:\n"
+            << "  --h for help\n"
+            << "  --vis ON/OFF (If ON, render visualization. Default is OFF.)\n"
+            << "  --ov  NSIPMS PIXELIZATIONPATH OPREFTABLEPATH SIMULATEOUTPUT RECOANATREE (If wanting to overide configuration.)";
+  std::cout << std::endl;
+  std::exit(1);
 }
 
 void InitializeFiles(const majorana::Configuration* config)
