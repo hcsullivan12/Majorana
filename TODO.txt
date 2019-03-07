@@ -1,4 +1,0 @@
-import G4SiPM libraries (future)
-
-add voxelID parameter to ntuple
-
