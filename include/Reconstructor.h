@@ -40,7 +40,7 @@ public:
 private:
   void InitPixelList();
   void Estimate(unsigned& iteration);  
-  void CalculateLL();
+  float CalculateLL();
   float CalculateMean(const unsigned& sipmID);
   float DenominatorSum(const unsigned& sipmID);
   float MoneyFormula(const unsigned& pixelID,
@@ -60,7 +60,7 @@ private:
   std::vector<float>           fPixelEstimates;     //< 
   std::vector<float>           fDenomSums;
   std::map<unsigned, unsigned> fData;               //< measured counts (sipm, np.e.)
-  unsigned fNumber;
+  std::vector<float>           fLogLikehs;
 };
 }
 

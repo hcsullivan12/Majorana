@@ -14,20 +14,20 @@ void makeLightSteering1cm()
   std::ofstream lssFile(lss.c_str());
   if (!lssFile.is_open()) return;
 
-  std::string v = "voxelization.txt";
+  std::string v = "pixelization.txt";
   std::ofstream vFile(v.c_str());
   if (!vFile.is_open()) return;
 
 
-  // Make a vector of xAxis voxels, and then translate
-  std::vector<std::pair<float, float>> xAxisVoxelPos;
+  // Make a vector of xAxis pixels, and then translate
+  std::vector<std::pair<float, float>> xAxisPixelPos;
   // Start at edge
   float x(0), y(0);
   while (x < diskRadius)
   {
     //std::cout << x << " " << y << std::endl;
     std::pair<float, float> p = std::make_pair(x, y);
-    xAxisVoxelPos.push_back(p);
+    xAxisPixelPos.push_back(p);
     x = x + inc;
   }
   x = 0 - inc;
@@ -36,35 +36,35 @@ void makeLightSteering1cm()
   {
     //std::cout << x << " " << y << std::endl;
     std::pair<float, float> p = std::make_pair(x, y);
-    xAxisVoxelPos.push_back(p);
+    xAxisPixelPos.push_back(p);
     x = x - inc;
   }
 
   // output top line
-  lssFile << "voxelID n" << std::endl; 
-  vFile   << "voxelID x y" << std::endl;
+  lssFile << "pixelID n" << std::endl; 
+  vFile   << "pixelID x y" << std::endl;
 
   // Now shift
-  unsigned voxelID(1);
+  unsigned pixelID(1);
   y = 0;
   while (y < diskRadius)
   {
-    for (const auto p : xAxisVoxelPos)
+    for (const auto p : xAxisPixelPos)
     {
       float thisX = p.first;
       float thisY = p.second + y;
       float r = std::sqrt(thisX*thisX + thisY*thisY);
       if (r >= diskRadius) continue;
-      g->SetPoint(voxelID, thisX, thisY);
-      vFile   << voxelID << " " << thisX << " " << thisY << std::endl;
+      g->SetPoint(pixelID, thisX, thisY);
+      vFile   << pixelID << " " << thisX << " " << thisY << std::endl;
 
       unsigned event = 1;
       while (event <= nEvents)
       {
-        lssFile << voxelID << " " << nPrim << std::endl;
+        lssFile << pixelID << " " << nPrim << std::endl;
         event++;
       }
-      voxelID++;
+      pixelID++;
     }
     y = y + inc;
   }
@@ -72,26 +72,26 @@ void makeLightSteering1cm()
   y = 0 + inc;
   while (y < diskRadius)
   {
-    for (const auto p : xAxisVoxelPos)
+    for (const auto p : xAxisPixelPos)
     {
       float thisX = p.first;
       float thisY = p.second - y;
       float r = std::sqrt(thisX*thisX + thisY*thisY);
       if (r >= diskRadius) continue;
-      g->SetPoint(voxelID, thisX, thisY);
-      vFile   << voxelID << " " << thisX << " " << thisY << std::endl;
+      g->SetPoint(pixelID, thisX, thisY);
+      vFile   << pixelID << " " << thisX << " " << thisY << std::endl;
 
       unsigned event = 1;
       while (event <= nEvents)
       {
-        lssFile << voxelID << " " << nPrim << std::endl;
+        lssFile << pixelID << " " << nPrim << std::endl;
         event++;
       }
-      voxelID++;
+      pixelID++;
     }
     y = y + inc;
   }
-  std::cout << voxelID << std::endl;
+  std::cout << pixelID << std::endl;
 
   lssFile.close();
   vFile.close();

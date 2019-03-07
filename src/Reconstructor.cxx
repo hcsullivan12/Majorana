@@ -13,6 +13,7 @@
 #include "TF2.h"
 #include "TCanvas.h"
 #include "TStyle.h"
+#include "TGraph.h"
 
 #include <iostream>
 #include <cmath>
@@ -36,8 +37,8 @@ void Reconstructor::Initialize(const std::map<unsigned, unsigned>& data,
   fPixelEstimates.resize(fPixelList.size());
   fDenomSums.clear();
   fDenomSums.resize(fData.size());
-  fNumber = 0;
   fDiskRadius = diskRadius;
+  fLogLikehs.clear();
 }
 
 void Reconstructor::Reconstruct()
@@ -48,7 +49,7 @@ void Reconstructor::Reconstruct()
   //   2) Make next prediction
   //   3) Check for convergence
   //        *if yes, save, return
-  //        *if not, initial estimates = current estimates -> 2)
+  //        *if not, old estimates = current estimates -> 2)
   //
 
   // 1)
@@ -75,22 +76,14 @@ void Reconstructor::InitPixelList()
     double u = rand()%totalPE+1;
     v.SetIntensity(u);
   }
-  //***
-  // TEMPORARY
-  //***
-  //MakePlots("/home/hunter/projects/Majorana/output/recoAnaTree.root");
+  // Log likelihood
+  fLogLikehs.push_back(CalculateLL());
 }
 
 void Reconstructor::Estimate(unsigned& iteration)
 {
   iteration++;
   if (iteration > 120) return;
-
-  // Log likelihood
-  //CalculateLL();
-
-  // Temp
-  //MakePlots("/home/hunter/projects/Majorana/output/recoAnaTree.root");
 
   // To reduce complexity, find denominator sum seperately
   // Old: O(nSiPMS*nPixels*nPixels)
@@ -115,22 +108,23 @@ void Reconstructor::Estimate(unsigned& iteration)
 	//bool didConverge = CheckConvergence();
 	//if (!didConverge) 
   {
-    //CalculateLL();
+    // Log likelihood
+    //fLogLikehs.push_back(CalculateLL());
     Reset();
     Estimate(iteration);
   }
 }
 
-void Reconstructor::CalculateLL()
+float Reconstructor::CalculateLL()
 {
   // Loop over detectors
   float sum(0);
   for (const auto& d : fData)
   {
     float mean = CalculateMean(d.first);
-    sum = sum + d.second*std::log(mean) - mean;
+    sum = sum + d.second*std::log(mean) - mean - std::log(TMath::Factorial(d.second));
   }
-  //std::cout << sum << std::endl;
+  return sum;
 }
 
 float Reconstructor::CalculateMean(const unsigned& sipmID)
@@ -216,30 +210,34 @@ void Reconstructor::MakePlots(const std::string& filename)
   float pixelSpacing = fPixelList.front().Size();
   unsigned n = 2*fDiskRadius/pixelSpacing - 1; // assuming pixel is in the center
 
-  std::string name = "hist"+std::to_string(fNumber);
+  std::string name = "histFinal";
   TH2F hist(name.c_str(), name.c_str(), n, -fDiskRadius, fDiskRadius, n, -fDiskRadius, fDiskRadius);
-  TH2F probProfile("ProbProfile", "ProbProfile", n, -fDiskRadius, fDiskRadius, n, -fDiskRadius, fDiskRadius);
 
+  // Fill and find mean position weighted by charge
+  float meanX(0);
+  float meanY(0);
+  float totalInt(0);
   for (const auto& v : fPixelList)
   {
     unsigned xbin = hist.GetXaxis()->FindBin(v.X());
     unsigned ybin = hist.GetYaxis()->FindBin(v.Y());
-
     hist.SetBinContent(xbin, ybin, v.Intensity());
 
-    probProfile.SetBinContent(xbin, ybin, v.ReferenceTable()[97-1]);
+    meanX = meanX + v.X()*v.Intensity();
+    meanY = meanY + v.Y()*v.Intensity();
+    totalInt = totalInt + v.Intensity();
   } 
   hist.Write();
-  TCanvas c("probProfile", "probProfile", 800, 800);
-  probProfile.Draw("colz");
-  c.Write();
-  fNumber++;
 
+  meanX = meanX/totalInt;
+  meanY = meanY/totalInt;
+  fMLX = meanX;
+  fMLY = meanY;
+  fMLN0 = totalInt;
   
-  // Apply gaussian mixture
-  TF2 g("g", "bigaus", -fDiskRadius, fDiskRadius, -fDiskRadius, fDiskRadius);
-  hist.Fit(&g);
-  g.Write();
-  f.Close();
+  // Apply gaussian fit
+  //TF2 g("g", "bigaus", -fDiskRadius, fDiskRadius, -fDiskRadius, fDiskRadius);
+  //hist.Fit(&g);
+  //g.Write();
 }
 }
