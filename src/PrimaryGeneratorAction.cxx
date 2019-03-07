@@ -10,7 +10,7 @@
 #include "Configuration.h"
 
 #include "TVector3.h"
-#include "TGraph.h"
+#include "TH2.h"
 #include "TFile.h"
 
 namespace majorana {
@@ -69,6 +69,20 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
   CLHEP::RandGaussQ gauss(fRandomEngine);
   CLHEP::RandFlat   flat(fRandomEngine);
 
+  //*********
+  // TEMPORARY
+  TH2F primHist("primHist", "primHist", 57, -14.5, 14.5, 57, -14.5, 14.5);
+  for (unsigned xbin = 1; xbin <= primHist.GetXaxis()->GetNbins(); xbin++)
+  {
+    for (unsigned ybin = 1; ybin <= primHist.GetYaxis()->GetNbins(); ybin++) 
+    {
+      float xV = primHist.GetXaxis()->GetBinCenter(xbin);
+      float yV = primHist.GetYaxis()->GetBinCenter(ybin);
+      if (xV*xV + yV*yV > 14.5*14.5) continue;
+      primHist.SetBinContent(xbin, ybin, 2);
+    }
+  }
+
   // Loop over the primaries  
   for (unsigned primary = 0; primary < fNPrimaries; primary++)
   {
@@ -81,6 +95,10 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
     {
       x = gauss.fire(fSourcePositionXYZ[0], fSourcePosSigma);
       y = gauss.fire(fSourcePositionXYZ[1], fSourcePosSigma);
+
+      float xTemp = x/10;
+      float yTemp = y/10;
+      primHist.Fill(xTemp, yTemp);
     }
     else
     {
@@ -149,5 +167,8 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
                                 polarization[2]);
     vertex->SetPrimary(g4Particle);
   }
+  TFile f("/home/hunter/projects/Majorana/output/simulateOutput.root", "UPDATE");
+  primHist.Write();
+  f.Close();
 }
 }
