@@ -28,11 +28,6 @@ find_package(ROOT COMPONENTS REQUIRED)
 include_directories(${ROOT_INCLUDE_DIRS})
 add_definitions(${ROOT_CXX_FLAGS})
 
-# RapidJSON dependencies
-set(RapidJSON_DIR $ENV{RapidJSON_CMAKEDIR})
-find_package(RapidJSON REQUIRED CONFIG)
-include_directories(${RapidJSON_INCLUDE_DIRS})
-
 # Project includes
 include_directories(${PROJECT_SOURCE_DIR}/include)
 

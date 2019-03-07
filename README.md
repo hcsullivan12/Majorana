@@ -8,26 +8,22 @@ An isotropic TPB emission generator simulates a slightly diffuse point-like sour
    * [GEANT4](https://geant4.web.cern.ch/support/download)
 
 ## Installation Help for Prerequisites
-### -GEANT4 (in GEANT4 directory)
+#### -GEANT4 (in GEANT4 directory)
  Run this before installing GEANT4
  ```
  sudo apt-get install libx11-dev libxmu-dev
-```
-```
  mkdir build
  cd build
  cmake -DGEANT4_USE_OPENGL_X11=ON -DGEANT4_INSTALL_DATA=ON ..
  make
  sudo make install
 ```
-
-   Add enviroment variables to your profile for GEANT4
+Add enviroment variables to your profile for GEANT4
 ```
  sudo vim ~/.bashrc
  source geant4.sh // Add this line to bash file
 ```
-
-### -Boost
+#### -Boost
 ``` 
 sudo apt-get install libboost-all-dev
 ```
@@ -47,13 +43,7 @@ sudo apt-get install libboost-all-dev
  cd build
  cmake ..
  make
-```
-## Run the code
-Change the filepaths listed in `config/Configuration.ini` to fit your needs. Paths are relative. 
-``` 
- ./simulate <path_to_config.ini> --vis ON/OFF (default is OFF)
-```
-		
+```		
 ## Configuration
 The simulation uses the `LightSourceSteering.txt` file for placement of the emission generator. 
 There are two simulation modes which require different formats for the `LightSourceSteering.txt`.
@@ -100,13 +90,11 @@ pixelID n
 .
 .
 ```
-
-## Visualization
-Supply the following command at runtime
+## Running the code
+Change the filepaths listed in `config/Configuration.ini` to fit your needs. Paths are relative. 
+``` 
+ ./simulate <path_to_config.ini> --vis ON/OFF (visualization flag, default is OFF)
 ```
-./simulate <path_to_config.json> --vis ON
-```
-
 ## Reconstruction
 Reconstruction uses a maximum likelihood method to reconstruct the light source position. The algorithm requires the probability that a photon leaving any position will be detected by any SiPM. 
 
