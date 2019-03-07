@@ -166,30 +166,16 @@ void G4Helper::RunG4()
 
       // Pass data and pixelization schema
       auto tempData = photonTable->GetPhotonsDetected();
-
-      //***************************
-      // TEMPORARY
       std::map<unsigned, unsigned> data;
       for (const auto& d : tempData) data.emplace(d.first, d.second.size());
-      //unsigned s(1);    // counter for nSiPMs
-      //unsigned modS(1); // counter for modNSiPMs
-      //unsigned inc(128/128);
-      /*while (s <= 128)
-      {
-        auto d = tempData.find(s);
-        data.emplace(modS, d->second.size());
-        modS++;
-        s = s + inc;
-      }
-      */
-      //****************************
 
       PixelTable* pixelTable = PixelTable::Instance();
       auto pixelList = pixelTable->GetPixels();
 
-      fReconstructor.Initialize(data, pixelList);
+      // Disk radius returns in mm, convert to cm
+      fReconstructor.Initialize(data, pixelList, fDetector->WheelGeometry()->Radius()/10.);
       fReconstructor.Reconstruct(); 
-      //fReconstructor.MakePlots(fRecoAnaTreePath);
+      fReconstructor.MakePlots(fRecoAnaTreePath);
     }
     // Fill our ntuple
     analyzer.Fill(e);
