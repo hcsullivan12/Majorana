@@ -237,7 +237,6 @@ def writeNewOpRefTable(avgMap, pixelTable, outputFile):
 	with open(outputFile, 'w') as f:
 		# write first line
 		f.write('pixelID mppcID probability\n')
-
 		for pid in sorted(newPixels.iterkeys()):
 			s = str(pid) + ' 1 ' + str(newPixels[pid][2]) + '\n'
 			f.write(s) 
@@ -254,7 +253,7 @@ if __name__ == "__main__":
 	fr = fileReader(args.opreftable, args.pixelization)
 	# Step 2)
 	avgMap = averageRefTable(fr.theMap(), fr.count, fr.thePixelTable())
-	avgMap = np.rot90(avgMap, 1)
+	#avgMap = np.rot90(avgMap, 1)
 	plt.imshow(avgMap, interpolation='nearest', cmap='gist_stern')
 	plt.colorbar()	
 	plt.show()

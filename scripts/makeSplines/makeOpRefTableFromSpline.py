@@ -15,6 +15,7 @@ import scipy
 from scipy import interpolate
 import numpy as np
 import matplotlib.pyplot as plt
+import math
 
 class fileReader():
 	
@@ -95,44 +96,53 @@ def interpolate(theMap):
     xArr = np.array(xs)
     yArr = np.array(ys)
     zArr = np.array(ps)
-    zArr = np.log(zArr)
+    #zArr = np.log10(zArr)
 
-    #Z = scipy.interpolate.griddata(xArr, yArr, zArr, method='cubic')
-    #f = scipy.interpolate.interp2d(xArr,yArr,zArr,kind='cubic')
-    f_interp = scipy.interpolate.Rbf(xArr, yArr, zArr, function='cubic')
-    #plt.pcolor(XI, YI, zArr, cmap=cm.jet)
-    ti = np.linspace(-14.5,14.5)
+    interp = scipy.interpolate.Rbf(xArr, yArr, zArr, function='cubic')
+    '''
+    ti = np.linspace(-14.5,14.5,num=57)
     xx, yy = np.meshgrid(ti, ti)
-    zz = f_interp(xx,yy)
-    plt.pcolor(xx, yy, zz, cmap='gist_heat')
+    zz = interp(xx,yy)
+    plt.pcolor(xx, yy, zz, cmap='gist_stern')
     plt.colorbar()	
     plt.show()
+    '''
+    return interp
 
-def writeNewOpRefTable(nsipms, ourMap, thePixelTable, theSplineTable):
+def writeNewOpRefTable(nsipms, outputFile, theFunc, thePixelTable, theSplineTable):
     # we should now have the spline profile
-    # for sipm1 (east)
+    # for sipm1 (east).
     # Looping through each sipm and pixel:
     #   1) Calculate R,alpha in the sipm's coordinate
     #      system (distanceFrom, angleToNormal)
     #   2) Calculate p from our profile at (R,alpha)
     
     theRefTable = []
-
     beta = 2*math.pi/nsipms
-    for sid in range(nsipms):
-        sipmAngle = (sid-1)*beta
-        for pid, xy in thePixelTable.items():
-            r = math.sqrt(xy[0]*xy[0]+xy[1]*xy[1])
-            theta = math.atan2(xy[1]/xy[0])
-            if theta < 0: theta = theta + 2*math.pi
+    for pid, xy in thePixelTable.items():
+        print pid, '/', len(thePixelTable)
 
+        # convert to r, theta
+        r = math.sqrt(xy[0]*xy[0]+xy[1]*xy[1])
+        if xy[0] == 0. and xy[1] == 0.: theta = 0
+        else: theta = math.atan2(xy[1], xy[0])
+        if theta < 0: theta = theta + 2*math.pi
+
+        for sid in range(1, nsipms+1):
+            sipmAngle = (sid-1)*beta
             # the 'rotated' positions
-            theX = r*cos(theta - sipmPos[1])
-            theY = r*sin(theta - sipmPo[1])                
+            theX = r*math.cos(theta - sipmAngle)
+            theY = r*math.sin(theta - sipmAngle)                
             # what is p for this position?
-            p = ourMap(theX, theY)
-
+            p = theFunc(theX, theY)
             theRefTable.append([pid, sid, p])
+
+    with open(outputFile, 'w') as f:
+        # write first line
+        f.write('pixelID mppcID probability\n')
+        for d in theRefTable:
+			s = str(d[0])+' '+str(d[1])+' '+str(d[2])+'\n'
+			f.write(s) 
 
 if __name__ == "__main__":
 	# first read the args
@@ -140,12 +150,12 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--spline", default=None, help="The input spline")
     parser.add_argument("-p", "--pixelization", default=None, help="The pixelization scheme")
     parser.add_argument("-o", "--output", default=None, help="The output OpRefTable")
-    parser.add_argument("-n", "--nsipms", default=None, help="The output OpRefTable")
+    parser.add_argument("-n", "--nsipms", default=None, help="The number of sipms")
     args = parser.parse_args()
 
     # Step 1)
     fr = fileReader(args.spline, args.pixelization)
 	# Step 2)
-    ourMap = interpolate(fr.theMap())
+    theFunc = interpolate(fr.theMap())
     # Step 3)
-    #writeNewOpRefTable(args.nsipms, ourMap, fr.thePixelTable(), fr.theSplineTable())
+    writeNewOpRefTable(int(args.nsipms), str(args.output), theFunc, fr.thePixelTable(), fr.theSplineTable())
