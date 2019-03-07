@@ -172,9 +172,9 @@ void G4Helper::RunG4()
       PixelTable* pixelTable = PixelTable::Instance();
       auto pixelList = pixelTable->GetPixels();
 
+      // Disk radius returns in mm, convert to cm
       fReconstructor.Initialize(data, pixelList, fDetector->WheelGeometry()->Radius()/10.);
       fReconstructor.Reconstruct(); 
-      // Disk radius returns in mm, convert to cm
       fReconstructor.MakePlots(fRecoAnaTreePath);
     }
     // Fill our ntuple
