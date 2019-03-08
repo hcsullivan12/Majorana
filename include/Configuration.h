@@ -43,7 +43,15 @@ class Configuration
  
     void Initialize(const std::string& configPath);
     void SetVisualization(const bool& b) { fShowVis = b; };
+    void SetNSiPMs(const unsigned& n) { fNMPPCs = n; };
+    void SetPixelPath(const std::string& p) { fPixelizationPath = p; };
+    void SetOpRefTablePath(const std::string& p) { fOpReferenceTablePath = p; };
+    void SetSimOutputPath(const std::string& p) { fSimulateOutputPath = p; };
+    void SetRecoAnaPath(const std::string& p) { fRecoAnaTreePath = p; };
+
     void ReadSteeringFile();
+    void CheckConfiguration();
+    void PrintConfiguration();
 
     unsigned    NMPPCs()               const { return fNMPPCs; };
     G4double    MPPCHalfLength()       const { return fMPPCHalfLength; };
@@ -70,8 +78,6 @@ class Configuration
     static Configuration* instance;
 
     void ReadConfigFile();
-    void CheckConfiguration();
-    void PrintConfiguration();
 
     std::string fConfigPath;
     std::string fSimulateOutputPath;

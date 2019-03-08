@@ -57,10 +57,6 @@ void Configuration::Initialize(const std::string& configPath)
   fConfigPath = configPath;
   // Save the configuration
   ReadConfigFile();
-  // Safety checks
-  CheckConfiguration();
-  // Output to terminal
-  PrintConfiguration();
 }
 
 void Configuration::ReadConfigFile()

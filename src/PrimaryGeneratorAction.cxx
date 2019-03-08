@@ -71,7 +71,7 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 
   //*********
   // TEMPORARY
-  TH2F primHist("primHist", "primHist", 57, -14.5, 14.5, 57, -14.5, 14.5);
+  /*TH2F primHist("primHist", "primHist", 57, -14.5, 14.5, 57, -14.5, 14.5);
   for (unsigned xbin = 1; xbin <= primHist.GetXaxis()->GetNbins(); xbin++)
   {
     for (unsigned ybin = 1; ybin <= primHist.GetYaxis()->GetNbins(); ybin++) 
@@ -82,7 +82,7 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
       primHist.SetBinContent(xbin, ybin, 2);
     }
   }
-
+*/
   // Loop over the primaries  
   for (unsigned primary = 0; primary < fNPrimaries; primary++)
   {
@@ -98,7 +98,7 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 
       float xTemp = x/10;
       float yTemp = y/10;
-      primHist.Fill(xTemp, yTemp);
+      //primHist.Fill(xTemp, yTemp);
     }
     else
     {
@@ -167,8 +167,8 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
                                 polarization[2]);
     vertex->SetPrimary(g4Particle);
   }
-  TFile f("/home/hunter/projects/Majorana/output/simulateOutput.root", "UPDATE");
-  primHist.Write();
-  f.Close();
+  //TFile f("/home/hunter/projects/Majorana/output/simulateOutput.root", "UPDATE");
+  //primHist.Write();
+  //f.Close();
 }
 }
