@@ -61,7 +61,6 @@ void HandleArgs(int argc, char **argv, majorana::Configuration* config)
   for (unsigned arg = 0; arg < argc; arg++) if (std::string(argv[arg]) == "--h") DisplayHelp();
   for (unsigned arg = 0; arg < (argc-1); arg++)
   {
-    std::cout << arg << " " << argv[arg] << std::endl;
     if (std::string(argv[arg]) == "--vis" && std::string(argv[arg+1]) == "ON") showVis = true;    
     if (std::string(argv[arg]) == "--c") configPath = std::string(argv[arg+1]);
     if (std::string(argv[arg]) == "--ov" && (arg+5) < argc) 
