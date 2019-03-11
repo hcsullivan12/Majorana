@@ -43,7 +43,7 @@ class G4Helper
     void StartG4();
     ActionInitialization* GetActionInitialization() const { return fActionInitialization; };
     DetectorConstruction* GetDetectorConstruction() const { return fDetector; };
-    const Reconstructor   GetReconstructor()        const { return fReconstructor; };
+    const Reconstructor&  GetReconstructor()       const { return fReconstructor; };
 
   private:
     G4Helper();

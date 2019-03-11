@@ -121,8 +121,8 @@ void G4Helper::RunG4()
   // Initialize our anaylzer
   Analyzer analyzer(fSimulateOutputPath);
  
-  std::cout << "\nPress enter to start running G4...\n";
-  std::cin.get();
+  //std::cout << "\nPress enter to start running G4...\n";
+  //std::cin.get();
   for (unsigned e = 0; e < nEvents; e++)
   {
     G4cout << "\n****  EVENT #" << e << "  ****" << G4endl;
@@ -170,10 +170,9 @@ void G4Helper::RunG4()
       for (const auto& d : tempData) data.emplace(d.first, d.second.size());
 
       PixelTable* pixelTable = PixelTable::Instance();
-      auto pixelList = pixelTable->GetPixels();
 
       // Disk radius returns in mm, convert to cm
-      fReconstructor.Initialize(data, pixelList, fDetector->WheelGeometry()->Radius()/10.);
+      fReconstructor.Initialize(data, pixelTable->GetPixels(), fDetector->WheelGeometry()->Radius()/10.);
       fReconstructor.Reconstruct(); 
       fReconstructor.MakePlots(fRecoAnaTreePath);
     }
@@ -182,8 +181,8 @@ void G4Helper::RunG4()
     // Clear the photon table!
     photonTable->Reset();
   }
-  std::cout << "\nDone! Press enter to exit...\n";
-  std::cin.get();
+  //std::cout << "\nDone! Press enter to exit...\n";
+  //std::cin.get();
 }
 
 void G4Helper::HandleVisualization()

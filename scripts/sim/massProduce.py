@@ -49,6 +49,4 @@ if __name__== "__main__":
             simOutputPath  = os.path.join(fullOutputPath,s1)
             recoOutputPath = os.path.join(fullOutputPath,s2)
             command = str(fullBuildPath)+'/simulate --c '+str(topDirPath)+'/config/Configuration.ini --ov '+str(theNumber)+' '+str(thePixelPath)+' '+str(theOpRefTPath)+' '+str(simOutputPath)+' '+str(recoOutputPath)
-            #os.system(command)
-            if theSpacing == 7.0 and theNumber == 128: os.system(command)
-            if theSpacing == 7.0 and theNumber == 32: os.system(command)
+            os.system(command)
