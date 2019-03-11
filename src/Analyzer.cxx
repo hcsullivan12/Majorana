@@ -29,8 +29,8 @@ Analyzer::Analyzer(const std::string& simOutputPath)
   fAnaTree = new TTree("anatree", "analysis tree");
   fAnaTree->Branch("event",      &fEvent, "event/I");
   fAnaTree->Branch("nPixels",    &fNPixels, "nPixels/I");
-  fAnaTree->Branch("pixelX", fPixelX, "pixelX[nPixels]/D");
-  fAnaTree->Branch("pixelY", fPixelY, "pixelY[nPixels]/D");
+  //fAnaTree->Branch("pixelX", fPixelX, "pixelX[nPixels]/D");
+  //fAnaTree->Branch("pixelY", fPixelY, "pixelY[nPixels]/D");
   fAnaTree->Branch("nMPPCs",     &fNMPPCs, "nMPPCs/I");
   fAnaTree->Branch("diskRadius", &fDiskRadius, "diskRadius/D");
   fAnaTree->Branch("nPrimaries", &fNPrimaries, "nPrimaries/I");
@@ -46,7 +46,7 @@ Analyzer::Analyzer(const std::string& simOutputPath)
     fAnaTree->Branch("mlY", &fMLY, "mlY/D");
     fAnaTree->Branch("mlR", &fMLR, "mlR/D");
     fAnaTree->Branch("mlT", &fMLT, "mlT/D");
-    fAnaTree->Branch("mlIntensities", fMLIntensities, "mlIntensities[nPixels]/D");
+    //fAnaTree->Branch("mlIntensities", fMLIntensities, "mlIntensities[nPixels]/D");
   }
 }
 
@@ -120,27 +120,27 @@ void Analyzer::Fill(const unsigned& e)
   }
 
   // Pixel info
-  PixelTable* pixelTable = PixelTable::Instance();
-  fNPixels = pixelTable->GetPixels().size();
-  for (const auto& p : pixelTable->GetPixels())
-  {
-    fPixelX[p.ID()-1] = p.X();
-    fPixelY[p.ID()-1] = p.Y();
-  }
+  //PixelTable* pixelTable = PixelTable::Instance();
+  //auto thePixelList = pixelTable->GetPixels();
+  //fNPixels = thePixelList->size();
+  //for (const auto& p : thePixelList)
+  //{
+  //  fPixelX[p.ID()-1] = p.X();
+  //  fPixelY[p.ID()-1] = p.Y();
+  //}
 
   // Fill reconstruction info
-  Reconstructor reconstructor = g4Helper->GetReconstructor();
   if (config->Reconstruct())
   {
-    fMLX = reconstructor.X();
-    fMLY = reconstructor.Y();
-    fMLR = reconstructor.R();
-    fMLT = reconstructor.Theta();
-    std::vector<float> pixelEstimates = reconstructor.PixelEstimates();
-    for (unsigned k = 0; k < pixelEstimates.size(); k++)
-    {
-      fMLIntensities[k] = pixelEstimates[k];
-    }
+    fMLX = g4Helper->GetReconstructor().X();
+    fMLY = g4Helper->GetReconstructor().Y();
+    fMLR = g4Helper->GetReconstructor().R();
+    fMLT = g4Helper->GetReconstructor().Theta();
+    //std::vector<float> pixelEstimates = reconstructor.PixelEstimates();
+    //for (unsigned k = 0; k < pixelEstimates.size(); k++)
+    //{
+    //  fMLIntensities[k] = pixelEstimates[k];
+    //}
   }
   
   fAnaTree->Fill();
@@ -168,12 +168,12 @@ void Analyzer::ResetVars()
   fMLY = -99999;
   fMLR = -99999;
   fMLT = -99999;
-  for (unsigned k = 0; k < kMaxNPixels; k++)
-  {
-    fMLIntensities[k] = -99999;
-    fPixelX[k] = -99999;
-    fPixelY[k] = -99999;
-  }
+  //for (unsigned k = 0; k < kMaxNPixels; k++)
+  //{
+  //  fMLIntensities[k] = -99999;
+  //  fPixelX[k] = -99999;
+  //  fPixelY[k] = -99999;
+  //}
 }
 
 }

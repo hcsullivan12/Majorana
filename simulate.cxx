@@ -30,11 +30,9 @@ int main(int argc, char **argv)
     majorana::PixelTable* pixelTable = majorana::PixelTable::CreateInstance();
     pixelTable->Initialize(config->PixelizationPath());
   }
-  // If we're wanting to reconstruct in point mode, it's 
-  // easier if we still initialize pixels to load reference table
-  // in pixel table 
-  if (config->Reconstruct())
-  {
+  else if (config->SourceMode() == "point" && config->Reconstruct())
+  {   
+    // If we're wanting to reconstruct in point mode
     majorana::PixelTable* pixelTable = majorana::PixelTable::CreateInstance();
     pixelTable->Initialize(config->PixelizationPath());
     pixelTable->LoadReferenceTable(config->OpReferenceTablePath());
@@ -58,12 +56,12 @@ void HandleArgs(int argc, char **argv, majorana::Configuration* config)
   unsigned nsipms(0);
   
   if (argc < 2) DisplayHelp();
-  for (unsigned arg = 0; arg < argc; arg++) if (std::string(argv[arg]) == "--h") DisplayHelp();
+  for (unsigned arg = 0; arg < argc; arg++) if (std::string(argv[arg]) == "-h") DisplayHelp();
   for (unsigned arg = 0; arg < (argc-1); arg++)
   {
-    if (std::string(argv[arg]) == "--vis" && std::string(argv[arg+1]) == "ON") showVis = true;    
-    if (std::string(argv[arg]) == "--c") configPath = std::string(argv[arg+1]);
-    if (std::string(argv[arg]) == "--ov" && (arg+5) < argc) 
+    if (std::string(argv[arg]) == "-vis" && std::string(argv[arg+1]) == "ON") showVis = true;    
+    if (std::string(argv[arg]) == "-c") configPath = std::string(argv[arg+1]);
+    if (std::string(argv[arg]) == "-ov" && (arg+5) < argc) 
     {
       nsipms        = std::stoi(argv[arg+1]);
       pixelPath     = std::string(argv[arg+2]);
@@ -98,11 +96,11 @@ void HandleArgs(int argc, char **argv, majorana::Configuration* config)
 
 void DisplayHelp()
 {
-  std::cout << "\nUsage: ./simulate --c PATH_TO_CONFIG <Options>\n";
+  std::cout << "\nUsage: ./simulate -c CONFIGPATH <Options>\n";
   std::cout << "Options:\n"
-            << "  --h for help\n"
-            << "  --vis ON/OFF (If ON, render visualization. Default is OFF.)\n"
-            << "  --ov  NSIPMS PIXELIZATIONPATH OPREFTABLEPATH SIMULATEOUTPUT RECOANATREE (If wanting to overide configuration.)";
+            << "  -h for help\n"
+            << "  -vis ON/OFF (If ON, render visualization. Default is OFF.)\n"
+            << "  -ov  NSIPMS PIXELIZATIONPATH OPREFTABLEPATH SIMULATEOUTPUT RECOANATREE (If wanting to overide configuration.)";
   std::cout << std::endl;
   std::exit(1);
 }

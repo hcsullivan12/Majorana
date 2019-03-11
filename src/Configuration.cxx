@@ -113,7 +113,7 @@ void Configuration::PrintConfiguration()
   // Hello there!
   std::cout << std::setfill('-') << std::setw(60) << "-" << std::setfill(' ')  << std::endl;
   std::cout << "              Majorana " << majoranaVersion                    << std::endl;
-  std::cout << "       Simulation software for SiPM Wheel           "          << std::endl;
+  //std::cout << "       Simulation software for SiPM Wheel           "          << std::endl;
   std::cout                                                                    << std::endl;
   std::cout << "Majorana Configuration:\n";
   std::cout << "SimulateOutputPath " << fSimulateOutputPath << std::endl
