@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
 project(Majorana)
 
-add_definitions(-DVERSION="v02_04_00")
+add_definitions(-DVERSION="v02_05_00")
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
 # Geant4 dependencies
 list(APPEND CMAKE_MODULE_PATH $ENV{GEANTDIR})

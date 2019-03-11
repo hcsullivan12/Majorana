@@ -36,7 +36,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
        
     G4LogicalVolume*   fVolWorld; 
     G4VPhysicalVolume* fPVWorld;
-    Wheel*       fWheel;
+    Wheel*             fWheel;
     G4Cache<MPPCSD*>   fMPPCSD;
 };
 }

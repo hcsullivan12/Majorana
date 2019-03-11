@@ -6,8 +6,8 @@
 // Description: Simple pixel structure. 
 //
 
-#ifndef VOXEL_H
-#define VOXEL_H
+#ifndef PIXEL_H
+#define PIXEL_H
 
 #include <vector>
 
@@ -16,6 +16,8 @@ namespace majorana
 
 class Pixel 
 {
+
+using AReferenceTable = std::vector<float>;
 
 public:
 	Pixel(const unsigned& id,
@@ -33,7 +35,7 @@ public:
   unsigned    ID()    const { return fID; };
   unsigned    NPrimaries() const { return fNPrimaries; };
   float       Intensity() const { return fIntensity; };
-  std::vector<float> ReferenceTable() const { return fReferenceTable; };
+  AReferenceTable const& ReferenceTable() const { return fReferenceTable; };
 
   void SetSize(const float& s) { fSize = s; };
   void SetIntensity(const float& i) { fIntensity = i; };
@@ -49,7 +51,7 @@ private:
   float  fIntensity;    ///< if reconstructing, this is the reconstructed intensity
   unsigned fID;         ///< id number
   unsigned fNPrimaries; ///< number of primaries to launch from this pixel
-  std::vector<float> fReferenceTable; ///< stores mppc to probability map
+  AReferenceTable fReferenceTable; ///< stores mppc to probability map
 };
 }
 

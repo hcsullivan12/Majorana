@@ -22,19 +22,26 @@ namespace majorana
 {
 
 Reconstructor::Reconstructor()
-{}
+{
+  fPixelEstimates = std::make_unique<std::vector<float>>();
+  fPixelEstimates->clear();
+  fPixelVec = std::make_shared<std::vector<Pixel>>();
+  fPixelVec.get()->clear();
+}
 
 Reconstructor::~Reconstructor()
 {}
 
 void Reconstructor::Initialize(const std::map<unsigned, unsigned>& data,
-                               const std::list<Pixel>& pixelList,
+                               std::shared_ptr<std::vector<Pixel>> pixelVec,
                                const float& diskRadius)
 {
   fData      = data;
-  fPixelList = pixelList;
-  fPixelEstimates.clear();
-  fPixelEstimates.resize(fPixelList.size());
+  fPixelVec.reset();
+  fPixelVec = pixelVec;
+
+  fPixelEstimates->resize(fPixelVec->size());
+
   fDenomSums.clear();
   fDenomSums.resize(fData.size());
   fDiskRadius = diskRadius;
@@ -70,14 +77,13 @@ void Reconstructor::InitPixelList()
 
   // Sample
   std::srand(time(NULL));
-  for (auto& v : fPixelList)
+  for (auto& v : *fPixelVec)
   {
-    //if (v.R() > 12) { v.SetIntensity(rand()%10 + 1); continue;}
     double u = rand()%totalPE+1;
     v.SetIntensity(u);
   }
   // Log likelihood
-  fLogLikehs.push_back(CalculateLL());
+  //fLogLikehs.push_back(CalculateLL());
 }
 
 void Reconstructor::Estimate(unsigned& iteration)
@@ -86,14 +92,12 @@ void Reconstructor::Estimate(unsigned& iteration)
   if (iteration > 120) return;
 
   // To reduce complexity, find denominator sum seperately
-  // Old: O(nSiPMS*nPixels*nPixels)
-  // New: O(2*nSiPMS*nPixels)
   for (const auto& d : fData)
   {
     float denomSum = DenominatorSum(d.first); 
     fDenomSums[d.first-1] = denomSum;
   }
-  for (auto& pixel : fPixelList)
+  for (auto& pixel : *fPixelVec)
   {
     // pixelID
     unsigned pixelID = pixel.ID();
@@ -101,7 +105,7 @@ void Reconstructor::Estimate(unsigned& iteration)
     std::vector<float> opRefTable = pixel.ReferenceTable();
     // Apply the money formula
     float nextEst = MoneyFormula(pixelID, theEst, opRefTable);
-    fPixelEstimates[pixelID-1] = nextEst;
+    (*fPixelEstimates)[pixelID-1] = nextEst;
   }
 
   // 3) 
@@ -131,7 +135,7 @@ float Reconstructor::CalculateMean(const unsigned& sipmID)
 {
   // Loop over pixels
   float sum(0);
-  for (const auto& pixel : fPixelList)
+  for (const auto& pixel : *fPixelVec)
   {
     auto opRefTable = pixel.ReferenceTable();
     sum = sum + opRefTable[sipmID-1]*pixel.Intensity();
@@ -141,14 +145,12 @@ float Reconstructor::CalculateMean(const unsigned& sipmID)
 void Reconstructor::Reset()
 {
   // Update the intensities
-  for (auto& v : fPixelList)
+  for (auto& v : *fPixelVec)
   {
     unsigned id = v.ID();
-    float nextEst = fPixelEstimates[id-1];
+    float nextEst = (*fPixelEstimates)[id-1];
     v.SetIntensity(nextEst);
   }
-  //fPixelEstimates.clear();
-  //fDenomSums.clear();
 }
 
 float Reconstructor::MoneyFormula(const unsigned& pixelID, 
@@ -180,7 +182,7 @@ float Reconstructor::DenominatorSum(const unsigned& mppcID)
 {
   // Loop over pixels
   float denomSum(0);
-  for (const auto& pixel : fPixelList)
+  for (const auto& pixel : *fPixelVec)
   {
     float theEst = pixel.Intensity();
     float p(0);
@@ -203,11 +205,9 @@ bool Reconstructor::CheckConvergence()
 
 void Reconstructor::MakePlots(const std::string& filename)
 {
-  gStyle->SetPalette(51);
-
   TFile f(filename.c_str(), "UPDATE");
   // Set bin size
-  float pixelSpacing = fPixelList.front().Size();
+  float pixelSpacing = (*fPixelVec).front().Size();
   unsigned n = 2*fDiskRadius/pixelSpacing - 1; // assuming pixel is in the center
 
   std::string name = "histFinal";
@@ -217,7 +217,7 @@ void Reconstructor::MakePlots(const std::string& filename)
   float meanX(0);
   float meanY(0);
   float totalInt(0);
-  for (const auto& v : fPixelList)
+  for (const auto& v : *fPixelVec)
   {
     unsigned xbin = hist.GetXaxis()->FindBin(v.X());
     unsigned ybin = hist.GetYaxis()->FindBin(v.Y());
@@ -234,10 +234,5 @@ void Reconstructor::MakePlots(const std::string& filename)
   fMLX = meanX;
   fMLY = meanY;
   fMLN0 = totalInt;
-  
-  // Apply gaussian fit
-  //TF2 g("g", "bigaus", -fDiskRadius, fDiskRadius, -fDiskRadius, fDiskRadius);
-  //hist.Fit(&g);
-  //g.Write();
 }
 }
