@@ -13,6 +13,7 @@
 
 #include <map>
 #include <list>
+#include <memory>
 
 namespace majorana
 {
@@ -26,7 +27,7 @@ public:
   
   void Reconstruct();
   void Initialize(const std::map<unsigned, unsigned>& data,
-                  const std::list<Pixel>& pixelList,
+                  std::shared_ptr<std::vector<Pixel>> pixelList,
                   const float& diskRadius);
   void MakePlots(const std::string& filename);
 
@@ -35,7 +36,7 @@ public:
   const float    Y()     const { return fMLY; }
   const float    R()     const { return fMLRadius; }
   const float    Theta() const { return fMLTheta; }
-  const std::vector<float> PixelEstimates() const { return fPixelEstimates; }
+  //const std::vector<float> PixelEstimates() const { return *fPixelEstimates; }
     
 private:
   void InitPixelList();
@@ -56,8 +57,8 @@ private:
   float                        fMLRadius;        //< MLE for r (cm)
   float                        fMLTheta;         //< MLE for theta (deg)
   float                        fDiskRadius;
-  std::list<Pixel>             fPixelList;          //< list of created pixels
-  std::vector<float>           fPixelEstimates;     //< 
+  std::shared_ptr<std::vector<Pixel>>   fPixelVec;          //< list of pixels
+  std::unique_ptr<std::vector<float>> fPixelEstimates;     //< 
   std::vector<float>           fDenomSums;
   std::map<unsigned, unsigned> fData;               //< measured counts (sipm, np.e.)
   std::vector<float>           fLogLikehs;

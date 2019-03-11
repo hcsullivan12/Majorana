@@ -6,15 +6,14 @@
 // Discription:
 //
 
-#ifndef VOXELTABLE_H
-#define VOXELTABLE_H
+#ifndef PIXELTABLE_H
+#define PIXELTABLE_H
 
 #include "Pixel.h"
 
 #include <vector>
-#include <list>
-#include <string>
-#include <algorithm>    
+#include <string>  
+#include <memory>  
 
 namespace majorana 
 {
@@ -30,14 +29,14 @@ public:
   void Initialize(const std::string& pixelizationPath);
   void LoadReferenceTable(const std::string& path);
 
-  const std::list<Pixel>& GetPixels() const { return fPixelList; };
+  std::shared_ptr<std::vector<Pixel>> GetPixels() const { return fPixelVec; };
   Pixel*                  GetPixel(const unsigned& id); 
   
 private:
   PixelTable();
   static PixelTable* instance;
 
-  std::list<Pixel> fPixelList;
+  std::shared_ptr<std::vector<Pixel>> fPixelVec;
 
 };
 }
