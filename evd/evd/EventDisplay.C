@@ -376,7 +376,6 @@ const std::map<unsigned, unsigned> MyMainFrame::ReadDataFile() {
   std::string delimiter = " ";
   while ((pos = line.find(delimiter)) != std::string::npos) {
     v.emplace(counter, std::stoi(line.substr(0, pos)));
-    cout << line.substr(0, pos) << endl;
     line.erase(0, pos + delimiter.length());
     counter++;
   }
@@ -415,12 +414,14 @@ void MyMainFrame::UpdatePlots(const std::map<unsigned, unsigned>& mydata) {
   TCanvas *bc = fCanvas2->GetCanvas();
   
   // Make a histogram of the data
-  TH1D *h = new TH1D("h", "The data", mydata.size(), 0, mydata.size());
+  TH1I *h = new TH1I("h", "Measured Light Yield", mydata.size(), 0.5, mydata.size()+0.5);
   for (const auto& d : mydata) h->SetBinContent(d.first, d.second);
   bc->Clear();
-  h->SetMarkerStyle(8);
-  h->SetMarkerSize(2);
-  h->Draw("p");
+  h->SetLineColor(4);
+  h->SetLineWidth(4);
+  h->GetXaxis()->SetTitle("SiPM ID");
+  //h->SetBarOffset(0.5);
+  h->Draw("");
   bc->cd();
   bc->Update();
 }
