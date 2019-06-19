@@ -89,7 +89,7 @@ void Reconstructor::InitPixelList()
 void Reconstructor::Estimate(unsigned& iteration)
 {
   iteration++;
-  if (iteration > 120) return;
+  if (iteration > 200) return;
 
   // To reduce complexity, find denominator sum seperately
   for (const auto& d : fData)
