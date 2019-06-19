@@ -169,6 +169,12 @@ void G4Helper::RunG4()
       std::map<unsigned, unsigned> data;
       for (const auto& d : tempData) data.emplace(d.first, d.second.size());
 
+      // TEMPORARY
+      std::string tempfile = "../evd/daq/data.txt";
+      std::ofstream outfile(tempfile.c_str());
+      outfile << x/cm << " " << y/cm << "\n";
+      for (const auto& d : data) outfile << d.second << " ";
+
       PixelTable* pixelTable = PixelTable::Instance();
 
       // Disk radius returns in mm, convert to cm
@@ -180,6 +186,10 @@ void G4Helper::RunG4()
     analyzer.Fill(e);
     // Clear the photon table!
     photonTable->Reset();
+
+    // TEMPORARY PAUSE
+    std::cout << "Pausing...\n";
+    sleep(4);
   }
   //std::cout << "\nDone! Press enter to exit...\n";
   //std::cin.get();
