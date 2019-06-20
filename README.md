@@ -108,8 +108,8 @@ of course this only works if the number of SiPMs is a power of 2, e.g. `nSiPMs =
 
 Running this script will generate a text file named `NPIXELSp_NSIPMSs_opReferenceTable.txt`. With the reconstruct variable set to true, the code will parse the reference table into a data structure that is fed into the reconstruction algorithm. 
 
-### Conditioned reference table
-Also provided are scripts that allow one to improve the accuracy of the reference table. The idea is to create a 2D light detection probability profile by averaging the response for several sipms. These directories in `scripts` have `README.md` files for further instructions.
+### Generating other lookup tables
+Also provided are scripts that allow one to improve the accuracy of the reference table. These scripts also allow you to quickly generate lookup tables for different pixelizations and number of SiPMs. The idea is to create a 2D light detection probability profile by averaging the response from several sipms. See the ``README.md` files in the relavent directories in `scripts` for further details.
 
 ## Event display
 The Majorana event display allows one to view the reconstruction results in real time on data or monte carlo. To run the event display on simulation, it's useful to generate some events from `scripts/generators`. Running
