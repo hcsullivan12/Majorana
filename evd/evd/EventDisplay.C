@@ -39,7 +39,7 @@ private:
    double fDiskTh    = 1.0;
    double fSurfRough = 0.95;
    double fSurfAbs   = 0.03;
-   int fNsipms    = 8;
+   int fNsipms    = 64;
    int fPixelSize = 5;
    double fX;
    double fY;
