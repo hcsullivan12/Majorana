@@ -34,7 +34,6 @@ private:
    double fLastUpdate = 0;
    TTimer *fTimer = nullptr;
    std::string fDataFile = "./daq/data.txt";
-   std::string fDAQTree;
    std::string fTopDir;
    double fDiskR     = 14.5;    
    double fDiskTh    = 1.0;
@@ -46,20 +45,20 @@ private:
    double fY;
 
 public:
-   MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir, std::string daqTree);
+   MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir);
    virtual ~MyMainFrame();
    void DoDraw();
    void ChangeStartLabel();
    void StartReco();
    void StopReco();
    void SetParameters();
-   bool IsDAQTreeModified();
+   bool IsDAQFileModified();
    void HandleTimer();
    const std::map<unsigned, unsigned> ReadDataFile();
    void UpdatePlots(const std::map<unsigned, unsigned>& mydata);
 };
 
-MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir, std::string daqTree) {
+MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir) {
    // Create a main frame
    fMain = new TGMainFrame(p,w,h);
 
@@ -324,20 +323,6 @@ void MyMainFrame::ChangeStartLabel()
   fStart->SetState(kButtonUp);
 }
 
-void MyMainFrame::DoDraw() {
-   // Draws function graphics in randomly chosen interval
-    
-  /* if (!img) {
-	printf("Could not create an image, exiting\n");
-	return;
-   }
-   
-   TCanvas *fCanvas = fCanvas1->GetCanvas();
-   fCanvas->cd();
-   fCanvas->Update();*/
-}
-
-
 void MyMainFrame::StartReco() {
    std::cout << "//////////////////////////////////////////////////////\n";
    std::cout << "\nStarting reconstruction..." << std::endl;
@@ -449,7 +434,7 @@ void MyMainFrame::SetParameters() {
             << std::endl;
 }
 
-bool MyMainFrame::IsDAQTreeModified() {
+bool MyMainFrame::IsDAQFileModified() {
   struct stat fileStat;
   int err = stat(fDataFile.c_str(), &fileStat);
   if (err != 0) {
@@ -463,10 +448,10 @@ bool MyMainFrame::IsDAQTreeModified() {
 }
 
 void MyMainFrame::HandleTimer() {
-   if (IsDAQTreeModified()) StartReco();
+   if (IsDAQFileModified()) StartReco();
 }
 
-void EventDisplay(std::string topDir, std::string daqTree) {
+void EventDisplay(std::string topDir) {
   // Popup the GUI...
-  new MyMainFrame(gClient->GetRoot(),1500,1000, topDir, daqTree);
+  new MyMainFrame(gClient->GetRoot(),1500,1000, topDir);
 }
