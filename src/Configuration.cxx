@@ -78,6 +78,7 @@ void Configuration::ReadConfigFile()
   // Files
   fSimulateOutputPath   = std::string(majoranaDir)+"/"+filesSect.get_child("simulateOutputPath").get_value("");
   fSteeringFilePath     = std::string(majoranaDir)+"/"+filesSect.get_child("steeringFilePath").get_value("");
+  fDAQFilePath          = std::string(majoranaDir)+"/"+filesSect.get_child("daqFilePath").get_value("");
   if (fReconstruct) fRecoAnaTreePath = std::string(majoranaDir)+"/"+filesSect.get_child("recoAnaTreePath").get_value("");
   if (fReconstruct) fOpReferenceTablePath = std::string(majoranaDir)+"/"+filesSect.get_child("opReferenceTablePath").get_value("");
   if (fShowVis) fVisMacroPath = std::string(majoranaDir)+"/"+filesSect.get_child("visMacroPath").get_value("");

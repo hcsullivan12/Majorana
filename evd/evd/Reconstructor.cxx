@@ -18,9 +18,6 @@
 #include <iostream>
 #include <cmath>
 
-namespace majorana
-{
-
 Reconstructor::Reconstructor()
 {
   fPixelEstimates = std::make_unique<std::vector<float>>();
@@ -205,7 +202,7 @@ bool Reconstructor::CheckConvergence()
 
 void Reconstructor::MakePlots(const std::string& filename)
 {
-  TFile f(filename.c_str(), "UPDATE");
+  TFile f(filename.c_str(), "RECREATE");
   // Set bin size
   float pixelSpacing = (*fPixelVec).front().Size();
   unsigned n = 2*fDiskRadius/pixelSpacing - 1; // assuming pixel is in the center
@@ -234,5 +231,4 @@ void Reconstructor::MakePlots(const std::string& filename)
   fMLX = meanX;
   fMLY = meanY;
   fMLN0 = totalInt;
-}
 }
