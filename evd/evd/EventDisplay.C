@@ -33,7 +33,8 @@ private:
    bool fIsRunning = false;
    double fLastUpdate = 0;
    TTimer *fTimer = nullptr;
-   const std::string fDAQFile = "./daq/data.txt";
+   std::string fDataFile = "./daq/data.txt";
+   std::string fDAQTree;
    std::string fTopDir;
    double fDiskR     = 14.5;    
    double fDiskTh    = 1.0;
@@ -45,24 +46,25 @@ private:
    double fY;
 
 public:
-   MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir);
+   MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir, std::string daqTree);
    virtual ~MyMainFrame();
    void DoDraw();
    void ChangeStartLabel();
    void StartReco();
    void StopReco();
    void SetParameters();
-   bool IsDAQFileModified();
+   bool IsDAQTreeModified();
    void HandleTimer();
    const std::map<unsigned, unsigned> ReadDataFile();
    void UpdatePlots(const std::map<unsigned, unsigned>& mydata);
 };
 
-MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir) {
+MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir, std::string daqTree) {
    // Create a main frame
    fMain = new TGMainFrame(p,w,h);
 
    fTopDir = topDir;
+   fDAQTree = daqTree;
 
    // Create a horizontal frame
    TGHorizontalFrame *hframe1 = new TGHorizontalFrame(fMain,1500,1000);
@@ -347,7 +349,7 @@ void MyMainFrame::StartReco() {
    // Now we can pass our data to the reconstructor
    std::string pixelizationPath = fTopDir+"/production/production_v1_1/"+std::to_string(fPixelSize)+"mm/pixelization.txt";
    std::string opRefTablePath   = fTopDir+"/production/production_v1_1/"+std::to_string(fPixelSize)+"mm/"+std::to_string(fNsipms)+"sipms/splinedOpRefTable.txt";
-   std::string doRecoCmd = "doReconstruct(\""+pixelizationPath+"\",\""+opRefTablePath+"\", \""+fDAQFile+"\", "+std::to_string(fDiskR)+")";
+   std::string doRecoCmd = "doReconstruct(\""+pixelizationPath+"\",\""+opRefTablePath+"\", \""+fDataFile+"\", "+std::to_string(fDiskR)+")";
    //cout << doRecoCmd << endl;
    gROOT->ProcessLine(doRecoCmd.c_str()); 
 
@@ -357,7 +359,7 @@ void MyMainFrame::StartReco() {
 
 const std::map<unsigned, unsigned> MyMainFrame::ReadDataFile() {
   // The file should contain the number of photons detected by the sipms
-  std::ifstream theFile(fDAQFile.c_str());
+  std::ifstream theFile(fDataFile.c_str());
   std::string line;
   std::map<unsigned, unsigned> v;
   if (theFile.is_open()) {
@@ -404,7 +406,7 @@ void MyMainFrame::UpdatePlots(const std::map<unsigned, unsigned>& mydata) {
       TMarker *t = new TMarker(fX, fY, 29);
       t->SetMarkerSize(4);
       t->SetMarkerColor(7);
-      t->Draw("same");
+      //t->Draw("same");
       pad1->Update();
       pad1->Modified();
       tc->cd();
@@ -447,11 +449,11 @@ void MyMainFrame::SetParameters() {
             << std::endl;
 }
 
-bool MyMainFrame::IsDAQFileModified() {
+bool MyMainFrame::IsDAQTreeModified() {
   struct stat fileStat;
-  int err = stat(fDAQFile.c_str(), &fileStat);
+  int err = stat(fDataFile.c_str(), &fileStat);
   if (err != 0) {
-    perror(fDAQFile.c_str());
+    perror(fDataFile.c_str());
   }
   if (fileStat.st_mtime > fLastUpdate) {
      fLastUpdate = fileStat.st_mtime;
@@ -461,10 +463,10 @@ bool MyMainFrame::IsDAQFileModified() {
 }
 
 void MyMainFrame::HandleTimer() {
-   if (IsDAQFileModified()) StartReco();
+   if (IsDAQTreeModified()) StartReco();
 }
 
-void EventDisplay(std::string topDir) {
+void EventDisplay(std::string topDir, std::string daqTree) {
   // Popup the GUI...
-  new MyMainFrame(gClient->GetRoot(),1500,1000, topDir);
+  new MyMainFrame(gClient->GetRoot(),1500,1000, topDir, daqTree);
 }

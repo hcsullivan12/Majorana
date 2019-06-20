@@ -119,6 +119,7 @@
 #include "TTree.h"
 #include "time.h"
 #include <sys/timeb.h>
+#include "doAnalyze.C"
 
 #define maxpe 10 //max number of photoelectrons to use in the fit
 int NEVDISP=200; //number of lines in the waterfall event display
@@ -279,7 +280,7 @@ Double_t mppc1( Double_t *xx, Double_t *par) // from http://zeus.phys.uconn.edu/
 
 void FEBDAQMULT(const char *iface="eth1")
 {
-  //if(Init(iface)==0) return;
+  if(Init(iface)==0) return;
   FEBGUI();
  UpdateConfig();
  fNumberEntry8869->SetLimitValues(0,t->nclients-1);
@@ -697,7 +698,7 @@ t->dstmac[5]=0xff; //Broadcast
 
 void StartDAQ(int nev=0)
 {
-t->dstmac[5]=0xff; //Broadcast
+  t->dstmac[5]=0xff; //Broadcast
   t->SendCMD(t->dstmac,FEB_GEN_INIT,1,buf); //reset buffer
   t->SendCMD(t->dstmac,FEB_GEN_INIT,2,buf); //set DAQ_Enable flag on FEB
   DAQ(nev);
@@ -715,7 +716,14 @@ void StopDAQForEvd()
 void HandleTimer()
 {
   // Save data tree
-  tr->SaveAs("mppc.root");
+  std::string treePath = "mppc.root";
+  std::string dataPath = "../daq/data.txt";
+  tr->SaveAs(treePath.c_str());
+
+  // Trigger the analysis script
+  std::string doAnaCmd = "doAnalyze(\""+treePath+"\",\""+dataPath+"\")";
+  cout << doAnaCmd << endl;
+  gROOT->ProcessLine(doAnaCmd.c_str());
 }
 
 void StartDAQForEvd(int nev=0)

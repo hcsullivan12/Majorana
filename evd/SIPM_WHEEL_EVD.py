@@ -1,6 +1,7 @@
 #!bin/python
 
 import os
+import argparse
 
 # get this directory
 current_dir = os.getcwd()
@@ -15,5 +16,9 @@ print('')
 print('Running event display...')
 print('')
 
-command = 'root -l \'./evd/EventDisplay.C(\"'+top_dir+'\")\''
+parser = argparse.ArgumentParser(description="Mass produce opRefTables from splines")
+parser.add_argument("-d", "--daq", type=str, help="Path to DAQ tree", required=True)
+args = parser.parse_args()
+
+command = 'root -l \'./evd/EventDisplay.C(\"'+top_dir+'\", \"'+args.daq+'\")\''
 os.system(command)
