@@ -391,7 +391,7 @@ void MyMainFrame::UpdatePlots(const std::map<unsigned, unsigned>& mydata) {
   // We need the resulting plot from reco
   TFile f("recoanatree.root", "READ");
   if (f.IsOpen()) {
-    //gStyle->SetPalette(kDarkBodyRadiator);
+    gStyle->SetPalette(kDarkBodyRadiator);
     TH2F *recoHist = nullptr;
     f.GetObject("histFinal", recoHist);
     if (recoHist) {
@@ -403,6 +403,7 @@ void MyMainFrame::UpdatePlots(const std::map<unsigned, unsigned>& mydata) {
       recoHist->Draw("colz");
       TMarker *t = new TMarker(fX, fY, 29);
       t->SetMarkerSize(4);
+      t->SetMarkerColor(7);
       t->Draw("same");
       pad1->Update();
       pad1->Modified();

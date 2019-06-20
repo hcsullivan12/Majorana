@@ -46,8 +46,6 @@ void Reconstructor::Initialize(const std::map<unsigned, unsigned>& data,
   fDenomSums.resize(fData.size());
   fDiskRadius = diskRadius;
   fLogLikehs.clear();
-
-  for(const auto& d : fData) std::cout << d.first << " " << d.second << std::endl;
 }
 
 void Reconstructor::Reconstruct()

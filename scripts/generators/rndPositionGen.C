@@ -12,7 +12,7 @@ void GetPosition(Double_t& x, Double_t& y)
   y = rng.Uniform(-diskRadius+1., diskRadius-1.);
 
   Double_t r = std::sqrt(x*x+y*y);
-  if (r >= (diskRadius-1) || r <=0.5*diskRadius) GetPosition(x, y);
+  if (r >= (diskRadius-1) || r <=0.3*diskRadius) GetPosition(x, y);
 }
 
 void rndPositionGen(unsigned nPositions)
