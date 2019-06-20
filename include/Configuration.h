@@ -48,6 +48,7 @@ class Configuration
     void SetOpRefTablePath(const std::string& p) { fOpReferenceTablePath = p; };
     void SetSimOutputPath(const std::string& p) { fSimulateOutputPath = p; };
     void SetRecoAnaPath(const std::string& p) { fRecoAnaTreePath = p; };
+    void SetEvdMode(const bool& b) { fEvdMode = b; };
 
     void ReadSteeringFile();
     void CheckConfiguration();
@@ -59,6 +60,7 @@ class Configuration
     G4double    DiskThickness()        const { return fDiskThickness; };
     bool        ShowVis()              const { return fShowVis; };
     bool        Reconstruct()          const { return fReconstruct; };
+    bool        EvdMode()              const { return fEvdMode; };
     std::string VisMacroPath()         const { return fVisMacroPath; };
     std::string SteeringFilePath()     const { return fSteeringFilePath; };
     std::string SimulateOutputPath()   const { return fSimulateOutputPath; };
@@ -66,6 +68,7 @@ class Configuration
     std::string PixelizationPath()     const { return fPixelizationPath; };
     std::string OpReferenceTablePath() const { return fOpReferenceTablePath; };
     std::string RecoAnaTreePath()      const { return fRecoAnaTreePath; };
+    std::string DAQFilePath()          const { return fDAQFilePath; };
     G4double    SourcePosSigma()       const { return fSourcePosSigma; };
     G4double    SourcePeakE()          const { return fSourcePeakE; };
     G4double    SourcePeakESigma()     const { return fSourcePeakESigma; };
@@ -87,6 +90,7 @@ class Configuration
     std::string fVisMacroPath;
     std::string fSourceMode;
     std::string fOpReferenceTablePath;
+    std::string fDAQFilePath;
 
     unsigned    fNMPPCs;
     G4double    fMPPCHalfLength;
@@ -100,6 +104,7 @@ class Configuration
 
     bool        fReconstruct;
     bool        fShowVis;
+    bool        fEvdMode;
 
     std::vector<SteeringTableIndex> fSteeringTable;
 };

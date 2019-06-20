@@ -47,6 +47,7 @@ int main(int argc, char **argv)
 void HandleArgs(int argc, char **argv, majorana::Configuration* config)
 {
   bool showVis = false;
+  bool evdMode = false;
   std::string configPath = "";
   std::string pixelPath  = "";
   std::string opRefTPath = "";
@@ -61,6 +62,7 @@ void HandleArgs(int argc, char **argv, majorana::Configuration* config)
   {
     if (std::string(argv[arg]) == "-vis" && std::string(argv[arg+1]) == "ON") showVis = true;    
     if (std::string(argv[arg]) == "-c") configPath = std::string(argv[arg+1]);
+    if (std::string(argv[arg]) == "-E" && std::string(argv[arg+1]) == "ON") evdMode = true;  
     if (std::string(argv[arg]) == "-ov" && (arg+5) < argc) 
     {
       nsipms        = std::stoi(argv[arg+1]);
@@ -72,6 +74,7 @@ void HandleArgs(int argc, char **argv, majorana::Configuration* config)
   }
   // Pass configuration
   config->SetVisualization(showVis);
+  config->SetEvdMode(evdMode);
   assert(configPath != "");
   config->Initialize(configPath);
 

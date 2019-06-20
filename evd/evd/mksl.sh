@@ -1,0 +1,1 @@
+g++ -I ${ROOTSYS}/include -fPIC -shared Reconstructor.cxx -o libReconstructor.so

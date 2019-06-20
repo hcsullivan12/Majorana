@@ -169,6 +169,14 @@ void G4Helper::RunG4()
       std::map<unsigned, unsigned> data;
       for (const auto& d : tempData) data.emplace(d.first, d.second.size());
 
+      // Event display mode
+      if (Configuration::Instance()->EvdMode())
+      {
+        std::ofstream outfile(Configuration::Instance()->DAQFilePath().c_str());
+        outfile << x/cm << " " << y/cm << "\n";
+        for (const auto& d : data) outfile << d.second << " ";
+      }
+
       PixelTable* pixelTable = PixelTable::Instance();
 
       // Disk radius returns in mm, convert to cm
