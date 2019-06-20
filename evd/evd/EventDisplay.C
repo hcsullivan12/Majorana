@@ -63,7 +63,6 @@ MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir
    fMain = new TGMainFrame(p,w,h);
 
    fTopDir = topDir;
-   fDAQTree = daqTree;
 
    // Create a horizontal frame
    TGHorizontalFrame *hframe1 = new TGHorizontalFrame(fMain,1500,1000);
@@ -382,6 +381,9 @@ void MyMainFrame::UpdatePlots(const std::map<unsigned, unsigned>& mydata) {
     TH2F *recoHist = nullptr;
     f.GetObject("histFinal", recoHist);
     if (recoHist) {
+      recoHist->SetTitle("Reconstructed Position");
+      recoHist->GetXaxis()->SetTitle("X [cm]");
+      recoHist->GetYaxis()->SetTitle("Y [cm]");
       tc->Clear();
       TPad *pad1 = new TPad("pad1","",0,0,1,1);
       pad1->Draw();
@@ -391,7 +393,7 @@ void MyMainFrame::UpdatePlots(const std::map<unsigned, unsigned>& mydata) {
       TMarker *t = new TMarker(fX, fY, 29);
       t->SetMarkerSize(4);
       t->SetMarkerColor(7);
-      //t->Draw("same");
+      t->Draw("same");
       pad1->Update();
       pad1->Modified();
       tc->cd();
