@@ -24,9 +24,6 @@ private:
    TGTextButton      *fSetParam;
    
    TGTextEntry        *fDiskREnt;
-   TGTextEntry        *fSurfRoughEnt;
-   TGTextEntry        *fDiskThEnt;
-   TGTextEntry        *fSurfAbsEnt;
    TGTextEntry        *fNsipmsEnt;
    TGTextEntry        *fPixelSizeEnt;
 
@@ -35,10 +32,7 @@ private:
    TTimer *fTimer = nullptr;
    std::string fDataFile = "./daq/data.txt";
    std::string fTopDir;
-   double fDiskR     = 14.5;    
-   double fDiskTh    = 1.0;
-   double fSurfRough = 0.95;
-   double fSurfAbs   = 0.03;
+   double fDiskR  = 14.5;
    int fNsipms    = 64;
    int fPixelSize = 5;
    double fX;
@@ -72,92 +66,67 @@ MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir
    TGVerticalFrame *vframe2 = new TGVerticalFrame(hframe1,800,1000);
    TGVerticalFrame *vframe3 = new TGVerticalFrame(hframe1,400,1000);
 
-   // 1st vertical frame
-   //TGHorizontalFrame *vhframe1 = new TGHorizontalFrame(vframe1,400,20);
-   
-   //TGLabel *goTo = new TGLabel(vhframe1, "Go to: ");
-   //vhframe1->AddFrame(goTo, new TGLayoutHints(kLHintsLeft,0,5,5,5) );
-
-   //TGComboBox *combobox = new TGComboBox(vhframe1, 100, 20);
-   //char events = GetEvents();
-   //char tmp[10];
-   //for (int i = 0; i < 10; ++i) {
-   //   sprintf(tmp, "Event %i", i+1);
-   //   combobox->AddEntry(tmp, i+1);
-   //}
-   //combobox->Resize(100,20);
-   //vhframe1->AddFrame(combobox, new TGLayoutHints(kLHintsExpandX | kLHintsTop,5,0,5,5) );
-
-   //vframe1->AddFrame(vhframe1, new TGLayoutHints(kLHintsExpandX,5,5,2,10) );
-
-   //TGLabel *event = new TGLabel(vframe1, "Event");
-   //vframe1->AddFrame(event, new TGLayoutHints(kLHintsLeft,5,5,2,2) );
-   //TGLabel *run = new TGLabel(vframe1, "Run");
-   //vframe1->AddFrame(run, new TGLayoutHints(kLHintsLeft,5,5,2,2) );
-
-   //TGTextButton *next = new TGTextButton(vframe1,"&Next");
-   //next->Connect("Clicked()","MyMainFrame",this,"DoDraw()");
-   //// next->Resize(100,40);
-   //vframe1->AddFrame(next, new TGLayoutHints(kLHintsExpandX,5,5,50,5) );
-
-   //TGTextButton *previous = new TGTextButton(vframe1,"&Previous");
-   //previous->Connect("Clicked()","MyMainFrame",this,"DoDraw()");
-   //vframe1->AddFrame(previous, new TGLayoutHints(kLHintsExpandX,5,5,5,5) );
-
    vframe1->Resize(200,1000);
    hframe1->AddFrame(vframe1, new TGLayoutHints(kLHintsLeft | kLHintsExpandY,5,5,30,100));
 
-  // 2nd vertical frame
+   // 2nd vertical frame
    fCanvas1 = new TRootEmbeddedCanvas("fCanvas1",vframe2,200,200);   
    vframe2->AddFrame(fCanvas1, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX | kLHintsCenterY | kLHintsExpandY,5,5,5,5));   
-
    fCanvas2 = new TRootEmbeddedCanvas("fCanvas2",vframe2,200,200);
    vframe2->AddFrame(fCanvas2, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX | kLHintsCenterY | kLHintsExpandY,5,5,5,5));
-
-   //TRootEmbeddedCanvas *canvas3 = new TRootEmbeddedCanvas("Canvas3",vframe2,200,200);
-   //vframe2->AddFrame(canvas3, new TGLayoutHints(kLHintsCenterX | kLHintsExpandX | kLHintsCenterY | kLHintsExpandY,5,5,5,5));
-
    vframe2->Resize(1100,1000);
-  
    hframe1->AddFrame(vframe2, new TGLayoutHints(kLHintsLeft | kLHintsExpandX | kLHintsCenterY | kLHintsExpandY, 5,5,20,20) );
 
-
-   // 3rd vertical frame
-
-   /* Title with font */
+   // bold font for labels
    TGGC *fTextGC;
-   const TGFont *bfont = gClient->GetFont("-*-adobe-bold-r-*-*-18-*-*-*-*-*-*-*");
-   if (!bfont) {
-	bfont = gClient->GetResourcePool()->GetDefaultFont();
-   }
-   FontStruct_t labelfont = bfont->GetFontStruct();
+   const TGFont *boldfont = gClient->GetFont("-*-times-bold-r-*-*-18-*-*-*-*-*-*-*");
+   if (!boldfont) boldfont = gClient->GetResourcePool()->GetDefaultFont();
+   FontStruct_t labelboldfont = boldfont->GetFontStruct();
    GCValues_t   gval;
    gval.fMask = kGCBackground | kGCFont | kGCForeground;
-   gval.fFont = bfont->GetFontHandle();
-   gClient->GetColorByName("black", gval.fBackground);
+   gval.fFont = boldfont->GetFontHandle();
+   gClient->GetColorByName("yellow", gval.fBackground);
    fTextGC = gClient->GetGC(&gval, kTRUE);
-   ULong_t bcolor, blackcolor;
-   gClient->GetColorByName("black", blackcolor);
-   TGLabel *title = new TGLabel(vframe3, "SiPM Wheel\nEvent Display", fTextGC->GetGC(), labelfont, kChildFrame);
-   
-   vframe3->AddFrame(title, new TGLayoutHints(kLHintsTop | kLHintsLeft, 5, 5, 50, 5));
-   title->SetTextColor(blackcolor);
+
+   TGHorizontalFrame *vhframe20 = new TGHorizontalFrame(vframe3,400,20);
+   TGLabel *title = new TGLabel(vhframe20, "SiPM Wheel\nEvent Display", fTextGC->GetGC(), labelboldfont, kChildFrame);
+   vhframe20->AddFrame(title, new TGLayoutHints(kLHintsTop | kLHintsLeft, 5, 5, 50, 5));
+   //title->SetTextColor(blackcolor);
+
+   /* majorana picture */
+   TRootEmbeddedCanvas *majPicCanvas = new TRootEmbeddedCanvas("majPicCanvas",vhframe20,100,100);
+   vhframe20->AddFrame(majPicCanvas, new TGLayoutHints(kLHintsTop | kLHintsRight,5,5,5,5));
+   TImage *etimg = TImage::Open("evd/et.png");
+   if (!etimg) {
+      printf("Could not find image... \n");
+   }
+   else {
+     etimg->SetConstRatio(0);
+     etimg->SetImageQuality(TAttImage::kImgBest);
+     TCanvas* c = majPicCanvas->GetCanvas();
+     c->cd();
+     c->Clear();
+     c->SetLineColor(0);
+     etimg->Draw("xxx");
+     c->Update();
+   }
+   vframe3->AddFrame(vhframe20, new TGLayoutHints(kLHintsTop | kLHintsLeft, 5, 5, 50, 5));
 
    /* Reco Parameters */
    TGGC *fTextGC1;
-   const TGFont *font = gClient->GetFont("-*-adobe-r-*-*-12-*-*-*-*-*-*-*");
-   if (!font) {
-        font = gClient->GetResourcePool()->GetDefaultFont();
+   const TGFont *regfont = gClient->GetFont("-*-adobe-r-*-*-12-*-*-*-*-*-*-*");
+   if (!regfont) {
+        regfont = gClient->GetResourcePool()->GetDefaultFont();
    }
-   FontStruct_t label1font = font->GetFontStruct();
+   FontStruct_t label1font = regfont->GetFontStruct();
    GCValues_t   gval1;
    gval1.fMask = kGCBackground | kGCFont | kGCForeground;
-   gval1.fFont = font->GetFontHandle();
+   gval1.fFont = regfont->GetFontHandle();
    gClient->GetColorByName("black", gval1.fBackground);
    fTextGC1 = gClient->GetGC(&gval1, kTRUE);
-   gClient->GetColorByName("black", blackcolor);
-   TGLabel *tRecoParam = new TGLabel(vframe3, "Reco Parameters", fTextGC->GetGC(), labelfont, kChildFrame);
-   vframe3->AddFrame(tRecoParam, new TGLayoutHints(kLHintsCenterX, 5,5,50,5));
+   //gClient->GetColorByName("black", blackcolor);
+   TGLabel *tRecoConfig = new TGLabel(vframe3, "Configuration", fTextGC->GetGC(), labelboldfont, kChildFrame);
+   vframe3->AddFrame(tRecoConfig, new TGLayoutHints(kLHintsCenterX, 5,5,150,5));
 
    /* Disk Radius */
    stringstream stream;
@@ -172,48 +141,6 @@ MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir
    vhframe6->AddFrame(new TGLabel(vhframe6, "cm", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsRight, 5,5,5,0));
    vhframe6->AddFrame(fDiskREnt, new TGLayoutHints(kLHintsRight | kLHintsTop,5,5,2,5));
    vframe3->AddFrame(vhframe6, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
-
-   /* Disk Thickness */
-   stream.str("");
-   stream << fixed << setprecision(2) << fDiskTh;
-   TGHorizontalFrame *vhframe7 = new TGHorizontalFrame(vframe3,400,20);
-   vhframe7->AddFrame(new TGLabel(vhframe7, "Disk Thickness: ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsLeft, 0,5,5,5));
-   TGTextBuffer *diskThBuf = new TGTextBuffer(10);
-   diskThBuf->AddText(0, stream.str().c_str());
-   fDiskThEnt = new TGTextEntry(vhframe7, diskThBuf);
-   fDiskThEnt->Resize(50, fDiskThEnt->GetDefaultHeight());
-   fDiskThEnt->SetFont("-adobe-courier-r-*-*-12-*-*-*-*-*-iso8859-1");
-   vhframe7->AddFrame(new TGLabel(vhframe7, "cm", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsRight, 5,5,5,0));
-   vhframe7->AddFrame(fDiskThEnt, new TGLayoutHints(kLHintsRight | kLHintsTop,5,5,2,5));
-   vframe3->AddFrame(vhframe7, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
-
-   /* Surface roughness */
-   stream.str("");
-   stream << fixed << setprecision(2) << fSurfRough;
-   TGHorizontalFrame *vhframe8 = new TGHorizontalFrame(vframe3,400,20);
-   vhframe8->AddFrame(new TGLabel(vhframe8, "Surface roughness: ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsLeft, 0,5,5,5));
-   TGTextBuffer *surfRough = new TGTextBuffer(10);
-   surfRough->AddText(0, stream.str().c_str());
-   fSurfRoughEnt = new TGTextEntry(vhframe8, surfRough);
-   fSurfRoughEnt->Resize(50, fSurfRoughEnt->GetDefaultHeight());
-   fSurfRoughEnt->SetFont("-adobe-courier-r-*-*-12-*-*-*-*-*-iso8859-1");
-   vhframe8->AddFrame(new TGLabel(vhframe8, "  ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsRight, 5,5,5,0));
-   vhframe8->AddFrame(fSurfRoughEnt, new TGLayoutHints(kLHintsRight | kLHintsTop,5,5,2,5));
-   vframe3->AddFrame(vhframe8, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
-
-   /* Surface absorption */
-   stream.str("");
-   stream << fixed << setprecision(2) << fSurfAbs;   
-   TGHorizontalFrame *vhframe9 = new TGHorizontalFrame(vframe3,400,20);
-   vhframe9->AddFrame(new TGLabel(vhframe9, "Surface absorption: ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsLeft, 0,5,5,5));
-   TGTextBuffer *surfAbs = new TGTextBuffer(10);
-   surfAbs->AddText(0, stream.str().c_str());
-   fSurfAbsEnt = new TGTextEntry(vhframe9, surfAbs);
-   fSurfAbsEnt->Resize(50, fSurfAbsEnt->GetDefaultHeight());
-   fSurfAbsEnt->SetFont("-adobe-courier-r-*-*-12-*-*-*-*-*-iso8859-1");
-   vhframe9->AddFrame(new TGLabel(vhframe9, "  ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsRight, 5,5,5,0));
-   vhframe9->AddFrame(fSurfAbsEnt, new TGLayoutHints(kLHintsRight | kLHintsTop,0,5,2,10));
-   vframe3->AddFrame(vhframe9, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
 
    /* N sipms */  
    TGHorizontalFrame *vhframe10 = new TGHorizontalFrame(vframe3,400,20);
@@ -267,12 +194,15 @@ MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir
 
    /* Quit button */
    TGTextButton *quit = new TGTextButton(vframe3,"&Quit", "gApplication->Terminate(0)");
-   vframe3->AddFrame(quit, new TGLayoutHints(kLHintsExpandX | kLHintsBottom,5,5,5,200) );
+   vframe3->AddFrame(quit, new TGLayoutHints(kLHintsExpandX | kLHintsBottom,5,5,5,300) );
 
    /* Start button */
-   fStart = new TGTextButton(vframe3,"&Start");
+   fStart = new TGTextButton(vframe3,"Start");
    fStart->Connect("Clicked()","MyMainFrame",this,"ChangeStartLabel()");
    vframe3->AddFrame(fStart, new TGLayoutHints(kLHintsBottom | kLHintsExpandX ,5,5,5,5));
+
+   TGLabel *tReco = new TGLabel(vframe3, "Reconstruction", fTextGC->GetGC(), labelboldfont, kChildFrame);
+   vframe3->AddFrame(tReco, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 5,5,5,5));
 
    // Add horizontal to main frame //
    fMain->AddFrame(hframe1, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY,5,5,5,5));
@@ -307,7 +237,7 @@ void MyMainFrame::ChangeStartLabel()
 
   // If it is not currently running, start it
   if (!fIsRunning) {
-     fStart->SetText("&Stop");
+     fStart->SetText("Stop");
      // Start the time to check for updated daq file
      std::cout << "\n"
                << "Listening for DAQ files...\n";
@@ -315,7 +245,7 @@ void MyMainFrame::ChangeStartLabel()
      fIsRunning = true;
   } else {
      std::cout << "Stopping reconstruction...\n";
-     fStart->SetText("&Start");
+     fStart->SetText("Start");
      if (fTimer) fTimer->Stop();
      fIsRunning = false;
   }
@@ -418,19 +348,16 @@ void MyMainFrame::UpdatePlots(const std::map<unsigned, unsigned>& mydata) {
 
 void MyMainFrame::SetParameters() {
   // Get the current settings
-  fDiskR     = std::stod(fDiskREnt->GetText());
-  fDiskTh    = std::stod(fDiskThEnt->GetText());
-  fSurfRough = std::stod(fSurfRoughEnt->GetText());
-  fSurfAbs   = std::stod(fSurfAbsEnt->GetText());
+  stringstream stream;
+  stream << fixed << setprecision(2) << fDiskR;
+  fDiskREnt->SetText(stream.str().c_str());
+
   fNsipms    = std::stoi(fNsipmsEnt->GetText());
   fPixelSize = std::stoi(fPixelSizeEnt->GetText());
 
   std::cout << "\n"
             << "Updating parameters...\n"
             << "Disk radius set to:        " << fDiskR     << "\n"
-            << "Disk thickness set to:     " << fDiskTh    << "\n"
-            << "Surface roughness set to:  " << fSurfRough << "\n"
-            << "Surface absorption set to: " << fSurfAbs   << "\n"
             << "Number of SiPMs set to:    " << fNsipms    << "\n"
             << "Pixel size set to:         " << fPixelSize << "\n"
             << std::endl;
