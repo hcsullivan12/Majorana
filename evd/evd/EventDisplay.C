@@ -128,17 +128,19 @@ MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir
    TGLabel *tRecoConfig = new TGLabel(vframe3, "Configuration", fTextGC->GetGC(), labelboldfont, kChildFrame);
    vframe3->AddFrame(tRecoConfig, new TGLayoutHints(kLHintsCenterX, 5,5,150,5));
 
-   /* disk radius */  
-   TGHorizontalFrame *vhframe9 = new TGHorizontalFrame(vframe3,400,20);
-   vhframe9->AddFrame(new TGLabel(vhframe9, "Disk radius: ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsLeft, 0,5,5,5));
-   TGTextBuffer *diskr = new TGTextBuffer(10);
-   diskr->AddText(0, std::to_string(fDiskR).c_str());
-   fDiskREnt = new TGTextEntry(vhframe9, diskr);
+   /* Disk Radius */
+   stringstream stream;
+   stream << fixed << setprecision(2) << fDiskR;
+   TGHorizontalFrame *vhframe6 = new TGHorizontalFrame(vframe3,400,20);
+   vhframe6->AddFrame(new TGLabel(vhframe6, "Disk Radius: ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsLeft, 0,5,5,5));
+   TGTextBuffer *diskRBuf = new TGTextBuffer(10);
+   diskRBuf->AddText(0, stream.str().c_str());
+   fDiskREnt = new TGTextEntry(vhframe6, diskRBuf);
    fDiskREnt->Resize(50, fDiskREnt->GetDefaultHeight());
    fDiskREnt->SetFont("-adobe-courier-r-*-*-12-*-*-*-*-*-iso8859-1");
-   vhframe9->AddFrame(new TGLabel(vhframe9, "cm", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsRight, 5,5,5,0));
-   vhframe9->AddFrame(fDiskREnt, new TGLayoutHints(kLHintsRight | kLHintsTop,5,5,2,5));
-   vframe3->AddFrame(vhframe9, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
+   vhframe6->AddFrame(new TGLabel(vhframe6, "cm", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsRight, 5,5,5,0));
+   vhframe6->AddFrame(fDiskREnt, new TGLayoutHints(kLHintsRight | kLHintsTop,5,5,2,5));
+   vframe3->AddFrame(vhframe6, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
 
    /* N sipms */  
    TGHorizontalFrame *vhframe10 = new TGHorizontalFrame(vframe3,400,20);
@@ -346,7 +348,10 @@ void MyMainFrame::UpdatePlots(const std::map<unsigned, unsigned>& mydata) {
 
 void MyMainFrame::SetParameters() {
   // Get the current settings
-  fDiskREnt->SetText(std::to_string(fDiskR).c_str());
+  stringstream stream;
+  stream << fixed << setprecision(2) << fDiskR;
+  fDiskREnt->SetText(stream.str().c_str());
+
   fNsipms    = std::stoi(fNsipmsEnt->GetText());
   fPixelSize = std::stoi(fPixelSizeEnt->GetText());
 
