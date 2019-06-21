@@ -24,9 +24,6 @@ private:
    TGTextButton      *fSetParam;
    
    TGTextEntry        *fDiskREnt;
-   TGTextEntry        *fSurfRoughEnt;
-   TGTextEntry        *fDiskThEnt;
-   TGTextEntry        *fSurfAbsEnt;
    TGTextEntry        *fNsipmsEnt;
    TGTextEntry        *fPixelSizeEnt;
 
@@ -35,10 +32,7 @@ private:
    TTimer *fTimer = nullptr;
    std::string fDataFile = "./daq/data.txt";
    std::string fTopDir;
-   double fDiskR     = 14.5;    
-   double fDiskTh    = 1.0;
-   double fSurfRough = 0.95;
-   double fSurfAbs   = 0.03;
+   double fDiskR  = 14.5;
    int fNsipms    = 64;
    int fPixelSize = 5;
    double fX;
@@ -132,7 +126,19 @@ MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir
    fTextGC1 = gClient->GetGC(&gval1, kTRUE);
    //gClient->GetColorByName("black", blackcolor);
    TGLabel *tRecoConfig = new TGLabel(vframe3, "Configuration", fTextGC->GetGC(), labelboldfont, kChildFrame);
-   vframe3->AddFrame(tRecoConfig, new TGLayoutHints(kLHintsCenterX, 5,5,50,5));
+   vframe3->AddFrame(tRecoConfig, new TGLayoutHints(kLHintsCenterX, 5,5,150,5));
+
+   /* disk radius */  
+   TGHorizontalFrame *vhframe9 = new TGHorizontalFrame(vframe3,400,20);
+   vhframe9->AddFrame(new TGLabel(vhframe9, "Disk radius: ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsLeft, 0,5,5,5));
+   TGTextBuffer *diskr = new TGTextBuffer(10);
+   diskr->AddText(0, std::to_string(fDiskR).c_str());
+   fDiskREnt = new TGTextEntry(vhframe9, diskr);
+   fDiskREnt->Resize(50, fDiskREnt->GetDefaultHeight());
+   fDiskREnt->SetFont("-adobe-courier-r-*-*-12-*-*-*-*-*-iso8859-1");
+   vhframe9->AddFrame(new TGLabel(vhframe9, "cm", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsRight, 5,5,5,0));
+   vhframe9->AddFrame(fDiskREnt, new TGLayoutHints(kLHintsRight | kLHintsTop,5,5,2,5));
+   vframe3->AddFrame(vhframe9, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
 
    /* N sipms */  
    TGHorizontalFrame *vhframe10 = new TGHorizontalFrame(vframe3,400,20);
@@ -186,7 +192,7 @@ MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir
 
    /* Quit button */
    TGTextButton *quit = new TGTextButton(vframe3,"&Quit", "gApplication->Terminate(0)");
-   vframe3->AddFrame(quit, new TGLayoutHints(kLHintsExpandX | kLHintsBottom,5,5,5,200) );
+   vframe3->AddFrame(quit, new TGLayoutHints(kLHintsExpandX | kLHintsBottom,5,5,5,300) );
 
    /* Start button */
    fStart = new TGTextButton(vframe3,"Start");
@@ -340,19 +346,13 @@ void MyMainFrame::UpdatePlots(const std::map<unsigned, unsigned>& mydata) {
 
 void MyMainFrame::SetParameters() {
   // Get the current settings
-  fDiskR     = std::stod(fDiskREnt->GetText());
-  fDiskTh    = std::stod(fDiskThEnt->GetText());
-  fSurfRough = std::stod(fSurfRoughEnt->GetText());
-  fSurfAbs   = std::stod(fSurfAbsEnt->GetText());
+  fDiskREnt->SetText(std::to_string(fDiskR).c_str());
   fNsipms    = std::stoi(fNsipmsEnt->GetText());
   fPixelSize = std::stoi(fPixelSizeEnt->GetText());
 
   std::cout << "\n"
             << "Updating parameters...\n"
             << "Disk radius set to:        " << fDiskR     << "\n"
-            << "Disk thickness set to:     " << fDiskTh    << "\n"
-            << "Surface roughness set to:  " << fSurfRough << "\n"
-            << "Surface absorption set to: " << fSurfAbs   << "\n"
             << "Number of SiPMs set to:    " << fNsipms    << "\n"
             << "Pixel size set to:         " << fPixelSize << "\n"
             << std::endl;
