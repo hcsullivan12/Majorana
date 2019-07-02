@@ -39,6 +39,8 @@ PixelTable::PixelTable()
 {
   fPixelVec = std::make_shared<std::vector<Pixel>>();
   fPixelVec->clear();
+
+  fSpacing = 0;
 }
 
 PixelTable::~PixelTable()
@@ -169,6 +171,7 @@ void PixelTable::Initialize(const std::string& pixelizationPath)
   std::sort( (*fPixelVec).begin(), (*fPixelVec).end(), [](const auto& left, const auto& right) { return left.ID() < right.ID(); } );
 
   std::cout << "Initialized " << fPixelVec->size() << " " << min << "x" << min << "cm2 pixels...\n";
+  fSpacing = min;
 }
 
 }
