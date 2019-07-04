@@ -71,7 +71,7 @@ public:
   const double   ML()    const { return fMLLogLikelihood; }
   const float    X()     const { return fMLX; }
   const float    Y()     const { return fMLY; }
-  TH2F           MLImage() { return fMLHistogram; }
+  TH2F*          MLImage() { return fMLHistogram; }
     
 private:
   
@@ -178,8 +178,8 @@ private:
    */
   void InitializePriors();
    
-  TH2F                         fMLHistogram;           ///< The reconstructed image
-  TF2                          fMLGauss;               ///< Gaussian fit to point source
+  TH2F*                        fMLHistogram;           ///< The reconstructed image
+  TF2*                         fMLGauss;               ///< Gaussian fit to point source
   double                       fMLLogLikelihood;       ///< Log likelihood for the MLE
   float                        fMLTotalLight;          ///< MLE for total light
   float                        fMLX;                   ///< MLE for x (cm)
@@ -187,7 +187,7 @@ private:
   float                        fDiskRadius;            ///< Disk radius 
   std::shared_ptr<std::vector<Pixel>> fPixelVec;       ///< List of pixels
   std::vector<float>           fDenomSums;             ///< Map of sipm to denominator sum
-  std::map<size_t, size_t> fData;                      ///< Measured counts (sipm, np.e.)
+  std::map<size_t, size_t>     fData;                      ///< Measured counts (sipm, np.e.)
   std::vector<float>           fLogLikehs;             ///< Container for logL at each iteration 
   std::vector<float>           fPriors;                ///< Container for priors used in penalized reconstruction
   float                        fGamma;                 ///< Strength parameter for penalty function

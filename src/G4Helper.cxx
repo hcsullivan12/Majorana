@@ -192,7 +192,7 @@ void G4Helper::RunG4()
       fReconstructor.Dump();
       // Write the reconstructed image
       TFile f(fRecoAnaTreePath.c_str(), "UPDATE");
-      fReconstructor.MLImage().Write();
+      fReconstructor.MLImage()->Write();
       f.Close();
     }
     // Fill our ntuple

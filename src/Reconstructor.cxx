@@ -26,7 +26,9 @@ Reconstructor::Reconstructor()
  : fDiskRadius(0),
    fGamma(0),
    fPenalizedIterStop(100),
-   fUnpenalizedIterStop(100)
+   fUnpenalizedIterStop(100),
+   fMLHistogram(nullptr),
+   fMLGauss(nullptr)
 {
   fPixelVec = std::make_shared<std::vector<Pixel>>();
   fPixelVec.get()->clear();
@@ -34,7 +36,10 @@ Reconstructor::Reconstructor()
 
 //------------------------------------------------------------------------
 Reconstructor::~Reconstructor()
-{}
+{
+  if (!fMLHistogram) delete fMLHistogram;
+  if (!fMLGauss)     delete fMLGauss;
+}
 
 //------------------------------------------------------------------------
 void Reconstructor::Initialize(const std::map<size_t, size_t>&     data,
@@ -61,8 +66,8 @@ void Reconstructor::Initialize(const std::map<size_t, size_t>&     data,
   float pixelSpacing = (*fPixelVec).front().Size();
   size_t n = 2*fDiskRadius/pixelSpacing - 1; // assuming pixel is in the center
   std::string name = "histFinal";
-  fMLHistogram = TH2F(name.c_str(), name.c_str(), n, -fDiskRadius, fDiskRadius, n, -fDiskRadius, fDiskRadius);
-  fMLGauss = TF2("g", "bigaus", -fDiskRadius, fDiskRadius, -fDiskRadius, fDiskRadius);
+  if (!fMLHistogram) fMLHistogram = new TH2F(name.c_str(), name.c_str(), n, -fDiskRadius, fDiskRadius, n, -fDiskRadius, fDiskRadius);
+  if (!fMLGauss)     fMLGauss     = new TF2("g", "bigaus", -fDiskRadius, fDiskRadius, -fDiskRadius, fDiskRadius);
 }
 
 //------------------------------------------------------------------------
@@ -78,9 +83,9 @@ void Reconstructor::Reconstruct(const bool& doPenalized)
   UpdateHistogram();
 
   // Let's fit our current estimate using a 2D gaussian
-  fMLHistogram.Fit(&fMLGauss, "NQ");
+  fMLHistogram->Fit(fMLGauss, "NQ");
   Double_t maxX, maxY;
-  fMLGauss.GetMaximumXY(maxX, maxY);
+  fMLGauss->GetMaximumXY(maxX, maxY);
   fMLX          = maxX;
   fMLY          = maxY;
 
@@ -102,7 +107,7 @@ void Reconstructor::InitializePriors()
 {
   // We should an updated gaussian fit now
   fPriors.resize(fPixelVec->size());
-  for (const auto& pixel : *fPixelVec) fPriors[pixel.ID()-1] = fMLGauss.Eval(pixel.X(), pixel.Y());
+  for (const auto& pixel : *fPixelVec) fPriors[pixel.ID()-1] = fMLGauss->Eval(pixel.X(), pixel.Y());
 }
 
 //------------------------------------------------------------------------
@@ -272,9 +277,9 @@ void Reconstructor::UpdateHistogram()
   float totalInt(0);
   for (const auto& v : *fPixelVec)
   {
-    size_t xbin = fMLHistogram.GetXaxis()->FindBin(v.X());
-    size_t ybin = fMLHistogram.GetYaxis()->FindBin(v.Y());
-    fMLHistogram.SetBinContent(xbin, ybin, v.Intensity());
+    size_t xbin = fMLHistogram->GetXaxis()->FindBin(v.X());
+    size_t ybin = fMLHistogram->GetYaxis()->FindBin(v.Y());
+    fMLHistogram->SetBinContent(xbin, ybin, v.Intensity());
     totalInt = totalInt + v.Intensity();
   } 
   fMLTotalLight = totalInt;
