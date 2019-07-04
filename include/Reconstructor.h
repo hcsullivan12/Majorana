@@ -36,7 +36,6 @@ public:
    * @param data Map from SiPM ID to measured counts.
    * @param pixelVec Pointer to the pixels.
    * @param diskRadius Used for plotting.
-   * @param doPenalized Option to run penalized reconstruction.
    * @param gamma Strength parameter for penalty function (default 0).
    * @param pStop Iteration number to stop penalized reconstruction.
    * @param upStop Iteration number to stop unpenalized reconstruction.
@@ -44,7 +43,6 @@ public:
   void Initialize(const std::map<unsigned, unsigned>& data,
                   std::shared_ptr<std::vector<Pixel>> pixelList,
                   const float&                        diskRadius,
-                  const bool&                         doPenalized,
                   const float&                        gamma, 
                   const size_t&                       pStop,
                   const size_t&                       upStop);
@@ -57,10 +55,15 @@ public:
    * The user has the option to subsequently run the penalized reconstruction
    * using information from the unpenalized reconstruction.
    * 
+   * @param doPenalized Option to run penalized reconstruction (default true).
    */  
-  void Reconstruct();                  
+  void Reconstruct(const bool& doPenalized = true);                  
 
-  void MakePlots(const std::string& filename);
+  /**
+   * @brief Dump configuration and reconstruction results.
+   * 
+   */
+  void Dump();
 
   const double   ML()    const { return fMLLogLikelihood; }
   const float    X()     const { return fMLX; }
@@ -174,6 +177,8 @@ private:
    */
   void InitializePriors();
    
+  TH2F                         fMLHistogram;           ///< The reconstructed image
+  TF2                          fMLGaus;                ///< Gaussian fit to point source
   double                       fMLLogLikelihood;       ///< Log likelihood for the MLE
   float                        fMLTotalLight;          ///< MLE for total light
   float                        fMLX;                   ///< MLE for x (cm)

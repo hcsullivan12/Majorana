@@ -179,8 +179,12 @@ void G4Helper::RunG4()
 
       PixelTable* pixelTable = PixelTable::Instance();
 
-      fReconstructor.Initialize(data, pixelTable->GetPixels(), fDetector->WheelGeometry()->Radius()/CLHEP::cm);
-      fReconstructor.Reconstruct(); 
+      fReconstructor.Initialize(data, 
+                                pixelTable->GetPixels(), 
+                                fDetector->WheelGeometry()->Radius()/CLHEP::cm,
+                                config->PenalizedStopId(),
+                                config->UnpenalizedStopId());
+      fReconstructor.Reconstruct(config->DoPenalized()); 
       fReconstructor.MakePlots(fRecoAnaTreePath);
     }
     // Fill our ntuple

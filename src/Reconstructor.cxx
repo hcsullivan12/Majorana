@@ -23,8 +23,7 @@ namespace majorana
 
 //------------------------------------------------------------------------
 Reconstructor::Reconstructor()
- : fDoPenalized(true),
-   fDiskRadius(0),
+ : fDiskRadius(0),
    fGamma(0),
    fPenalizedIterStop(100),
    fUnpenalizedIterStop(100)
@@ -41,7 +40,6 @@ Reconstructor::~Reconstructor()
 void Reconstructor::Initialize(const std::map<size_t, size_t>&     data,
                                std::shared_ptr<std::vector<Pixel>> pixelVec,
                                const float&                        diskRadius,
-                               const bool&                         doPenalized,
                                const float&                        gamma, 
                                const size_t&                       pStop,
                                const size_t&                       upStop)
@@ -50,7 +48,6 @@ void Reconstructor::Initialize(const std::map<size_t, size_t>&     data,
   fPixelVec.reset();
   fPixelVec = pixelVec;
 
-  fDoPenalized = doPenalized;
   fPenalizedIterStop   = pStop;
   fUnpenalizedIterStop = upStop;
 
@@ -61,7 +58,7 @@ void Reconstructor::Initialize(const std::map<size_t, size_t>&     data,
 }
 
 //------------------------------------------------------------------------
-void Reconstructor::Reconstruct()
+void Reconstructor::Reconstruct(const bool& doPenalized)
 {
   // first do unpenalized
   // this will give us our prior for a penalized reconstruction
@@ -71,11 +68,12 @@ void Reconstructor::Reconstruct()
   UpdateHistogram();
 
   // option to do penalized
-  if (fDoPenalized) 
+  if (doPenalized) 
   {
     // Initialize our priors
     InitializePriors();
     DoPenalized();
+    UpdateHistogram();
   }
 }
 
@@ -92,7 +90,9 @@ void Reconstructor::DoUnpenalized()
 //------------------------------------------------------------------------
 void Reconstructor::InitializePriors()
 {
-
+  // We should an updated gaussian fit now
+  fPriors.resize(fPixelVec->size());
+  for (const auto& pixel : fPixelVec) fPriors[pixel.ID()-1] = fMLGauss.Eval(pixel.X(), pixel.Y());
 }
 
 //------------------------------------------------------------------------
@@ -271,9 +271,24 @@ void Reconstructor::UpdateHistogram()
   auto max = g.GetMaximum();
 
   fMLHist       = hist;
+  fMLGaus       = g;
   fMLX          = max[0];
   fMLY          = max[1];
   fMLTotalLight = totalInt;
+}
+
+//------------------------------------------------------------------------
+void Reconstructor::Dump()
+{
+  std::cout << "\nNumber of pixels:   " << fPixelVec->size()
+            << "\nUnpenalized stop:   " << fUnpenalizedIterStop
+            << "\nPenalized stop:     " << fPenalizedIterStop
+            << "\nPenalty strength:   " << fGamma
+            << "\nDisk radius:        " << fDiskRadius
+            << "\nML estimate for X:  " << fMLX
+            << "\nML estimate for Y:  " << fMLY
+            << "\nML estimate for LY: " << fMLTotalLight
+            << "\n";
 }
 
 }
