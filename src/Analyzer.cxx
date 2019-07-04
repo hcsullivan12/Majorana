@@ -17,6 +17,7 @@
 namespace majorana 
 {
 
+//------------------------------------------------------------------------
 Analyzer::Analyzer(const std::string& simOutputPath)
  : fAnaTree(NULL),
    fSimulateOutputPath(simOutputPath)
@@ -34,22 +35,21 @@ Analyzer::Analyzer(const std::string& simOutputPath)
   fAnaTree->Branch("nMPPCs",     &fNMPPCs, "nMPPCs/I");
   fAnaTree->Branch("diskRadius", &fDiskRadius, "diskRadius/D");
   fAnaTree->Branch("nPrimaries", &fNPrimaries, "nPrimaries/I");
-  fAnaTree->Branch("sourcePosXYZ", fSourcePosXYZ, "sourcePosXYZ[3]/D");
-  fAnaTree->Branch("sourcePosRTZ", fSourcePosRTZ, "sourcePosRTZ[3]/D");
-  fAnaTree->Branch("mppcToLY", fMPPCToLY, "mppcToLY[nMPPCs]/D");
-  fAnaTree->Branch("mppcToSourceR", fMPPCToSourceR, "mppcToSourceR[nMPPCs]/D");
-  fAnaTree->Branch("mppcToSourceT", fMPPCToSourceT, "mppcToSourceT[nMPPCs]/D");
+  fAnaTree->Branch("sourcePosXYZ",  &fSourcePosXYZ);
+  fAnaTree->Branch("sourcePosRTZ",  &fSourcePosRTZ);
+  fAnaTree->Branch("mppcToLY",      &fMPPCToLY);
+  fAnaTree->Branch("mppcToSourceR", &fMPPCToSourceR);
+  fAnaTree->Branch("mppcToSourceT", &fMPPCToSourceT);
   fAnaTree->Branch("nPhotonsAbsorbed", &fNPhotonsAbs, "nPhotonsAbsorbed/I");
   if (config->Reconstruct())
   {
     fAnaTree->Branch("mlX", &fMLX, "mlX/D");
     fAnaTree->Branch("mlY", &fMLY, "mlY/D");
-    fAnaTree->Branch("mlR", &fMLR, "mlR/D");
-    fAnaTree->Branch("mlT", &fMLT, "mlT/D");
     //fAnaTree->Branch("mlIntensities", fMLIntensities, "mlIntensities[nPixels]/D");
   }
 }
 
+//------------------------------------------------------------------------
 Analyzer::~Analyzer()
 {
   TFile f(fSimulateOutputPath.c_str(), "UPDATE");
@@ -59,9 +59,11 @@ Analyzer::~Analyzer()
   if (fAnaTree) delete fAnaTree;
 }
 
+//------------------------------------------------------------------------
 void Analyzer::Fill(const unsigned& e)
 {
   ResetVars();
+
   // Get the necessary information
   OpDetPhotonTable* photonTable = OpDetPhotonTable::Instance();
   G4Helper* g4Helper = G4Helper::Instance();
@@ -72,14 +74,6 @@ void Analyzer::Fill(const unsigned& e)
   fNMPPCs       = g4Helper->GetDetectorConstruction()->WheelGeometry()->NMPPCs();
   fDiskRadius   = g4Helper->GetDetectorConstruction()->WheelGeometry()->Radius()/10; // convert to cm
   fNPrimaries   = g4Helper->GetActionInitialization()->GetGeneratorAction()->GetNPrimaries();
-  // Check the number of sipms
-  if (fNMPPCs > kMaxNMPPCs) 
-  { 
-    std::cout << "CAUTION! kMaxNMPPCs is set to "     << kMaxNMPPCs 
-              << ", but nMPPCs in config is set to " << fNMPPCs 
-              << ". Please increase kMaxNMPPCs.\n";
-              exit(1);
-  }
 
   auto xyzVec = g4Helper->GetActionInitialization()->GetGeneratorAction()->GetSourcePositionXYZ();
   auto rtzVec = g4Helper->GetActionInitialization()->GetGeneratorAction()->GetSourcePositionRTZ();
@@ -134,18 +128,12 @@ void Analyzer::Fill(const unsigned& e)
   {
     fMLX = g4Helper->GetReconstructor().X();
     fMLY = g4Helper->GetReconstructor().Y();
-    fMLR = g4Helper->GetReconstructor().R();
-    fMLT = g4Helper->GetReconstructor().Theta();
-    //std::vector<float> pixelEstimates = reconstructor.PixelEstimates();
-    //for (unsigned k = 0; k < pixelEstimates.size(); k++)
-    //{
-    //  fMLIntensities[k] = pixelEstimates[k];
-    //}
   }
   
   fAnaTree->Fill();
 }
 
+//------------------------------------------------------------------------
 void Analyzer::ResetVars()
 {
   fEvent   = -99999;
@@ -155,19 +143,14 @@ void Analyzer::ResetVars()
   fDiskRadius = -99999;
   fNPrimaries = -99999;
   fNPhotonsAbs = -99999;
-  fSourcePosXYZ[0] = -99999; fSourcePosXYZ[1] = -99999; fSourcePosXYZ[2] = -99999;
-  fSourcePosRTZ[0] = -99999; fSourcePosRTZ[1] = -99999; fSourcePosRTZ[2] = -99999;
-  for (unsigned k = 0; k < kMaxNMPPCs; k++)
-  {
-    fMPPCToLY[k]      = -99999;
-    fMPPCToSourceR[k] = -99999;
-    fMPPCToSourceT[k] = -99999;
-  }
+  fSourcePosXYZ.clear();
+  fSourcePosRTZ.clear();
+  fMPPCToLY.clear();
+  fMPPCToSourceR.clear();
+  fMPPCToSourceT.clear();
   fNPhotonsAbs = -99999;
   fMLX = -99999;
   fMLY = -99999;
-  fMLR = -99999;
-  fMLT = -99999;
   //for (unsigned k = 0; k < kMaxNPixels; k++)
   //{
   //  fMLIntensities[k] = -99999;

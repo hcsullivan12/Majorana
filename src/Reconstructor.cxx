@@ -78,6 +78,14 @@ void Reconstructor::Reconstruct(const bool& doPenalized)
 }
 
 //------------------------------------------------------------------------
+void Reconstructor::InitializePriors()
+{
+  // We should an updated gaussian fit now
+  fPriors.resize(fPixelVec->size());
+  for (const auto& pixel : *fPixelVec) fPriors[pixel.ID()-1] = fMLGauss.Eval(pixel.X(), pixel.Y());
+}
+
+//------------------------------------------------------------------------
 void Reconstructor::DoUnpenalized()
 {
   // Initialize the pixels
@@ -85,14 +93,6 @@ void Reconstructor::DoUnpenalized()
   // Start iterating
   size_t iteration(1);
   while (iteration <= fUnpenalizedIterStop) UnpenalizedEstimate();
-}
-
-//------------------------------------------------------------------------
-void Reconstructor::InitializePriors()
-{
-  // We should an updated gaussian fit now
-  fPriors.resize(fPixelVec->size());
-  for (const auto& pixel : fPixelVec) fPriors[pixel.ID()-1] = fMLGauss.Eval(pixel.X(), pixel.Y());
 }
 
 //------------------------------------------------------------------------
@@ -143,7 +143,6 @@ void Reconstructor::PenalizedEstimate()
     float nextEst = ( term1 - 1 + std::sqrt((term1-1)*(term1-1) + 4*fGamma*var*est) )/(2*fGamma*var);
     pixel.SetIntensity(nextEst);
   }
-  PenalizedEstimate(iteration);
 }
 
 //------------------------------------------------------------------------
@@ -268,10 +267,12 @@ void Reconstructor::UpdateHistogram()
   // Let's fit our current estimate using a 2D gaussian
   TF2 g("g", "bigaus", -fDiskRadius, fDiskRadius, -fDiskRadius, fDiskRadius);
   hist.Fit(&g);
-  auto max = g.GetMaximum();
 
-  fMLHist       = hist;
-  fMLGaus       = g;
+  Double_t* max;
+  g.GetMaximum(max);
+
+  fMLHistogram  = hist;
+  fMLGauss      = g;
   fMLX          = max[0];
   fMLY          = max[1];
   fMLTotalLight = totalInt;

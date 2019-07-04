@@ -11,12 +11,12 @@
 
 #include "TTree.h"
 
-// This is so we don't run into any seg faults 
-static const int kMaxNMPPCs  = 128;
-//static const int kMaxNPixels = 10000;
-
 namespace majorana {
 
+/**
+ * @brief Class to produce analysis TTree.
+ * 
+ */
 class Analyzer
 {
   public:
@@ -38,15 +38,14 @@ class Analyzer
     double fDiskRadius;
     int    fNPrimaries;
     int    fNPhotonsAbs;
-    double fSourcePosXYZ[3];
-    double fSourcePosRTZ[3];
-    double fMPPCToLY[kMaxNMPPCs];
-    double fMPPCToSourceR[kMaxNMPPCs];
-    double fMPPCToSourceT[kMaxNMPPCs];
+    std::vector<float> fSourcePosXYZ;
+    std::vector<float> fSourcePosRTZ;
+    std::vector<float> fMPPCToLY;
+    std::vector<float> fMPPCToSourceR;
+    std::vector<float> fMPPCToSourceT;
     double fMLX;
     double fMLY;
-    double fMLR;
-    double fMLT;
+
     //double fMLIntensities[kMaxNPixels];
     std::string fSimulateOutputPath;
 };

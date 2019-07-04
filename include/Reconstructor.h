@@ -15,6 +15,9 @@
 #include <list>
 #include <memory>
 
+#include <TH2.h>
+#include <TF2.h>
+
 namespace majorana
 {
 
@@ -40,7 +43,7 @@ public:
    * @param pStop Iteration number to stop penalized reconstruction.
    * @param upStop Iteration number to stop unpenalized reconstruction.
    */
-  void Initialize(const std::map<unsigned, unsigned>& data,
+  void Initialize(const std::map<size_t, size_t>&     data,
                   std::shared_ptr<std::vector<Pixel>> pixelList,
                   const float&                        diskRadius,
                   const float&                        gamma, 
@@ -68,8 +71,7 @@ public:
   const double   ML()    const { return fMLLogLikelihood; }
   const float    X()     const { return fMLX; }
   const float    Y()     const { return fMLY; }
-  const float    R()     const { return fMLRadius; }
-  const float    Theta() const { return fMLTheta; }
+  const TH2F     MLImage() const { return fMLHistogram; }
     
 private:
   
@@ -128,13 +130,13 @@ private:
    * 
    */
   float CalculateLL();
-  float CalculateMean(const unsigned& sipmID);
+  float CalculateMean(const size_t& sipmID);
 
   /**
    * @brief Calculates the sum in the denominator of the Money Formula.
    * 
    */
-  float DenominatorSum(const unsigned& sipmID);
+  float DenominatorSum(const size_t& sipmID);
 
   /**
    * @brief Entry point for applying the Moneyu Formula.
@@ -144,8 +146,7 @@ private:
    * @param referenceTable The lookup table for this pixel.
    * @return float The updated pixel intensity.
    */
-  float MoneyFormula(const unsigned&           pixelID,
-                     const float&              theEst,
+  float MoneyFormula(const float&              theEst,
                      const std::vector<float>& referenceTable);
 
   /**
@@ -178,7 +179,7 @@ private:
   void InitializePriors();
    
   TH2F                         fMLHistogram;           ///< The reconstructed image
-  TF2                          fMLGaus;                ///< Gaussian fit to point source
+  TF2                          fMLGauss;               ///< Gaussian fit to point source
   double                       fMLLogLikelihood;       ///< Log likelihood for the MLE
   float                        fMLTotalLight;          ///< MLE for total light
   float                        fMLX;                   ///< MLE for x (cm)
@@ -186,8 +187,9 @@ private:
   float                        fDiskRadius;            ///< Disk radius 
   std::shared_ptr<std::vector<Pixel>> fPixelVec;       ///< List of pixels
   std::vector<float>           fDenomSums;             ///< Map of sipm to denominator sum
-  std::map<unsigned, unsigned> fData;                  ///< Measured counts (sipm, np.e.)
+  std::map<size_t, size_t> fData;                      ///< Measured counts (sipm, np.e.)
   std::vector<float>           fLogLikehs;             ///< Container for logL at each iteration 
+  std::vector<float>           fPriors;                ///< Container for priors used in penalized reconstruction
   float                        fGamma;                 ///< Strength parameter for penalty function
   size_t                       fUnpenalizedIterStop;   ///< Iteration number to hault unpenalized reconstruction
   size_t                       fPenalizedIterStop;     ///< Iteration number to hault penalized reconstruction

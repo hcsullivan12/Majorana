@@ -15,6 +15,8 @@
 
 #include <assert.h>
 
+#include <TFile.h>
+
 namespace majorana
 {
 
@@ -117,13 +119,13 @@ void G4Helper::RunG4()
   Configuration* config = Configuration::Instance();
   // Get steering table
   Configuration::SteeringTable steeringTable = config->GetSteeringTable();
-  unsigned nEvents = steeringTable.size();
+  size_t nEvents = steeringTable.size();
   // Initialize our anaylzer
   Analyzer analyzer(fSimulateOutputPath);
  
   //std::cout << "\nPress enter to start running G4...\n";
   //std::cin.get();
-  for (unsigned e = 0; e < nEvents; e++)
+  for (size_t e = 0; e < nEvents; e++)
   {
     G4cout << "\n****  EVENT #" << e << "  ****" << G4endl;
     // Reset the generator
@@ -166,7 +168,7 @@ void G4Helper::RunG4()
 
       // Pass data and pixelization schema
       auto tempData = photonTable->GetPhotonsDetected();
-      std::map<unsigned, unsigned> data;
+      std::map<size_t, size_t> data;
       for (const auto& d : tempData) data.emplace(d.first, d.second.size());
 
       // Event display mode
@@ -182,10 +184,14 @@ void G4Helper::RunG4()
       fReconstructor.Initialize(data, 
                                 pixelTable->GetPixels(), 
                                 fDetector->WheelGeometry()->Radius()/CLHEP::cm,
+                                config->Gamma(),
                                 config->PenalizedStopId(),
                                 config->UnpenalizedStopId());
+
       fReconstructor.Reconstruct(config->DoPenalized()); 
-      fReconstructor.MakePlots(fRecoAnaTreePath);
+      // Write the reconstructed image
+      TFile f(fRecoAnaTreePath.c_str(), "UPDATE");
+      fReconstructor.MLImage().Write();
     }
     // Fill our ntuple
     analyzer.Fill(e);

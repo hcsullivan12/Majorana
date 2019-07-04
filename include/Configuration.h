@@ -55,7 +55,7 @@ class Configuration
     void Initialize(const std::string& configPath);
     
     void SetVisualization(const bool& b) { fShowVis = b; };
-    void SetNSiPMs(const unsigned& n) { fNMPPCs = n; };
+    void SetNSiPMs(const size_t& n) { fNMPPCs = n; };
     void SetPixelPath(const std::string& p) { fPixelizationPath = p; };
     void SetOpRefTablePath(const std::string& p) { fOpReferenceTablePath = p; };
     void SetSimOutputPath(const std::string& p) { fSimulateOutputPath = p; };
@@ -76,13 +76,17 @@ class Configuration
     void CheckConfiguration();
     void PrintConfiguration();
 
-    unsigned    NMPPCs()               const { return fNMPPCs; };
+    size_t      NMPPCs()               const { return fNMPPCs; };
+    size_t      PenalizedStopId()      const { return fPenalizedStopId; }
+    size_t      UnpenalizedStopId()    const { return fUnpenalizedStopId; }
+    float       Gamma()                const { return fGamma; }
     G4double    MPPCHalfLength()       const { return fMPPCHalfLength; };
     G4double    DiskRadius()           const { return fDiskRadius; };
     G4double    DiskThickness()        const { return fDiskThickness; };
     bool        ShowVis()              const { return fShowVis; };
     bool        Reconstruct()          const { return fReconstruct; };
     bool        EvdMode()              const { return fEvdMode; };
+    bool        DoPenalized()          const { return fDoPenalized; };
     std::string VisMacroPath()         const { return fVisMacroPath; };
     std::string SteeringFilePath()     const { return fSteeringFilePath; };
     std::string SimulateOutputPath()   const { return fSimulateOutputPath; };
@@ -117,7 +121,10 @@ class Configuration
     std::string fSourceMode;             ///< Source mode: pixel mode is true point source while point mode has a spread
     std::string fOpReferenceTablePath;   ///< Path to optical lookup table
     std::string fDAQFilePath;            ///< Path to DAQ file, used for event display
-    unsigned    fNMPPCs;                 ///< Number of sipms
+    size_t      fNMPPCs;                 ///< Number of sipms
+    size_t      fPenalizedStopId;        ///< Iteration number to stop penalized reconstruction
+    size_t      fUnpenalizedStopId;      ///< Iteration number to stop unpenalized reconstruction
+    float       fGamma;                  ///< Strength parameter used for penalized reconstruction
     G4double    fMPPCHalfLength;         ///< Half length of sipm
     G4double    fDiskRadius;             ///< Disk radius
     G4double    fDiskThickness;          ///< Disk thickness
@@ -129,6 +136,7 @@ class Configuration
     bool        fReconstruct;            ///< Option to reconstruct
     bool        fShowVis;                ///< Option to render visualization
     bool        fEvdMode;                ///< Option for running with event display
+    bool        fDoPenalized;            ///< Option to run penalized reconstruction 
     std::vector<SteeringTableIndex> fSteeringTable; ///< Container for information on each event to be simulated 
 };
 }
