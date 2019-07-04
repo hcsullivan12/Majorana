@@ -179,8 +179,7 @@ void G4Helper::RunG4()
 
       PixelTable* pixelTable = PixelTable::Instance();
 
-      // Disk radius returns in mm, convert to cm
-      fReconstructor.Initialize(data, pixelTable->GetPixels(), fDetector->WheelGeometry()->Radius()/10.);
+      fReconstructor.Initialize(data, pixelTable->GetPixels(), fDetector->WheelGeometry()->Radius()/CLHEP::cm);
       fReconstructor.Reconstruct(); 
       fReconstructor.MakePlots(fRecoAnaTreePath);
     }
