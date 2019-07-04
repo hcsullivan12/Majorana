@@ -50,6 +50,7 @@ void Reconstructor::Initialize(const std::map<size_t, size_t>&     data,
 
   fPenalizedIterStop   = pStop;
   fUnpenalizedIterStop = upStop;
+  fGamma = gamma;
 
   fDenomSums.clear();
   fDenomSums.resize(fData.size());

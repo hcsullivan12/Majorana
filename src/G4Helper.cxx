@@ -189,6 +189,7 @@ void G4Helper::RunG4()
                                 config->UnpenalizedStopId());
 
       fReconstructor.Reconstruct(config->DoPenalized()); 
+      fReconstructor.Dump();
       // Write the reconstructed image
       TFile f(fRecoAnaTreePath.c_str(), "UPDATE");
       fReconstructor.MLImage().Write();
@@ -199,8 +200,6 @@ void G4Helper::RunG4()
     // Clear the photon table!
     photonTable->Reset();
   }
-  //std::cout << "\nDone! Press enter to exit...\n";
-  //std::cin.get();
 }
 
 void G4Helper::HandleVisualization()

@@ -66,10 +66,9 @@ void Analyzer::Fill(const unsigned& e)
 
   // Get the necessary information
   OpDetPhotonTable* photonTable = OpDetPhotonTable::Instance();
-  G4Helper* g4Helper = G4Helper::Instance();
-  Configuration* config = Configuration::Instance();
+  G4Helper*         g4Helper    = G4Helper::Instance();
+  Configuration*    config      = Configuration::Instance();
 
-  // Basically we want to look at the light yield as a function of position 
   fEvent        = e;
   fNMPPCs       = g4Helper->GetDetectorConstruction()->WheelGeometry()->NMPPCs();
   fDiskRadius   = g4Helper->GetDetectorConstruction()->WheelGeometry()->Radius()/10; // convert to cm
@@ -77,18 +76,19 @@ void Analyzer::Fill(const unsigned& e)
 
   auto xyzVec = g4Helper->GetActionInitialization()->GetGeneratorAction()->GetSourcePositionXYZ();
   auto rtzVec = g4Helper->GetActionInitialization()->GetGeneratorAction()->GetSourcePositionRTZ();
-  fSourcePosXYZ[0] = xyzVec[0]/10; // convert to cm 
-  fSourcePosXYZ[1] = xyzVec[1]/10; // convert to cm 
-  fSourcePosXYZ[2] = xyzVec[2]/10; // convert to cm
-  fSourcePosRTZ[0] = rtzVec[0]/10; // convert to cm 
-  fSourcePosRTZ[1] = rtzVec[1]*180/pi; // convert to degrees   
-  fSourcePosRTZ[2] = rtzVec[2]/10; // convert to cm
+  fSourcePosXYZ.push_back(xyzVec[0]/CLHEP::cm);  
+  fSourcePosXYZ.push_back(xyzVec[1]/CLHEP::cm);  
+  fSourcePosXYZ.push_back(xyzVec[2]/CLHEP::cm); 
+  fSourcePosRTZ.push_back(rtzVec[0]/CLHEP::cm);  
+  fSourcePosRTZ.push_back(rtzVec[1]*180/pi);    // convert to degrees   
+  fSourcePosRTZ.push_back(rtzVec[2]/CLHEP::cm);
   
   auto photonsDetected = photonTable->GetPhotonsDetected();
   photonTable->Print();
 
   fNPhotonsAbs = photonTable->GetNPhotonsAbsorbed();
 
+  // Get the number of photons detected per sipm
   for (unsigned m = 1; m <= fNMPPCs; m++)
   {
     int photons(0);
@@ -96,7 +96,7 @@ void Analyzer::Fill(const unsigned& e)
     {
       photons = photonsDetected.find(m)->second.size();
     }
-    fMPPCToLY[m-1] = photons;
+    fMPPCToLY.push_back(photons);
 
     // Calculate distances to each mppc
     float r        = fSourcePosRTZ[0];
@@ -107,10 +107,8 @@ void Analyzer::Fill(const unsigned& e)
     float R = std::sqrt(r*r + fDiskRadius*fDiskRadius - 2*r*fDiskRadius*std::cos(diffRad));
     float alphaDeg = std::abs(TMath::ASin(r*std::sin(diffRad)/R)*180/pi);
     
-    fMPPCToSourceR[m-1] = R;
-    fMPPCToSourceT[m-1] = alphaDeg;
-
-    //std::cout << "SiPM = " << m << " R = " << R << " T = " << alphaDeg << std::endl;
+    fMPPCToSourceR.push_back(R);
+    fMPPCToSourceT.push_back(alphaDeg);
   }
 
   // Pixel info
