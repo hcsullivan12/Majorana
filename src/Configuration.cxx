@@ -76,6 +76,10 @@ void Configuration::ReadConfigFile()
   fSourceMode         = modeSect.get_child("sourceMode").get_value("");
   // Reconstruction
   fReconstruct        = "true" == recoSect.get_child("reconstruct").get_value("") ? true : false;
+  fDoPenalized        = "true" == recoSect.get_child("doPenalized").get_value("") ? true : false;
+  fPenalizedStopId    = boost::lexical_cast<size_t>(recoSect.get_child("penalizedStopId").get_value(""));
+  fUnpenalizedStopId  = boost::lexical_cast<size_t>(recoSect.get_child("unpenalizedStopId").get_value(""));
+  fGamma              = boost::lexical_cast<float>(recoSect.get_child("gamma").get_value(""));
   // Files
   fSimulateOutputPath   = std::string(majoranaDir)+"/"+filesSect.get_child("simulateOutputPath").get_value("");
   fSteeringFilePath     = std::string(majoranaDir)+"/"+filesSect.get_child("steeringFilePath").get_value("");

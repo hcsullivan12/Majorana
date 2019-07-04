@@ -71,7 +71,7 @@ public:
   const double   ML()    const { return fMLLogLikelihood; }
   const float    X()     const { return fMLX; }
   const float    Y()     const { return fMLY; }
-  const TH2F     MLImage() const { return fMLHistogram; }
+  TH2F           MLImage() { return fMLHistogram; }
     
 private:
   

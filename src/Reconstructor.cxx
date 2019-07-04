@@ -55,6 +55,13 @@ void Reconstructor::Initialize(const std::map<size_t, size_t>&     data,
   fDenomSums.resize(fData.size());
   fDiskRadius = diskRadius;
   fLogLikehs.clear();
+
+  // Init histo and gaussian
+  float pixelSpacing = (*fPixelVec).front().Size();
+  size_t n = 2*fDiskRadius/pixelSpacing - 1; // assuming pixel is in the center
+  std::string name = "histFinal";
+  fMLHistogram = TH2F(name.c_str(), name.c_str(), n, -fDiskRadius, fDiskRadius, n, -fDiskRadius, fDiskRadius);
+  fMLGauss = TF2("g", "bigaus", -fDiskRadius, fDiskRadius, -fDiskRadius, fDiskRadius);
 }
 
 //------------------------------------------------------------------------
@@ -62,17 +69,29 @@ void Reconstructor::Reconstruct(const bool& doPenalized)
 {
   // first do unpenalized
   // this will give us our prior for a penalized reconstruction
+  std::cout << "Starting unpenalized reconstruction...\n";
   DoUnpenalized();
 
   // Update histogram
+  std::cout << "Updating histogram...\n";
   UpdateHistogram();
+
+  // Let's fit our current estimate using a 2D gaussian
+  fMLHistogram.Fit(&fMLGauss, "NQ");
+  Double_t maxX, maxY;
+  fMLGauss.GetMaximumXY(maxX, maxY);
+  fMLX          = maxX;
+  fMLY          = maxY;
 
   // option to do penalized
   if (doPenalized) 
   {
     // Initialize our priors
     InitializePriors();
+
+    std::cout << "Starting penalized reconstruction...\n";
     DoPenalized();
+    std::cout << "Updating histogram...\n";
     UpdateHistogram();
   }
 }
@@ -91,8 +110,7 @@ void Reconstructor::DoUnpenalized()
   // Initialize the pixels
   InitPixelList();
   // Start iterating
-  size_t iteration(1);
-  while (iteration <= fUnpenalizedIterStop) UnpenalizedEstimate();
+  for (size_t iter = 1; iter <= fUnpenalizedIterStop; iter++) UnpenalizedEstimate();
 }
 
 //------------------------------------------------------------------------
@@ -122,8 +140,10 @@ void Reconstructor::DoPenalized()
   // Initialize the pixels
   InitPixelList();
   // Start iterating
-  size_t iteration(1);
-  while (iteration <= fPenalizedIterStop) PenalizedEstimate();
+  for (size_t iter = 1; iter <= fPenalizedIterStop; iter++) 
+  {
+    PenalizedEstimate();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -247,34 +267,15 @@ bool Reconstructor::CheckConvergence()
 //------------------------------------------------------------------------
 void Reconstructor::UpdateHistogram()
 {
-  // Set bin size
-  float pixelSpacing = (*fPixelVec).front().Size();
-  size_t n = 2*fDiskRadius/pixelSpacing - 1; // assuming pixel is in the center
-
-  std::string name = "histFinal";
-  TH2F hist(name.c_str(), name.c_str(), n, -fDiskRadius, fDiskRadius, n, -fDiskRadius, fDiskRadius);
-
   // Fill and find total amount of light
   float totalInt(0);
   for (const auto& v : *fPixelVec)
   {
-    size_t xbin = hist.GetXaxis()->FindBin(v.X());
-    size_t ybin = hist.GetYaxis()->FindBin(v.Y());
-    hist.SetBinContent(xbin, ybin, v.Intensity());
+    size_t xbin = fMLHistogram.GetXaxis()->FindBin(v.X());
+    size_t ybin = fMLHistogram.GetYaxis()->FindBin(v.Y());
+    fMLHistogram.SetBinContent(xbin, ybin, v.Intensity());
     totalInt = totalInt + v.Intensity();
   } 
-
-  // Let's fit our current estimate using a 2D gaussian
-  TF2 g("g", "bigaus", -fDiskRadius, fDiskRadius, -fDiskRadius, fDiskRadius);
-  hist.Fit(&g);
-
-  Double_t* max;
-  g.GetMaximum(max);
-
-  fMLHistogram  = hist;
-  fMLGauss      = g;
-  fMLX          = max[0];
-  fMLY          = max[1];
   fMLTotalLight = totalInt;
 }
 
