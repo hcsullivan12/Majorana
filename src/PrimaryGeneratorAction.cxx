@@ -1,10 +1,10 @@
-// 
-// File: PrimaryGeneratorAction.cxx
-//
-// Author: Hunter Sullivan
-//
-// Discription: 
-//
+/**
+ * @file PrimaryGeneratorAction.h
+ * @author H. Sullivan (hsulliva@fnal.gov)
+ * @brief Photon emission generator.
+ * @date 07-04-2019
+ * 
+ */
 
 #include "PrimaryGeneratorAction.h"
 #include "Configuration.h"

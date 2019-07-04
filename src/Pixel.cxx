@@ -1,10 +1,10 @@
-//
-// File: Pixel.cxx
-//
-// Author: Hunter Sullivan
-//
-// Description: Pixel structure.
-//
+/**
+ * @file Pixel.h
+ * @author H. Sullivan (hsulliva@fnal.gov)
+ * @brief Simple pixel structure.
+ * @date 07-04-2019
+ *
+ */
 
 #include "Pixel.h"
 

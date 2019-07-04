@@ -1,10 +1,10 @@
-// 
-// File: PrimaryGeneratorAction.h
-//
-// Author: Hunter Sullivan
-//
-// Discription: 
-//
+/**
+ * @file PrimaryGeneratorAction.h
+ * @author H. Sullivan (hsulliva@fnal.gov)
+ * @brief Photon emission generator.
+ * @date 07-04-2019
+ * 
+ */
 
 #ifndef PRIMARYGENERATORACTION_H
 #define PRIMARYGENERATORACTION_H
@@ -40,7 +40,7 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
                const G4double& z,
                const G4int&   n,
                const G4double& pixelSize = 0);
-    void Append();
+
     std::vector<G4double> GetSourcePositionRTZ() const { return fSourcePositionRTZ; };
     std::vector<G4double> GetSourcePositionXYZ() const { return fSourcePositionXYZ; };
     unsigned           GetNPrimaries()           const { return fNPrimaries; };

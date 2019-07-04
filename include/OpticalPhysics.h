@@ -1,10 +1,10 @@
-// 
-// File: OpticalPhysics.h
-//
-// Author: Hunter Sullivan
-//
-// Discription: Class for optical physics
-//
+/**
+ * @file OpticalPhysics.h
+ * @author H. Sullivan (hsulliva@fnal.gov)
+ * @brief Class to initialize the optical physics to be implented. 
+ * @date 07-04-2019
+ * 
+ */
 
 
 #ifndef OPTICALPHYSICS_H

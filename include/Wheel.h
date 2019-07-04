@@ -1,13 +1,13 @@
-// 
-// File: Wheel.h
-//
-// Author: Hunter Sullivan
-//
-// Discription: Class to construct wheel volume.
-//
+/**
+ * @file Wheel.h
+ * @author H. Sullivan (hsulliva@fnal.gov)
+ * @brief The SiPM wheel geometry
+ * @date 07-04-2019
+ * 
+ */
 
-#ifndef WHEELVOLUME_H
-#define WHEELVOLUME_H
+#ifndef WHEEL_H
+#define WHEEL_H
 
 #include "G4LogicalVolume.hh"
 #include "G4PVPlacement.hh"
@@ -24,7 +24,16 @@ namespace majorana
 class Wheel 
 {
   public:
-    Wheel(const unsigned& nMPPCs,                                   
+
+    /**
+     * @brief Construct a new Wheel object
+     * 
+     * @param nMPPCs Number of SiPMs used on the disk.
+     * @param mppcHalfL The half length of the SiPM.
+     * @param diskRadius The disk radius.
+     * @param diskThickness The disk thickness.
+     */
+    Wheel(const unsigned&       nMPPCs,                                   
                const G4double&  mppcHalfL,
                const G4double&  diskRadius,
                const G4double&  diskThickness);

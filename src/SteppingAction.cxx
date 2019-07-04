@@ -1,10 +1,10 @@
-// 
-// File: DiskVolume.cxx
-//
-// Author: Hunter Sullivan
-//
-// Discription: Class for interface to stepping action.
-//
+/**
+ * @file SteppingAction.h
+ * @author H. Sullivan (hsulliva@fnal.gov)
+ * @brief Stepping action.
+ * @date 07-04-2019
+ * 
+ */
 
 #include "SteppingAction.h"
 #include "Configuration.h"

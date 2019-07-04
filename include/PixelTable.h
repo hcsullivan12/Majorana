@@ -1,10 +1,10 @@
-//
-// File: PixelTable.h
-//
-// Author: Hunter Sullivan
-//
-// Discription:
-//
+/**
+ * @file PixelTable.h
+ * @author H. Sullivan (hsulliva@fnal.gov)
+ * @brief Singleton table for holding the pixelization scheme.
+ * @date 07-04-2019
+ * 
+ */
 
 #ifndef PIXELTABLE_H
 #define PIXELTABLE_H
@@ -26,7 +26,18 @@ public:
   static PixelTable* CreateInstance();
   ~PixelTable();
 
+  /**
+   * @brief Reads and stores the pixel IDs and positions.
+   * 
+   * @param pixelizationPath The filepath to the pixelization scheme.
+   */
   void Initialize(const std::string& pixelizationPath);
+
+  /**
+   * @brief Reads the lookup table.
+   * 
+   * @param path The filepath to the lookup table.
+   */
   void LoadReferenceTable(const std::string& path);
 
   std::shared_ptr<std::vector<Pixel>> GetPixels() const { return fPixelVec; };

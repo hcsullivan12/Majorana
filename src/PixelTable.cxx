@@ -1,10 +1,10 @@
-// 
-// File: PixelTable.cxx
-//
-// Author: Hunter Sullivan
-//
-// Discription: 
-//
+/**
+ * @file PixelTable.h
+ * @author H. Sullivan (hsulliva@fnal.gov)
+ * @brief Singleton table for holding the pixelization scheme.
+ * @date 07-04-2019
+ * 
+ */
 
 #include "PixelTable.h"
 

@@ -1,10 +1,11 @@
-// 
-// File: Configuration.h
-//
-// Author: Hunter Sullivan
-//
-// Discription: Class to initalize configuration.
-//
+/**
+ * @file Configuration.h
+ * @author H. Sullivan (hsulliva@fnal.gov)
+ * @brief Singleton to hold user configuration for simulation 
+ *        and reconstruction.
+ * @date 07-04-2019
+ * 
+ */
 
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
@@ -24,10 +25,15 @@ namespace majorana
 class Configuration
 {
   public:
+
     static Configuration* Instance();
     static Configuration* CreateInstance();
     ~Configuration();
 
+    /**
+     * @brief Container for storing light source information.
+     * 
+     */
     struct SteeringTableIndex
     {
       G4double x;
@@ -41,7 +47,13 @@ class Configuration
 
     using SteeringTable = std::vector<SteeringTableIndex>; 
  
+    /**
+     * @brief Initialize our configuration.
+     * 
+     * @param configPath The path to the configuration file.
+     */
     void Initialize(const std::string& configPath);
+    
     void SetVisualization(const bool& b) { fShowVis = b; };
     void SetNSiPMs(const unsigned& n) { fNMPPCs = n; };
     void SetPixelPath(const std::string& p) { fPixelizationPath = p; };
@@ -50,7 +62,17 @@ class Configuration
     void SetRecoAnaPath(const std::string& p) { fRecoAnaTreePath = p; };
     void SetEvdMode(const bool& b) { fEvdMode = b; };
 
+    /**
+     * @brief Reads the light steering file and stores the light source information
+     *        for each event
+     * 
+     */
     void ReadSteeringFile();
+
+    /**
+     * @brief Validate the configuration.
+     * 
+     */
     void CheckConfiguration();
     void PrintConfiguration();
 
@@ -80,33 +102,34 @@ class Configuration
     Configuration();
     static Configuration* instance;
 
+    /**
+     * @brief Read the configuration file that's passed at runtime
+     * 
+     */
     void ReadConfigFile();
 
-    std::string fConfigPath;
-    std::string fSimulateOutputPath;
-    std::string fRecoAnaTreePath;
-    std::string fSteeringFilePath;
-    std::string fPixelizationPath;
-    std::string fVisMacroPath;
-    std::string fSourceMode;
-    std::string fOpReferenceTablePath;
-    std::string fDAQFilePath;
-
-    unsigned    fNMPPCs;
-    G4double    fMPPCHalfLength;
-    G4double    fDiskRadius;
-    G4double    fDiskThickness;
-    G4double    fSourcePosSigma;
-    G4double    fSourcePeakE;
-    G4double    fSourcePeakESigma;
-    G4double    fSurfaceRoughness;
-    G4double    fSurfaceAbsorption;
-
-    bool        fReconstruct;
-    bool        fShowVis;
-    bool        fEvdMode;
-
-    std::vector<SteeringTableIndex> fSteeringTable;
+    std::string fConfigPath;             ///< Path to configuration file
+    std::string fSimulateOutputPath;     ///< Output path for simulation
+    std::string fRecoAnaTreePath;        ///< Output path for reconstruction anatree
+    std::string fSteeringFilePath;       ///< Path to light steering file
+    std::string fPixelizationPath;       ///< Path to pixelization scheme
+    std::string fVisMacroPath;           ///< Path to g4 visual macro
+    std::string fSourceMode;             ///< Source mode: pixel mode is true point source while point mode has a spread
+    std::string fOpReferenceTablePath;   ///< Path to optical lookup table
+    std::string fDAQFilePath;            ///< Path to DAQ file, used for event display
+    unsigned    fNMPPCs;                 ///< Number of sipms
+    G4double    fMPPCHalfLength;         ///< Half length of sipm
+    G4double    fDiskRadius;             ///< Disk radius
+    G4double    fDiskThickness;          ///< Disk thickness
+    G4double    fSourcePosSigma;         ///< The spread about the mean position
+    G4double    fSourcePeakE;            ///< TPB emission peak energy
+    G4double    fSourcePeakESigma;       ///< TPB emission peak energy sigma
+    G4double    fSurfaceRoughness;       ///< Surface roughness, valid range is [0,1]
+    G4double    fSurfaceAbsorption;      ///< Surface absorption coefficient, valid range is [0,1]
+    bool        fReconstruct;            ///< Option to reconstruct
+    bool        fShowVis;                ///< Option to render visualization
+    bool        fEvdMode;                ///< Option for running with event display
+    std::vector<SteeringTableIndex> fSteeringTable; ///< Container for information on each event to be simulated 
 };
 }
 

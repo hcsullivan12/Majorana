@@ -1,10 +1,10 @@
-// 
-// File: ActionInitialization.h
-//
-// Author: Hunter Sullivan
-//
-// Discription: 
-//
+/**
+ * @file ActionInitialization.h
+ * @author H. Sullivan (hsulliva@fnal.gov)
+ * @brief Action intialization.
+ * @date 07-04-2019
+ * 
+ */
 
 
 #ifndef ACTIONINITIALIZATION_H
@@ -29,8 +29,8 @@ class ActionInitialization : public G4VUserActionInitialization
     PrimaryGeneratorAction* GetGeneratorAction() const { return fGeneratorAction; };
 
   private:
-    PrimaryGeneratorAction*  fGeneratorAction;
-    SteppingAction*          fSteppingAction;
+    PrimaryGeneratorAction*  fGeneratorAction; ///< Pointer to generator action 
+    SteppingAction*          fSteppingAction;  ///< Pointer to stepping action
 };
 
 }

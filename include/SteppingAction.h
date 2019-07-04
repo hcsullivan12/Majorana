@@ -1,10 +1,10 @@
-// 
-// File: SteppingAction.h
-//
-// Author: Hunter Sullivan
-//
-// Discription: Class for interface to stepping action.
-//
+/**
+ * @file SteppingAction.h
+ * @author H. Sullivan (hsulliva@fnal.gov)
+ * @brief Stepping action.
+ * @date 07-04-2019
+ * 
+ */
 
 #ifndef STEPPINGACTION_H
 #define STEPPINGACTION_H

@@ -1,10 +1,11 @@
-// 
-// File: Configuration.cxx
-//
-// Author: Hunter Sullivan
-//
-// Discription: Class to initalize configuration.
-//
+/**
+ * @file Configuration.h
+ * @author H. Sullivan (hsulliva@fnal.gov)
+ * @brief Singleton to hold user configuration for simulation 
+ *        and reconstruction.
+ * @date 07-04-2019
+ * 
+ */
 
 #include "Configuration.h"
 

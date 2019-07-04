@@ -1,10 +1,10 @@
-// 
-// File: DetectorConstruction.cxx
-//
-// Author: Hunter Sullivan
-//
-// Discription: Class to construct our detector.
-//
+/**
+ * @file DetectorConstruction.h
+ * @author H. Sullivan (hsulliva@fnal.gov)
+ * @brief Constructs the world and SiPM wheel geometries.
+ * @date 07-04-2019
+ * 
+ */
 
 #include "DetectorConstruction.h"
 #include "Configuration.h"

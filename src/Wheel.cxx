@@ -1,10 +1,10 @@
-// 
-// File: Wheel.cxx
-//
-// Author: Hunter Sullivan
-//
-// Discription: Class to construct disk volume.
-//
+/**
+ * @file Wheel.h
+ * @author H. Sullivan (hsulliva@fnal.gov)
+ * @brief The SiPM wheel geometry
+ * @date 07-04-2019
+ * 
+ */
 
 #include "Wheel.h"
 #include "Configuration.h"

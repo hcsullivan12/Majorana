@@ -1,10 +1,10 @@
-// 
-// File: OpDetPhotonTable.cxx
-//
-// Author: Hunter Sullivan
-//
-// Discription: 
-//
+/**
+ * @file OpDetPhotonTable.h
+ * @author H. Sullivan (hsulliva@fnal.gov)
+ * @brief Singleton table for holding the detected photons.
+ * @date 07-04-2019
+ * 
+ */
 
 #include "OpDetPhotonTable.h"
 #include "Configuration.h"

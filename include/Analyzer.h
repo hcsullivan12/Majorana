@@ -1,10 +1,10 @@
-// 
-// File: Analyzer.h
-//
-// Author: Hunter Sullivan
-//
-// Discription: 
-//
+/**
+ * @file Analyzer.h
+ * @author H. Sullivan (hsulliva@fnal.gov)
+ * @brief Module to produce a ROOT analysis TTree.
+ * @date 07-04-2019
+ * 
+ */
 
 #ifndef ANALYZER_HH
 #define ANALYZER_HH

@@ -1,10 +1,10 @@
-// 
-// File: G4Helper.h
-//
-// Author: Hunter Sullivan
-//
-// Discription: Class to interface with G4.
-//
+/**
+ * @file G4Helper.h
+ * @author H. Sullivan (hsulliva@fnal.gov)
+ * @brief Helper class to interface with and run Geant4.
+ * @date 07-04-2019
+ * 
+ */
 
 #ifndef G4HELPER_H
 #define G4HELPER_H
@@ -38,9 +38,21 @@ class G4Helper
     static G4Helper* CreateInstance();
     ~G4Helper();
 
+    /**
+     * @brief Container for light source positions for all events.
+     * @todo Consider the case when the steering file becomes large. 
+     *       May need to find a better solution than just storing all
+     *       events in memory at runtime. 
+     * 
+     */
     using SteeringTable = std::vector<std::vector<float>>;
 
+    /**
+     * @brief Begin main geant4 simulation.
+     * 
+     */
     void StartG4();
+
     ActionInitialization* GetActionInitialization() const { return fActionInitialization; };
     DetectorConstruction* GetDetectorConstruction() const { return fDetector; };
     const Reconstructor&  GetReconstructor()       const { return fReconstructor; };
@@ -49,10 +61,24 @@ class G4Helper
     G4Helper();
     static G4Helper* instance;
 
+    /**
+     * @brief Initialize the visualization manager.
+     * 
+     */
     void HandleVisualization();
-    void ReadSteeringFile();
+
+    /**
+     * @brief Initializes event generator and tells geant4 to run.
+     * 
+     */
     void RunG4();
+
+    /**
+     * @brief Set verbosities for simulation.
+     * 
+     */
     void HandleVerbosities();
+
     inline void ConvertToPolar(G4float& r, G4float& thetaDeg)
     {
       float x(r), y(thetaDeg);
@@ -67,20 +93,20 @@ class G4Helper
       if (x > 0 && y < 0) thetaDeg = 360 - thetaDeg;
     }
 
-    G4RunManager*           fRunManager;
-    G4UImanager*            fUIManager;
-    G4VisExecutive*         fVisManager;
-    ActionInitialization*   fActionInitialization;
-    PrimaryGeneratorAction* fGeneratorAction;
-    DetectorConstruction*   fDetector;
-    PhysicsList*            fPhysicsList;
-    SteeringTable           fSteeringTable;
-    std::string             fSteeringFilePath;
-    bool                    fShowVis;
-    std::string             fVisMacroPath;
-    std::string             fSimulateOutputPath;
-    std::string             fRecoAnaTreePath;
-    Reconstructor           fReconstructor;
+    G4RunManager*           fRunManager;            
+    G4UImanager*            fUIManager;             
+    G4VisExecutive*         fVisManager;           
+    ActionInitialization*   fActionInitialization;   
+    PrimaryGeneratorAction* fGeneratorAction;       ///< Generator that handles emission 
+    DetectorConstruction*   fDetector;              ///< Pointer to geometries
+    PhysicsList*            fPhysicsList;           
+    SteeringTable           fSteeringTable;         
+    std::string             fSteeringFilePath;       
+    bool                    fShowVis;                
+    std::string             fVisMacroPath;           
+    std::string             fSimulateOutputPath;     
+    std::string             fRecoAnaTreePath;        
+    Reconstructor           fReconstructor;         ///< Algorithm to run reconstruction
 };
 }
 

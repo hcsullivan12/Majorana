@@ -1,10 +1,10 @@
-//
-// File: Reconstructor.cxx
-//
-// Author: Hunter Sullivan
-//
-// Description: Structure to run reconstruction on sipm data.
-//
+/**
+ * @file Reconstructor.h
+ * @author H. Sullivan (hsulliva@fnal.gov)
+ * @brief The SiPM wheel reconstruction algorithm.
+ * @date 07-04-2019
+ * 
+ */
 
 #include "Reconstructor.h"
 

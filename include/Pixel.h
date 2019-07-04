@@ -1,10 +1,10 @@
-// 
-// File: Pixel.h
-//
-// Author: Hunter Sullivan
-//
-// Description: Simple pixel structure. 
-//
+/**
+ * @file Pixel.h
+ * @author H. Sullivan (hsulliva@fnal.gov)
+ * @brief Simple pixel structure.
+ * @date 07-04-2019
+ *
+ */
 
 #ifndef PIXEL_H
 #define PIXEL_H
@@ -20,6 +20,17 @@ class Pixel
 using AReferenceTable = std::vector<float>;
 
 public:
+
+  /**
+   * @brief Construct a new Pixel object.
+   * @todo Change to only require 2 coordinates (not 4).
+   * 
+   * @param id The pixel ID.
+   * @param x The x position.
+   * @param y The y position.
+   * @param r The r position.
+   * @param theta The theta position.
+   */
 	Pixel(const unsigned& id,
         const float& x, 
         const float& y, 
@@ -43,15 +54,15 @@ public:
 
 private:
     
-  float  fX;      ///< x position that this pixel is centered on
-  float  fY;      ///< y position that this pixel is centered on
-  float  fR;      ///< radius from center for this pixel
-  float  fTheta;  ///< angle with respect to sipm 1 (in degrees)
-  float  fSize;   ///< size of pixel 
-  float  fIntensity;    ///< if reconstructing, this is the reconstructed intensity
-  unsigned fID;         ///< id number
-  unsigned fNPrimaries; ///< number of primaries to launch from this pixel
-  AReferenceTable fReferenceTable; ///< stores mppc to probability map
+  float  fX;                       ///< x position that this pixel is centered on
+  float  fY;                       ///< y position that this pixel is centered on
+  float  fR;                       ///< Radius from center for this pixel
+  float  fTheta;                   ///< Angle with respect to sipm 1 (in degrees)
+  float  fSize;                    ///< Size of pixel 
+  float  fIntensity;               ///< If reconstructing, this is the reconstructed intensity
+  unsigned fID;                    ///< ID number
+  unsigned fNPrimaries;            ///< Number of primaries to launch from this pixel
+  AReferenceTable fReferenceTable; ///< Stores mppc to probability map
 };
 }
 

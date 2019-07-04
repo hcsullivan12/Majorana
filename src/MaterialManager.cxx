@@ -1,10 +1,10 @@
-// 
-// File: MaterialManager.cxx
-//
-// Author: Hunter Sullivan
-//
-// Discription: Class to construct detector materials.
-//
+/**
+ * @file MaterialManager.h
+ * @author H. Sullivan (hsulliva@fnal.gov)
+ * @brief Singleton for handling geometry materials.
+ * @date 07-04-2019
+ * 
+ */
 
 #include "MaterialManager.h"
 

@@ -1,10 +1,10 @@
-// 
-// File: PhysicsList.h
-//
-// Author: Hunter Sullivan
-//
-// Discription: Class to construct physics list.
-//
+/**
+ * @file PhysicsList.h
+ * @author H. Sullivan (hsulliva@fnal.gov)
+ * @brief Class to intialize the physics to be implemented.
+ * @date 07-04-2019
+ * 
+ */
 
 #ifndef PHYSICSLIST_H
 #define PHYSICSLIST_H

@@ -1,3 +1,11 @@
+/**
+ * @file OpBoundaryProcess.h
+ * @brief Copy of Geant4's OpBoundaryProcess. A method to handle detection 
+ *        before doing the boundary physics has been added. 
+ * @date 07-04-2019
+ * 
+ */
+
 //
 // ********************************************************************
 // * License and Disclaimer                                           *
@@ -162,7 +170,18 @@ OpBoundaryProcess::~OpBoundaryProcess(){}
         // Methods
         ////////////
 
-
+/**
+ * @brief Check for detection.
+ * 
+ * Here's the problem:
+ * Placing mppcs just outside the disk surface in the world volume,
+ * we do not have photons stepping from disk to mppc. The stepping
+ * is from disk to world. Since we have a surface connecting these
+ * volumes, photons that should have been detected can reflect and 
+ * remain in the disk volume. This brute force method will 
+ * determine if the photon is close enough to be detected.
+ * 
+ */
 bool OpBoundaryProcess::CheckDetection(const G4Track& theTrack, const G4Step& theStep)
 {
   G4StepPoint*       thePrePoint  = theStep.GetPreStepPoint();
@@ -171,19 +190,6 @@ bool OpBoundaryProcess::CheckDetection(const G4Track& theTrack, const G4Step& th
   G4VPhysicalVolume* thePrePV     = thePrePoint->GetPhysicalVolume();
   auto               thePosition  = thePostPoint->GetPosition();
 
-  // Here's the problem:
-  //    Placing mppcs just outside the disk surface in the world volume,
-  //    we do not have photons stepping from disk to mppc. The stepping
-  //    is from disk to world. Since we have a surface connecting these
-  //    volumes, photons that should have been detected can reflect and 
-  //    remain in the disk volume.
-  //    Since I haven't understood a "nice" G4 way to handle this,
-  //    the only solution I think is to append a method to the 
-  //    OpBoundaryProcess that will determine if the photon is "close"
-  //    enough to be detected.
-  //
-
-  //***********
   // We need the mppc positions and dimensions here
   majorana::G4Helper*      g4Helper   = majorana::G4Helper::Instance();
   majorana::Configuration* config     = majorana::Configuration::Instance();

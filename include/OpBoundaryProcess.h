@@ -1,3 +1,11 @@
+/**
+ * @file OpBoundaryProcess.h
+ * @brief Copy of Geant4's OpBoundaryProcess. A method to handle detection 
+ *        before doing the boundary physics has been added. 
+ * @date 07-04-2019
+ * 
+ */
+
 //
 // ********************************************************************
 // * License and Disclaimer                                           *
@@ -180,6 +188,18 @@ public:
 
 private:
 
+        /**
+         * @brief Method to check for detection.
+         * 
+         * The intention of this method is to eliminate unphysical 
+         * reflections/refractions at the interface of the SiPMs and disk. 
+         * The resulting light yield thus assumes 100% efficiency.
+         * 
+         * @param aTrack The G4 track of the photon.
+         * @param aStep The current step being processed.
+         * @return true Was detected.
+         * @return false Was not detected.
+         */
         bool CheckDetection(const G4Track& aTrack,
 			    const G4Step&  aStep);
 

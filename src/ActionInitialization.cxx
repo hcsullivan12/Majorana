@@ -1,10 +1,10 @@
-// 
-// File: ActionInitialization.cxx
-//
-// Author: Hunter Sullivan
-//
-// Discription: 
-//
+/**
+ * @file ActionInitialization.h
+ * @author H. Sullivan (hsulliva@fnal.gov)
+ * @brief Action intialization.
+ * @date 07-04-2019
+ * 
+ */
 
 #include "ActionInitialization.h"
 

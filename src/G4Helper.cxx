@@ -1,10 +1,10 @@
-// 
-// File: G4Helper.cxx
-//
-// Author: Hunter Sullivan
-//
-// Discription: Class to interface with G4
-//
+/**
+ * @file G4Helper.h
+ * @author H. Sullivan (hsulliva@fnal.gov)
+ * @brief Helper class to interface with and run Geant4.
+ * @date 07-04-2019
+ * 
+ */
 
 #include "G4Helper.h"
 #include "Analyzer.h"
