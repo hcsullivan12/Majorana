@@ -32,7 +32,7 @@ class OpDetPhotonTable
 
   public:
     static OpDetPhotonTable* Instance();
-    static OpDetPhotonTable* CreateInstance();
+    static OpDetPhotonTable* CreateInstance(const size_t& nMPPCs);
     ~OpDetPhotonTable();
 
     /**
@@ -62,11 +62,12 @@ class OpDetPhotonTable
     const unsigned         GetNPhotonsAbsorbed() const { return fNPhotonsAbs; };
 
   private:
-    OpDetPhotonTable();
+    OpDetPhotonTable(const size_t& nMPPCs);
     static OpDetPhotonTable* instance;
 
     PhotonsDetected fPhotonsDetected; ///< Map between the channel ID and the number of photons detected
     unsigned        fNPhotonsAbs;     ///< Number of photons absorbed 
+    unsigned        fNOpDet;          ///< Number of detectors used in table
 };
 }
 #endif

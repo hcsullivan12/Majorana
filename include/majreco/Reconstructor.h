@@ -44,7 +44,7 @@ public:
    * @param upStop Iteration number to stop unpenalized reconstruction.
    */
   void Initialize(const std::map<size_t, size_t>&     data,
-                  std::shared_ptr<std::vector<Pixel>> pixelList,
+                  std::shared_ptr<std::vector<majutil::Pixel>> pixelList,
                   const float&                        diskRadius,
                   const float&                        gamma, 
                   const size_t&                       pStop,
@@ -185,8 +185,8 @@ private:
   float                        fMLX;                   ///< MLE for x (cm)
   float                        fMLY;                   ///< MLE for y (cm)
   float                        fDiskRadius;            ///< Disk radius 
-  std::shared_ptr<std::vector<Pixel>> fPixelVec;       ///< List of pixels
-  std::vector<float>           fDenomSums;             ///< Map of sipm to denominator sum
+  std::shared_ptr<std::vector<majutil::Pixel>> fPixelVec;  ///< List of pixels
+  std::vector<float>           fDenomSums;                 ///< Map of sipm to denominator sum
   std::map<size_t, size_t>     fData;                      ///< Measured counts (sipm, np.e.)
   std::vector<float>           fLogLikehs;             ///< Container for logL at each iteration 
   std::vector<float>           fPriors;                ///< Container for priors used in penalized reconstruction

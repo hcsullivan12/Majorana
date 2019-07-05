@@ -36,7 +36,6 @@ class Configuration
      * @param configPath The path to the configuration file.
      */
     void Initialize(const std::string& configPath);
-    void SetRecoAnaPath(const std::string& p) { fRecoAnaTreePath = p; };
 
     /**
      * @brief Validate the configuration.
@@ -52,7 +51,7 @@ class Configuration
     std::string SimulateOutputPath()   const { return fSimulateOutputPath; };
     std::string PixelizationPath()     const { return fPixelizationPath; };
     std::string OpReferenceTablePath() const { return fOpReferenceTablePath; };
-    std::string RecoAnaTreePath()      const { return fRecoAnaTreePath; };
+    std::string RecoOutputPath()       const { return fRecoOutputPath; };
     
   private:
     Configuration();
@@ -66,7 +65,7 @@ class Configuration
 
     std::string fConfigPath;             ///< Path to configuration file
     std::string fSimulateOutputPath;     ///< Output path for simulation
-    std::string fRecoAnaTreePath;        ///< Output path for reconstruction anatree
+    std::string fRecoOutputPath;         ///< Output path for reconstruction anatree
     std::string fPixelizationPath;       ///< Path to pixelization scheme
     std::string fOpReferenceTablePath;   ///< Path to optical lookup table
     size_t      fPenalizedStopId;        ///< Iteration number to stop penalized reconstruction

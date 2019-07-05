@@ -116,11 +116,11 @@ void G4Helper::HandleVerbosities()
 //------------------------------------------------------------------------
 void G4Helper::RunG4()
 {
-  // Initialize photon table
-  // This will help reduce overhead
-  majutil::OpDetPhotonTable* photonTable = majutil::OpDetPhotonTable::CreateInstance();
   // Get config
   Configuration* config = Configuration::Instance();
+  // Initialize photon table
+  // This will help reduce overhead
+  majutil::OpDetPhotonTable* photonTable = majutil::OpDetPhotonTable::CreateInstance(config->NMPPCs());
   // Get steering table
   Configuration::SteeringTable steeringTable = config->GetSteeringTable();
   size_t nEvents = steeringTable.size();

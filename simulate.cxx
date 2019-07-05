@@ -11,7 +11,7 @@
 #include "TFile.h"
 
 // Prototypes
-void HandleArgs(int argc, char **argv, majsim::Configuration* genConfig);
+void HandleArgs(int argc, char **argv, majsim::Configuration* simConfig);
 void InitializeFiles(const majsim::Configuration*);
 void DisplayHelp();
 
@@ -19,17 +19,17 @@ void DisplayHelp();
 int main(int argc, char **argv)
 {
   // Initialize configuration
-  majsim::Configuration* genConfig = majsim::Configuration::CreateInstance();
+  majsim::Configuration* simConfig = majsim::Configuration::CreateInstance();
   // Handle runtime args
-  HandleArgs(argc, argv, genConfig); 
+  HandleArgs(argc, argv, simConfig); 
   // Initialize output files
-  InitializeFiles(genConfig);
+  InitializeFiles(simConfig);
   // Initialize source configuration
-  if (genConfig->SourceMode() == "pixel")
+  if (simConfig->SourceMode() == "pixel")
   {
     // Initialize pixels so we can make the reference table
     majutil::PixelTable* pixelTable = majutil::PixelTable::CreateInstance();
-    pixelTable->Initialize(genConfig->PixelizationPath());
+    pixelTable->Initialize(simConfig->PixelizationPath());
   }
   
   // Start G4
@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 }
 
 //------------------------------------------------------------------------
-void HandleArgs(int argc, char **argv, majsim::Configuration* genConfig)
+void HandleArgs(int argc, char **argv, majsim::Configuration* simConfig)
 {
   bool showVis = false;
   bool evdMode = false;
@@ -67,10 +67,10 @@ void HandleArgs(int argc, char **argv, majsim::Configuration* genConfig)
     }
   }
   // Pass configuration
-  genConfig->SetVisualization(showVis);
-  genConfig->SetEvdMode(evdMode);
+  simConfig->SetVisualization(showVis);
+  simConfig->SetEvdMode(evdMode);
   assert(configPath != "");
-  genConfig->Initialize(configPath);
+  simConfig->Initialize(configPath);
 
   // Overide 
   if (nsipms > 0          && 
@@ -78,15 +78,15 @@ void HandleArgs(int argc, char **argv, majsim::Configuration* genConfig)
       opRefTPath    != "" &&
       simOutputPath != "")
   {
-    genConfig->SetNSiPMs(nsipms);
-    genConfig->SetPixelPath(pixelPath);
-    genConfig->SetOpRefTablePath(opRefTPath);
-    genConfig->SetSimOutputPath(simOutputPath);
+    simConfig->SetNSiPMs(nsipms);
+    simConfig->SetPixelPath(pixelPath);
+    simConfig->SetOpRefTablePath(opRefTPath);
+    simConfig->SetSimOutputPath(simOutputPath);
   }
   // Safety check
-  genConfig->CheckConfiguration();
+  simConfig->CheckConfiguration();
   // Output to terminal
-  genConfig->PrintConfiguration();
+  simConfig->PrintConfiguration();
 }
 
 //------------------------------------------------------------------------
@@ -102,9 +102,9 @@ void DisplayHelp()
 }
 
 //------------------------------------------------------------------------
-void InitializeFiles(const majsim::Configuration* genConfig)
+void InitializeFiles(const majsim::Configuration* simConfig)
 {
-  TFile f1(genConfig->SimulateOutputPath().c_str(), "RECREATE");
+  TFile f1(simConfig->SimulateOutputPath().c_str(), "RECREATE");
   f1.Close();
 }
 

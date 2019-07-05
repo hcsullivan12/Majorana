@@ -29,11 +29,11 @@ Photon::~Photon()
 OpDetPhotonTable* OpDetPhotonTable::instance = 0;
 
 //------------------------------------------------------------------------
-OpDetPhotonTable* OpDetPhotonTable::CreateInstance()
+OpDetPhotonTable* OpDetPhotonTable::CreateInstance(const size_t& nMPPCs)
 {
   if (instance == 0)
   {
-    static OpDetPhotonTable opDetPhotonTable;
+    static OpDetPhotonTable opDetPhotonTable(nMPPCs);
     instance = &opDetPhotonTable;
   }
   return instance;
@@ -47,8 +47,9 @@ OpDetPhotonTable* OpDetPhotonTable::Instance()
 }
 
 //------------------------------------------------------------------------
-OpDetPhotonTable::OpDetPhotonTable()
- : fNPhotonsAbs(0)
+OpDetPhotonTable::OpDetPhotonTable(const size_t& nMPPCs)
+ : fNPhotonsAbs(0),
+   fNOpDet(nMPPCs)
 {
   fPhotonsDetected.clear();
   Initialize();
@@ -80,9 +81,8 @@ void OpDetPhotonTable::Dump()
 //------------------------------------------------------------------------
 void OpDetPhotonTable::Initialize()
 {
-  majsim::Configuration* config = majsim::Configuration::Instance();
   std::vector<Photon> vec;
-  for (unsigned m = 1; m <= config->NMPPCs(); m++)
+  for (unsigned m = 1; m <= fNOpDet; m++)
   {
     fPhotonsDetected.emplace(m, vec);
   }

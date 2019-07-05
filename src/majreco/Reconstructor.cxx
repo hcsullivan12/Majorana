@@ -6,7 +6,7 @@
  * 
  */
 
-#include "Reconstructor.h"
+#include "majreco/Reconstructor.h"
 
 #include "TFile.h"
 #include "TH2F.h"
@@ -30,7 +30,7 @@ Reconstructor::Reconstructor()
    fMLHistogram(nullptr),
    fMLGauss(nullptr)
 {
-  fPixelVec = std::make_shared<std::vector<Pixel>>();
+  fPixelVec = std::make_shared<std::vector<majutil::Pixel>>();
   fPixelVec.get()->clear();
 }
 
@@ -43,7 +43,7 @@ Reconstructor::~Reconstructor()
 
 //------------------------------------------------------------------------
 void Reconstructor::Initialize(const std::map<size_t, size_t>&     data,
-                               std::shared_ptr<std::vector<Pixel>> pixelVec,
+                               std::shared_ptr<std::vector<majutil::Pixel>> pixelVec,
                                const float&                        diskRadius,
                                const float&                        gamma, 
                                const size_t&                       pStop,
