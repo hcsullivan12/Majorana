@@ -10,6 +10,7 @@
 #include "majutil/OpDetPhotonTable.h"
 #include "majutil/PixelTable.h"
 #include "majsim/Configuration.h"
+#include "majsim/SimAnalyzer.h"
 
 #include <assert.h>
 
@@ -124,6 +125,8 @@ void G4Helper::RunG4()
   // Get steering table
   Configuration::SteeringTable steeringTable = config->GetSteeringTable();
   size_t nEvents = steeringTable.size();
+  // Make new analyzer
+  SimAnalyzer analyzer(config->SimulateOutputPath());
  
   // Run G4 nEvents times
   for (size_t e = 0; e < nEvents; e++)
@@ -159,7 +162,7 @@ void G4Helper::RunG4()
     // Start run!
     fRunManager->BeamOn(1);
     // Fill our ntuple
-    //analyzer.Fill(e);
+    analyzer.Fill(e);
     // Clear the photon table!
     photonTable->Reset();
   }

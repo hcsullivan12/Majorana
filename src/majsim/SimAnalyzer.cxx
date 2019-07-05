@@ -78,7 +78,7 @@ void SimAnalyzer::Fill(const unsigned& e)
   fSourcePosRTZ.push_back(rtzVec[2]/CLHEP::cm);
   
   auto photonsDetected = photonTable->GetPhotonsDetected();
-  photonTable->Dump();
+  //photonTable->Dump();
 
   fNPhotonsAbs = photonTable->GetNPhotonsAbsorbed();
 

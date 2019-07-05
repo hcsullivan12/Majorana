@@ -91,7 +91,9 @@ void Configuration::ReadConfigFile()
 //------------------------------------------------------------------------
 void Configuration::CheckConfiguration()
 {
-  
+  if (fPenalizedStopId < 0)   { std::cerr << "Error. Iterators must not be negative!\n"; exit(1); }
+  if (fUnpenalizedStopId < 0) { std::cerr << "Error. Iterators must not be negative!\n"; exit(1); }
+  if (fGamma < 0)             { std::cerr << "Error. Gamma variable must not be negative!\n"; exit(1); }
 }
 
 //------------------------------------------------------------------------

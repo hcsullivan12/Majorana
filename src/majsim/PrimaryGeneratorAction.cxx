@@ -76,7 +76,8 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
   // Initialize true distribution
   auto config = Configuration::Instance();
   double diskRadius = config->DiskRadius()/CLHEP::cm;
-  size_t nBins = 2*std::floor(diskRadius/fBinSize) + 1; // this assumes there is a pixel at the origin
+  double binSize    = fBinSize/CLHEP::cm;
+  size_t nBins = 2*std::floor(diskRadius/binSize) + 1; // this assumes there is a pixel at the origin
 
   TH2I primHist("primHist", "primHist", nBins, -diskRadius, diskRadius, nBins, -diskRadius, diskRadius);
   for (unsigned xbin = 1; xbin <= primHist.GetXaxis()->GetNbins(); xbin++)
@@ -174,13 +175,11 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
                                 polarization[2]);
     vertex->SetPrimary(g4Particle);
   }
-  if (config->EvdMode())
-  {
-    std::string outfile = "../evd/trueDist.root";
-    TFile f(outfile.c_str(), "RECREATE");
-    primHist.Write();
-    f.Close();
-  }
+  
+  TFile f(config->SimulateOutputPath().c_str(), "UPDATE");
+  primHist.Write();
+  f.Close();
+  
 }
 
 }

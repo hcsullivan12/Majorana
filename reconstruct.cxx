@@ -4,6 +4,7 @@
 
 // majorana includes
 #include "majreco/Configuration.h"
+#include "majreco/RecoHelper.h"
 #include "majutil/PixelTable.h"
 
 // ROOT includes
@@ -23,7 +24,14 @@ int main(int argc, char **argv)
   HandleArgs(argc, argv, recoConfig); 
   // Initialize output files
   InitializeFiles(recoConfig);
+  // Initialize pixels 
+  majutil::PixelTable* pixelTable = majutil::PixelTable::CreateInstance();
+  pixelTable->Initialize(recoConfig->PixelizationPath());
+  pixelTable->LoadReferenceTable(recoConfig->OpReferenceTablePath());
 
+  // Initialize helper for interfacing with reconstruction alg
+  majreco::RecoHelper* recoHelper = majreco::RecoHelper::CreateInstance();
+  recoHelper->Start();
 
   return 0;
 }
