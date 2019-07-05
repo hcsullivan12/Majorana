@@ -20,12 +20,16 @@ private:
    TRootEmbeddedCanvas *fCanvas1 = nullptr;
    TRootEmbeddedCanvas *fCanvas2 = nullptr;
    
-   TGTextButton         *fStart;
-   TGTextButton      *fSetParam;
+   TGTextButton         *fStartBut;
+   TGTextButton      *fSetParamBut;
    
    TGTextEntry        *fDiskREnt;
-   TGTextEntry        *fNsipmsEnt;
-   TGTextEntry        *fPixelSizeEnt;
+   TGTextEntry       *fNsipmsEnt;
+   TGTextEntry    *fPixelSizeEnt;
+
+   TGVButtonGroup   *dataTypeButGroup;
+   TGCheckButton             *isMCBut;
+   TGCheckButton           *isDataBut;
 
    bool fIsRunning = false;
    double fLastUpdate = 0;
@@ -37,6 +41,7 @@ private:
    int fPixelSize = 5;
    double fX;
    double fY;
+   std::string fDataType = "data";
 
 public:
    MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir);
@@ -50,9 +55,12 @@ public:
    void HandleTimer();
    const std::map<unsigned, unsigned> ReadDataFile();
    void UpdatePlots(const std::map<unsigned, unsigned>& mydata);
+   void SetDataTypeMC();
+   void SetDataTypeData();
 };
 
-MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir) {
+MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir) 
+{
    // Create a main frame
    fMain = new TGMainFrame(p,w,h);
 
@@ -167,12 +175,22 @@ MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir
    vframe3->AddFrame(vhframe11, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
 
    /* Set Params */
-   fSetParam = new TGTextButton(vframe3,"Set Parameters");
-   fSetParam->Connect("Clicked()","MyMainFrame",this,"SetParameters()");
-   vframe3->AddFrame(fSetParam, new TGLayoutHints(kLHintsExpandX,5,5,5,5) );
+   fSetParamBut = new TGTextButton(vframe3,"Set Parameters");
+   fSetParamBut->Connect("Clicked()","MyMainFrame",this,"SetParameters()");
+   vframe3->AddFrame(fSetParamBut, new TGLayoutHints(kLHintsExpandX,5,5,5,5) );
 
    vframe3->Resize(400,1000);
    hframe1->AddFrame(vframe3, new TGLayoutHints(kLHintsLeft | kLHintsExpandY, 5,5,5,5) );
+
+   /* Data type buttons */
+   dataTypeButGroup = new TGVButtonGroup(vframe3, "Data Type");
+   isDataBut = new TGCheckButton(dataTypeButGroup, new TGHotString("Data"));
+   isDataBut->Connect("Clicked()","MyMainFrame",this,"SetDataTypeData()");
+   isMCBut   = new TGCheckButton(dataTypeButGroup, new TGHotString("MC"));
+   isMCBut->Connect("Clicked()","MyMainFrame",this,"SetDataTypeMC()");
+   vframe3->AddFrame(dataTypeButGroup, new TGLayoutHints(kLHintsExpandX, 5,5,5,5) );
+   fDataType == "data" ? isDataBut->SetState(kButtonDown) : isMCBut->SetState(kButtonDown);
+
 
    /* UTA picture */
    TRootEmbeddedCanvas *utaPicCanvas = new TRootEmbeddedCanvas("utaPicCanvas",vframe3,150,75);
@@ -194,12 +212,12 @@ MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir
 
    /* Quit button */
    TGTextButton *quit = new TGTextButton(vframe3,"&Quit", "gApplication->Terminate(0)");
-   vframe3->AddFrame(quit, new TGLayoutHints(kLHintsExpandX | kLHintsBottom,5,5,5,300) );
+   vframe3->AddFrame(quit, new TGLayoutHints(kLHintsExpandX | kLHintsBottom,5,5,5,200) );
 
    /* Start button */
-   fStart = new TGTextButton(vframe3,"Start");
-   fStart->Connect("Clicked()","MyMainFrame",this,"ChangeStartLabel()");
-   vframe3->AddFrame(fStart, new TGLayoutHints(kLHintsBottom | kLHintsExpandX ,5,5,5,5));
+   fStartBut = new TGTextButton(vframe3,"Start");
+   fStartBut->Connect("Clicked()","MyMainFrame",this,"ChangeStartLabel()");
+   vframe3->AddFrame(fStartBut, new TGLayoutHints(kLHintsBottom | kLHintsExpandX ,5,5,5,5));
 
    TGLabel *tReco = new TGLabel(vframe3, "Reconstruction", fTextGC->GetGC(), labelboldfont, kChildFrame);
    vframe3->AddFrame(tReco, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 5,5,5,5));
@@ -228,37 +246,54 @@ MyMainFrame::~MyMainFrame() {
   delete fMain;
 }
 
-void MyMainFrame::ChangeStartLabel()
+void MyMainFrame::SetDataTypeData()
 {
-  // Slot connected to the Clicked() signal.
-  // It will toggle labels "Start" and "Stop".
+  fDataType = "data";
 
-  fStart->SetState(kButtonDown);
-
-  // If it is not currently running, start it
-  if (!fIsRunning) {
-     fStart->SetText("Stop");
-     // Start the time to check for updated daq file
-     std::cout << "\n"
-               << "Listening for DAQ files...\n";
-     if (fTimer) fTimer->Start(1000, kFALSE);
-     fIsRunning = true;
-  } else {
-     std::cout << "Stopping reconstruction...\n";
-     fStart->SetText("Start");
-     if (fTimer) fTimer->Stop();
-     fIsRunning = false;
-  }
-  fStart->SetState(kButtonUp);
+  if (isMCBut->IsOn()) isMCBut->SetState(kButtonUp);
+  isDataBut->SetState(kButtonDown);
 }
 
-void MyMainFrame::StartReco() {
+void MyMainFrame::SetDataTypeMC()
+{
+  fDataType = "mc";
+
+  if (isDataBut->IsOn()) isDataBut->SetState(kButtonUp);
+  isMCBut->SetState(kButtonDown);
+}
+
+void MyMainFrame::ChangeStartLabel()
+{
+  fStartBut->SetState(kButtonDown);
+
+  // If it is not currently running, start it
+  if (!fIsRunning) 
+  {
+    fStartBut->SetText("Stop");
+    // Start the time to check for updated daq file
+    std::cout << "\n"
+              << "Listening for DAQ files...\n";
+    if (fTimer) fTimer->Start(1000, kFALSE);
+    fIsRunning = true;
+  } 
+  else 
+  {
+    std::cout << "Stopping reconstruction...\n";
+    fStartBut->SetText("Start");
+    if (fTimer) fTimer->Stop();
+    fIsRunning = false;
+  }
+  fStartBut->SetState(kButtonUp);
+}
+
+void MyMainFrame::StartReco() 
+{
    std::cout << "//////////////////////////////////////////////////////\n";
    std::cout << "\nStarting reconstruction..." << std::endl;
    
    // Not the most efficient, but we will read our DAQ file twice
    auto mydata = ReadDataFile();
-   if (mydata.size() != fNsipms) {cout << "\nWarning: Data size not equal to " << fNsipms << "\n" << endl; return;}
+   if (mydata.size() != fNsipms) {cout << "\nWarning: Data size not equal to " << fNsipms << "\n"; return;}
 
    // Now we can pass our data to the reconstructor
    std::string pixelizationPath = fTopDir+"/production/production_v1_1/"+std::to_string(fPixelSize)+"mm/pixelization.txt";
@@ -271,7 +306,8 @@ void MyMainFrame::StartReco() {
    UpdatePlots(mydata);
 }
 
-const std::map<unsigned, unsigned> MyMainFrame::ReadDataFile() {
+const std::map<unsigned, unsigned> MyMainFrame::ReadDataFile() 
+{
   // The file should contain the number of photons detected by the sipms
   std::ifstream theFile(fDataFile.c_str());
   std::string line;
@@ -300,9 +336,11 @@ const std::map<unsigned, unsigned> MyMainFrame::ReadDataFile() {
   return v;
 }
 
-void MyMainFrame::UpdatePlots(const std::map<unsigned, unsigned>& mydata) {
+void MyMainFrame::UpdatePlots(const std::map<unsigned, unsigned>& mydata) 
+{
   // Grab the top canvas
   TCanvas *tc = fCanvas1->GetCanvas();
+  tc->Clear();
   
   // We need the resulting plot from reco
   TFile f("recoanatree.root", "READ");
@@ -311,42 +349,57 @@ void MyMainFrame::UpdatePlots(const std::map<unsigned, unsigned>& mydata) {
     TH2F *recoHist = nullptr;
     f.GetObject("histFinal", recoHist);
     if (recoHist) {
-      recoHist->SetTitle("Reconstructed Position");
+      recoHist->SetTitle("Reconstructed");
       recoHist->GetXaxis()->SetTitle("X [cm]");
       recoHist->GetYaxis()->SetTitle("Y [cm]");
-      tc->Clear();
-      TPad *pad1 = new TPad("pad1","",0,0,1,1);
-      pad1->Draw();
-      pad1->cd();
-
       recoHist->Draw("colz");
-      TMarker *t = new TMarker(fX, fY, 29);
-      t->SetMarkerSize(4);
-      t->SetMarkerColor(7);
-      t->Draw("same");
-      pad1->Update();
-      pad1->Modified();
       tc->cd();
-    } else {cout << "Couldn't find reco hist...\n";}
-  } else {cout << "Couldn't open root file...\n";}
+      tc->Update();
+    } else {cout << "\nWARNING: Couldn't find reco hist...\n";}
+  } else {cout << "\nWARNING: Couldn't open root file...\n";}
   
   // Grab the bottom canvas
   TCanvas *bc = fCanvas2->GetCanvas();
   
-  // Make a histogram of the data
-  TH1I *h = new TH1I("h", "Measured Light Yield", mydata.size(), 0.5, mydata.size()+0.5);
-  for (const auto& d : mydata) h->SetBinContent(d.first, d.second);
-  bc->Clear();
-  h->SetLineColor(4);
-  h->SetLineWidth(4);
-  h->GetXaxis()->SetTitle("SiPM ID");
-  //h->SetBarOffset(0.5);
-  h->Draw("");
-  bc->cd();
-  bc->Update();
+  if (fDataType == "data")
+  {
+    // Make a histogram of the data
+    TH1I *h = new TH1I("h", "Measured Light Yield", mydata.size(), 0.5, mydata.size()+0.5);
+    for (const auto& d : mydata) h->SetBinContent(d.first, d.second);
+    bc->Clear();
+    h->SetLineColor(4);
+    h->SetLineWidth(4);
+    h->GetXaxis()->SetTitle("SiPM ID");
+    //h->SetBarOffset(0.5);
+    h->Draw("");
+    bc->cd();
+    bc->Update();
+  }
+  if (fDataType == "mc")
+  {
+    // Grab the true distribution for the simulate output
+    // This is not the best solution but it'll do for now
+    std::string trueDistPath = "trueDist.root";
+    TFile s(trueDistPath.c_str(), "READ");
+    if (s.IsOpen()) {
+      gStyle->SetPalette(kDarkBodyRadiator);
+      TH2I *primHist = nullptr;
+      s.GetObject("primHist", primHist);
+      if (primHist) {
+        primHist->SetTitle("True");
+        primHist->GetXaxis()->SetTitle("X [cm]");
+        primHist->GetYaxis()->SetTitle("Y [cm]");
+        bc->Clear();
+        primHist->Draw("colz");
+        bc->cd();
+        bc->Update();
+      } else {cout << "\nWARNING: Couldn't find true distribution...\n";}
+    } else {cout << "\nWARNING: Couldn't find simulate output path named \'"+trueDistPath+"\'...\n";}
+  }
 }
 
-void MyMainFrame::SetParameters() {
+void MyMainFrame::SetParameters()
+{
   // Get the current settings
   stringstream stream;
   stream << fixed << setprecision(2) << fDiskR;
@@ -363,7 +416,8 @@ void MyMainFrame::SetParameters() {
             << std::endl;
 }
 
-bool MyMainFrame::IsDAQFileModified() {
+bool MyMainFrame::IsDAQFileModified() 
+{
   struct stat fileStat;
   int err = stat(fDataFile.c_str(), &fileStat);
   if (err != 0) {
@@ -376,11 +430,13 @@ bool MyMainFrame::IsDAQFileModified() {
   return false;
 }
 
-void MyMainFrame::HandleTimer() {
+void MyMainFrame::HandleTimer() 
+{
    if (IsDAQFileModified()) StartReco();
 }
 
-void EventDisplay(std::string topDir) {
+void EventDisplay(std::string topDir) 
+{
   // Popup the GUI...
   new MyMainFrame(gClient->GetRoot(),1500,1000, topDir);
 }
