@@ -1,5 +1,4 @@
 #!/bin/python
-import subprocess
 import os
 
 # get this directory
@@ -12,16 +11,17 @@ if top_dir is None:
     exit()
 
 print('')
-print('Opening event display...')
-print('')
-
-evd_cmd = 'python SIPM_WHEEL_EVD.py'
-proc = subprocess.Popen([evd_cmd], shell=True, stdin=None, stdout=None, stderr=None, close_fds=True)
-
-print('')
 print('Running G4 sim...')
 print('')
 
 # start a g4 session
-g4_cmd = 'cd '+top_dir+'/build/ && ./simulate -c ../config/Configuration.ini -E ON'
+g4_cmd = 'gnome-terminal -- /bin/sh -c \'cd '+top_dir+'/build; ./simulate -c ../config/SimConfiguration.ini -E ON; echo "Press Enter to exit simulation..."; read var\''
 os.system(g4_cmd)
+
+
+print('')
+print('Opening event display...')
+print('')
+
+command = 'root -l \'./evd/EventDisplay.C(\"'+top_dir+'\")\''
+os.system(command)

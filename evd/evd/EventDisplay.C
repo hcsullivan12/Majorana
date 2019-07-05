@@ -10,8 +10,6 @@
 #include <sys/stat.h>
 #include "doReconstruct.C"
 
-//#include "ev_display_WheelReco.cxx"
-
 class MyMainFrame {
    RQ_OBJECT("MyMainFrame")
 private:
@@ -23,25 +21,30 @@ private:
    TGTextButton         *fStartBut;
    TGTextButton      *fSetParamBut;
    
-   TGTextEntry        *fDiskREnt;
-   TGTextEntry       *fNsipmsEnt;
-   TGTextEntry    *fPixelSizeEnt;
+   TGTextEntry        *fDiskREnt = nullptr;
+   TGTextEntry       *fNsipmsEnt = nullptr;
+   TGTextEntry    *fPixelSizeEnt = nullptr;
+   TGTextEntry        *fGammaEnt = nullptr;
+   TGTextEntry  *fUnpenalizedIterEnt = nullptr;
+   TGTextEntry    *fPenalizedIterEnt = nullptr;
 
    TGVButtonGroup   *dataTypeButGroup;
    TGCheckButton             *isMCBut;
    TGCheckButton           *isDataBut;
+   TGCheckButton      *doPenalizedBut;
 
-   bool fIsRunning = false;
-   double fLastUpdate = 0;
-   TTimer *fTimer = nullptr;
-   std::string fDataFile = "./daq/data.txt";
    std::string fTopDir;
-   double fDiskR  = 14.5;
-   int fNsipms    = 64;
-   int fPixelSize = 5;
-   double fX;
-   double fY;
-   std::string fDataType = "data";
+   bool        fIsRunning  = false;
+   double      fLastUpdate = 0;
+   TTimer      *fTimer     = nullptr;
+   std::string fDataFile   = "./daq/data.txt";
+   double      fDiskR      = 14.5;
+   int         fNsipms     = 64;
+   int         fPixelSize  = 5;
+   size_t      fUnpenalizedIter = 100;
+   size_t      fPenalizedIter   = 100;
+   double      fGamma      = 0.5;
+   std::string fDataType   = "data";
 
 public:
    MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir);
@@ -53,8 +56,8 @@ public:
    void SetParameters();
    bool IsDAQFileModified();
    void HandleTimer();
-   const std::map<unsigned, unsigned> ReadDataFile();
-   void UpdatePlots(const std::map<unsigned, unsigned>& mydata);
+   const std::map<size_t, size_t> ReadDataFile();
+   void UpdatePlots(const std::map<size_t, size_t>& mydata);
    void SetDataTypeMC();
    void SetDataTypeData();
 };
@@ -134,7 +137,7 @@ MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir
    fTextGC1 = gClient->GetGC(&gval1, kTRUE);
    //gClient->GetColorByName("black", blackcolor);
    TGLabel *tRecoConfig = new TGLabel(vframe3, "Configuration", fTextGC->GetGC(), labelboldfont, kChildFrame);
-   vframe3->AddFrame(tRecoConfig, new TGLayoutHints(kLHintsCenterX, 5,5,150,5));
+   vframe3->AddFrame(tRecoConfig, new TGLayoutHints(kLHintsCenterX, 5,5,30,5));
 
    /* Disk Radius */
    stringstream stream;
@@ -162,17 +165,65 @@ MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir
    vhframe10->AddFrame(fNsipmsEnt, new TGLayoutHints(kLHintsRight | kLHintsTop,5,5,2,5));
    vframe3->AddFrame(vhframe10, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
 
-   /* Pixel size */   
-   TGHorizontalFrame *vhframe11 = new TGHorizontalFrame(vframe3,400,20);
-   vhframe11->AddFrame(new TGLabel(vhframe11, "Pixel size: ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsLeft, 0,5,5,5));
-   TGTextBuffer *pixelSize = new TGTextBuffer(10);
-   pixelSize->AddText(0, std::to_string(fPixelSize).c_str());
-   fPixelSizeEnt = new TGTextEntry(vhframe11, pixelSize);
+   /* pixel size */   
+   stream.str("");
+   stream << fixed << setprecision(2) << fPixelSize;
+   TGHorizontalFrame *vhframe16 = new TGHorizontalFrame(vframe3,400,20);
+   vhframe16->AddFrame(new TGLabel(vhframe16, "Pixel spacing: ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsLeft, 0,5,5,5));
+   TGTextBuffer *pixelsize = new TGTextBuffer(10);
+   pixelsize->AddText(0, stream.str().c_str());
+   fPixelSizeEnt = new TGTextEntry(vhframe16, pixelsize);
    fPixelSizeEnt->Resize(50, fPixelSizeEnt->GetDefaultHeight());
    fPixelSizeEnt->SetFont("-adobe-courier-r-*-*-12-*-*-*-*-*-iso8859-1");
-   vhframe11->AddFrame(new TGLabel(vhframe11, "mm", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsRight, 5,5,5,0));
-   vhframe11->AddFrame(fPixelSizeEnt, new TGLayoutHints(kLHintsRight | kLHintsTop,5,5,2,5));
+   vhframe16->AddFrame(new TGLabel(vhframe16, "mm", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsRight, 5,5,5,0));
+   vhframe16->AddFrame(fPixelSizeEnt, new TGLayoutHints(kLHintsRight | kLHintsTop,5,5,2,5));
+   vframe3->AddFrame(vhframe16, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
+
+   /* Gamma */   
+   stream.str("");
+   stream << fixed << setprecision(2) << fGamma;
+   TGHorizontalFrame *vhframe12 = new TGHorizontalFrame(vframe3,400,20);
+   vhframe12->AddFrame(new TGLabel(vhframe12, "Gamma: ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsLeft, 0,5,5,5));
+   TGTextBuffer *gammaBuf = new TGTextBuffer(10);
+   gammaBuf->AddText(0, stream.str().c_str());
+   fGammaEnt = new TGTextEntry(vhframe12, gammaBuf);
+   fGammaEnt->Resize(50, fGammaEnt->GetDefaultHeight());
+   fGammaEnt->SetFont("-adobe-courier-r-*-*-12-*-*-*-*-*-iso8859-1");
+   vhframe12->AddFrame(new TGLabel(vhframe12, "  ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsRight, 5,5,5,0));
+   vhframe12->AddFrame(fGammaEnt, new TGLayoutHints(kLHintsRight | kLHintsTop,5,5,2,5));
+   vframe3->AddFrame(vhframe12, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
+
+   /* Do penalized reconstruction */   
+   TGHorizontalFrame *vhframe11 = new TGHorizontalFrame(vframe3,400,20);
+   vhframe11->AddFrame(new TGLabel(vhframe11, "Do penalized: ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsLeft, 0,5,5,5));
+   doPenalizedBut = new TGCheckButton(vhframe11, new TGHotString(""));
+   vhframe11->AddFrame(doPenalizedBut, new TGLayoutHints(kLHintsRight, 5,40,5,5));
    vframe3->AddFrame(vhframe11, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
+   doPenalizedBut->SetState(kButtonDown);
+
+   /* Unpenalized iter */   
+   TGHorizontalFrame *vhframe14 = new TGHorizontalFrame(vframe3,400,20);
+   vhframe14->AddFrame(new TGLabel(vhframe14, "Unpenalized iterations: ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsLeft, 0,5,5,5));
+   TGTextBuffer *unpenIter = new TGTextBuffer(10);
+   unpenIter->AddText(0, std::to_string(fUnpenalizedIter).c_str());
+   fUnpenalizedIterEnt = new TGTextEntry(vhframe14, unpenIter);
+   fUnpenalizedIterEnt->Resize(50, fUnpenalizedIterEnt->GetDefaultHeight());
+   fUnpenalizedIterEnt->SetFont("-adobe-courier-r-*-*-12-*-*-*-*-*-iso8859-1");
+   vhframe14->AddFrame(new TGLabel(vhframe14, "  ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsRight, 5,5,5,0));
+   vhframe14->AddFrame(fUnpenalizedIterEnt, new TGLayoutHints(kLHintsRight | kLHintsTop,5,5,2,5));
+   vframe3->AddFrame(vhframe14, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
+
+   /* Unpenalized iter */   
+   TGHorizontalFrame *vhframe15 = new TGHorizontalFrame(vframe3,400,20);
+   vhframe15->AddFrame(new TGLabel(vhframe15, "Penalized iterations: ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsLeft, 0,5,5,5));
+   TGTextBuffer *penIter = new TGTextBuffer(10);
+   penIter->AddText(0, std::to_string(fPenalizedIter).c_str());
+   fPenalizedIterEnt = new TGTextEntry(vhframe15, penIter);
+   fPenalizedIterEnt->Resize(50, fPenalizedIterEnt->GetDefaultHeight());
+   fPenalizedIterEnt->SetFont("-adobe-courier-r-*-*-12-*-*-*-*-*-iso8859-1");
+   vhframe15->AddFrame(new TGLabel(vhframe15, "  ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsRight, 5,5,5,0));
+   vhframe15->AddFrame(fPenalizedIterEnt, new TGLayoutHints(kLHintsRight | kLHintsTop,5,5,2,5));
+   vframe3->AddFrame(vhframe15, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
 
    /* Set Params */
    fSetParamBut = new TGTextButton(vframe3,"Set Parameters");
@@ -212,7 +263,7 @@ MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir
 
    /* Quit button */
    TGTextButton *quit = new TGTextButton(vframe3,"&Quit", "gApplication->Terminate(0)");
-   vframe3->AddFrame(quit, new TGLayoutHints(kLHintsExpandX | kLHintsBottom,5,5,5,200) );
+   vframe3->AddFrame(quit, new TGLayoutHints(kLHintsExpandX | kLHintsBottom,5,5,5,150) );
 
    /* Start button */
    fStartBut = new TGTextButton(vframe3,"Start");
@@ -291,14 +342,17 @@ void MyMainFrame::StartReco()
    std::cout << "//////////////////////////////////////////////////////\n";
    std::cout << "\nStarting reconstruction..." << std::endl;
    
-   // Not the most efficient, but we will read our DAQ file twice
+   // We will read our DAQ file twice
    auto mydata = ReadDataFile();
    if (mydata.size() != fNsipms) {cout << "\nWarning: Data size not equal to " << fNsipms << "\n"; return;}
 
    // Now we can pass our data to the reconstructor
    std::string pixelizationPath = fTopDir+"/production/production_v1_1/"+std::to_string(fPixelSize)+"mm/pixelization.txt";
    std::string opRefTablePath   = fTopDir+"/production/production_v1_1/"+std::to_string(fPixelSize)+"mm/"+std::to_string(fNsipms)+"sipms/splinedOpRefTable.txt";
-   std::string doRecoCmd = "doReconstruct(\""+pixelizationPath+"\",\""+opRefTablePath+"\", \""+fDataFile+"\", "+std::to_string(fDiskR)+")";
+   std::string doRecoCmd = "doReconstruct(\""+pixelizationPath              +"\",\""+opRefTablePath+"\","
+                                        " \""+fDataFile                     +"\", "+std::to_string(fDiskR)+","
+                                        " "+std::to_string(fGamma)          +", "+std::to_string(doPenalizedBut->IsOn())+","
+                                        " "+std::to_string(fPenalizedIter)  +", "+std::to_string(fUnpenalizedIter)+")";
    //cout << doRecoCmd << endl;
    gROOT->ProcessLine(doRecoCmd.c_str()); 
 
@@ -306,23 +360,19 @@ void MyMainFrame::StartReco()
    UpdatePlots(mydata);
 }
 
-const std::map<unsigned, unsigned> MyMainFrame::ReadDataFile() 
+const std::map<size_t, size_t> MyMainFrame::ReadDataFile() 
 {
   // The file should contain the number of photons detected by the sipms
   std::ifstream theFile(fDataFile.c_str());
   std::string line;
-  std::map<unsigned, unsigned> v;
+  std::map<size_t, size_t> v;
   if (theFile.is_open()) {
-    std::getline(theFile, line);
-    if (!line.size()) return v;
-    // this is x and y
-    fX = std::stod(line.substr(0, line.find(" "))); 
-    fY = std::stod(line.substr(line.find(" ")+1));
-
     // this is data
     std::getline(theFile, line);
   }
+  if (!line.size()) return v;
 
+  // remove white space
   size_t pos = 0;
   size_t counter = 1;
   std::string delimiter = " ";
@@ -336,7 +386,7 @@ const std::map<unsigned, unsigned> MyMainFrame::ReadDataFile()
   return v;
 }
 
-void MyMainFrame::UpdatePlots(const std::map<unsigned, unsigned>& mydata) 
+void MyMainFrame::UpdatePlots(const std::map<size_t, size_t>& mydata) 
 {
   // Grab the top canvas
   TCanvas *tc = fCanvas1->GetCanvas();
@@ -401,18 +451,29 @@ void MyMainFrame::UpdatePlots(const std::map<unsigned, unsigned>& mydata)
 void MyMainFrame::SetParameters()
 {
   // Get the current settings
+
+  // Do not allow to change disk radius
   stringstream stream;
   stream << fixed << setprecision(2) << fDiskR;
   fDiskREnt->SetText(stream.str().c_str());
 
+
   fNsipms    = std::stoi(fNsipmsEnt->GetText());
-  fPixelSize = std::stoi(fPixelSizeEnt->GetText());
+  fPixelSize = std::stod(fPixelSizeEnt->GetText());
+  fGamma     = std::stod(fGammaEnt->GetText());
+  std::string doPenalizedStr = doPenalizedBut->IsOn() ? "yes" : "no";
+  fUnpenalizedIter = std::stoi(fUnpenalizedIterEnt->GetText());
+  fPenalizedIter   = std::stoi(fPenalizedIterEnt->GetText());
 
   std::cout << "\n"
             << "Updating parameters...\n"
             << "Disk radius set to:        " << fDiskR     << "\n"
             << "Number of SiPMs set to:    " << fNsipms    << "\n"
             << "Pixel size set to:         " << fPixelSize << "\n"
+            << "Gamma set to:              " << fGamma     << "\n"
+            << "Do penalized:              " << doPenalizedStr << "\n"
+            << "Unpenalized iterations:    " << fUnpenalizedIter << "\n"
+            << "Penalized iterations:    " << fPenalizedIter << "\n"
             << std::endl;
 }
 

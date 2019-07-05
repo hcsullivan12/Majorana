@@ -15,7 +15,11 @@ std::string thePixelPath;
 std::string theOpRefPath;
 std::string theDataPath;
 double      theDiskRadius;
-std::shared_ptr<std::vector<majorana::Pixel>> thePixelVec;
+double      theGamma;
+size_t      theDoPenalized;
+size_t      thePenalizedIter;
+size_t      theUnpenalizedIter;
+std::shared_ptr<std::vector<majutil::Pixel>> thePixelVec;
 
 // Protos
 void LoadPixelization();
@@ -34,14 +38,22 @@ const std::map<size_t, size_t> ReadDataFile();
 void doReconstruct(std::string pixelizationPath, 
                    std::string opRefTablePath, 
                    std::string datapath,
-                   double      diskRadius)
+                   double      diskRadius,
+                   double      gamma,
+                   size_t      doPenalized,
+                   size_t      penalizedIter,
+                   size_t      upenalizedIter)
 {
-  thePixelPath = pixelizationPath;
-  theOpRefPath = opRefTablePath;
-  theDataPath  = datapath;
-  theDiskRadius = diskRadius;
+  thePixelPath       = pixelizationPath;
+  theOpRefPath       = opRefTablePath;
+  theDataPath        = datapath;
+  theDiskRadius      = diskRadius;
+  theGamma           = gamma;
+  theDoPenalized     = doPenalized;
+  thePenalizedIter   = penalizedIter;
+  theUnpenalizedIter = upenalizedIter;
 
-  thePixelVec = std::make_shared<std::vector<majorana::Pixel>>();
+  thePixelVec = std::make_shared<std::vector<majutil::Pixel>>();
   thePixelVec->clear();
 
   // Load pixelization
@@ -118,7 +130,7 @@ void LoadPixelization()
   f.close();
 
   // Sort 
-  std::sort( (*thePixelVec).begin(), (*thePixelVec).end(), [](const majorana::Pixel& left, const majorana::Pixel& right) { return left.ID() < right.ID(); } );
+  std::sort( (*thePixelVec).begin(), (*thePixelVec).end(), [](const majutil::Pixel& left, const majutil::Pixel& right) { return left.ID() < right.ID(); } );
 
   std::cout << "Initialized " << thePixelVec->size() << " " << min << "x" << min << "cm2 pixels...\n";
 }
@@ -177,7 +189,7 @@ void LoadOpRefTable()
 /**
  * @brief Read the DAQ file that contains the data.
  * 
- * @return const std::map<unsigned, unsigned> Map from SiPM ID to measured counts.
+ * @return const std::map<size_t, size_t> Map from SiPM ID to measured counts.
  */
 const std::map<size_t, size_t> ReadDataFile() 
 {
@@ -213,7 +225,7 @@ void Reconstruct()
   //for (auto& d : mydata) std::cout << d.first << " " << d.second << std::endl;
 
   // Initialize the reconstructor
-  majorana::Reconstructor theReconstructor;
+  majreco::Reconstructor theReconstructor;
   theReconstructor.Initialize(mydata, 
                               thePixelVec, 
                               theDiskRadius,
