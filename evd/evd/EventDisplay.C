@@ -429,7 +429,7 @@ void MyMainFrame::UpdatePlots(const std::map<size_t, size_t>& mydata)
   {
     // Grab the true distribution for the simulate output
     // This is not the best solution but it'll do for now
-    std::string trueDistPath = "trueDist.root";
+    std::string trueDistPath = fTopDir+"/output/simulateOutput.root";
     TFile s(trueDistPath.c_str(), "READ");
     if (s.IsOpen()) {
       gStyle->SetPalette(kDarkBodyRadiator);

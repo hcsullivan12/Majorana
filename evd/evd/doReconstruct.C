@@ -229,10 +229,10 @@ void Reconstruct()
   theReconstructor.Initialize(mydata, 
                               thePixelVec, 
                               theDiskRadius,
-                              0.5,
-                              100,
-                              100);
-  theReconstructor.Reconstruct(true); 
+                              theGamma,
+                              thePenalizedIter,
+                              theUnpenalizedIter);
+  theReconstructor.Reconstruct(theDoPenalized); 
   theReconstructor.Dump();
 
   // Write the reconstructed image
