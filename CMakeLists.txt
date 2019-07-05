@@ -31,8 +31,8 @@ add_definitions(${ROOT_CXX_FLAGS})
 # Project includes
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
-file(GLOB_RECURSE sources ${PROJECT_SOURCE_DIR}/src/*.cxx)
-file(GLOB_RECURSE headers ${PROJECT_SOURCE_DIR}/include/*.h)
+file(GLOB_RECURSE sources ${PROJECT_SOURCE_DIR}/src/*/*.cxx)
+file(GLOB_RECURSE headers ${PROJECT_SOURCE_DIR}/include/*/*.h)
 add_executable(simulate ${PROJECT_SOURCE_DIR}/simulate.cxx ${sources} ${headers})
 
 target_link_libraries(simulate ${ROOT_LIBRARIES})
