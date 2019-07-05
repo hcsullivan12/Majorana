@@ -1,7 +1,18 @@
+/**
+ * @file Pixel.h
+ * @author H. Sullivan (hsulliva@fnal.gov)
+ * @brief Simple pixel structure.
+ * @date 07-04-2019
+ *
+ */
+
 #include <vector>
 
 #ifndef PIXEL_H
 #define PIXEL_H
+
+namespace majorana 
+{
 
 class Pixel
 {
@@ -55,5 +66,6 @@ private:
   unsigned fID;         ///< id number
   AReferenceTable fReferenceTable; ///< stores mppc to probability map
 };
+}
 
 #endif

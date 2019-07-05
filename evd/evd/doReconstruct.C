@@ -1,3 +1,10 @@
+/**
+ * @file doReconstruct.C
+ * @author H. Sullivan (hsulliva@fnal.gov)
+ * @brief Interface to reconstruction algorithm for event display.
+ * @date 07-04-2019
+ * 
+ */
 
 #include "Reconstructor.h"
 R__LOAD_LIBRARY(evd/libReconstructor.so)
@@ -8,26 +15,33 @@ std::string thePixelPath;
 std::string theOpRefPath;
 std::string theDataPath;
 double      theDiskRadius;
-std::shared_ptr<std::vector<Pixel>> thePixelVec;
+std::shared_ptr<std::vector<majorana::Pixel>> thePixelVec;
 
 // Protos
 void LoadPixelization();
 void LoadOpRefTable();
 void Reconstruct();
-const std::map<unsigned, unsigned> ReadDataFile();
+const std::map<size_t, size_t> ReadDataFile();
 
-/********************************/
+/**
+ * @brief Main entry point. Initializes variables for reconstruction.
+ * 
+ * @param pixelizationPath Path to pixelization scheme.
+ * @param opRefTablePath Path to lookup table.
+ * @param datapath Path to DAQ output file.
+ * @param diskRadius Radius of disk.
+ */
 void doReconstruct(std::string pixelizationPath, 
                    std::string opRefTablePath, 
                    std::string datapath,
-                   double diskRadius)
+                   double      diskRadius)
 {
   thePixelPath = pixelizationPath;
   theOpRefPath = opRefTablePath;
   theDataPath  = datapath;
   theDiskRadius = diskRadius;
 
-  thePixelVec = std::make_shared<std::vector<Pixel>>();
+  thePixelVec = std::make_shared<std::vector<majorana::Pixel>>();
   thePixelVec->clear();
 
   // Load pixelization
@@ -38,7 +52,10 @@ void doReconstruct(std::string pixelizationPath,
   Reconstruct();
 }
 
-/********************************/
+/**
+ * @brief Method to load pixelization scheme.
+ * 
+ */
 void LoadPixelization()
 {
   // Make pixels for each position
@@ -101,12 +118,15 @@ void LoadPixelization()
   f.close();
 
   // Sort 
-  std::sort( (*thePixelVec).begin(), (*thePixelVec).end(), [](const Pixel& left, const Pixel& right) { return left.ID() < right.ID(); } );
+  std::sort( (*thePixelVec).begin(), (*thePixelVec).end(), [](const majorana::Pixel& left, const majorana::Pixel& right) { return left.ID() < right.ID(); } );
 
   std::cout << "Initialized " << thePixelVec->size() << " " << min << "x" << min << "cm2 pixels...\n";
 }
 
-/********************************/
+/**
+ * @brief Method to load lookup table.
+ * 
+ */
 void LoadOpRefTable()
 {
   // Make sure pixels have been initialized
@@ -154,8 +174,12 @@ void LoadOpRefTable()
   f.close();
 }
 
-/****************************************/
-const std::map<unsigned, unsigned> ReadDataFile() 
+/**
+ * @brief Read the DAQ file that contains the data.
+ * 
+ * @return const std::map<unsigned, unsigned> Map from SiPM ID to measured counts.
+ */
+const std::map<size_t, size_t> ReadDataFile() 
 {
   // The file should contain the number of photons detected by the sipms
   std::ifstream theFile(theDataPath.c_str());
@@ -165,7 +189,7 @@ const std::map<unsigned, unsigned> ReadDataFile()
     while(std::getline(theFile, line)) {};
   }
 
-  std::map<unsigned, unsigned> v;
+  std::map<size_t, size_t> v;
   size_t pos = 0;
   size_t counter = 1;
   std::string delimiter = " ";
@@ -178,7 +202,10 @@ const std::map<unsigned, unsigned> ReadDataFile()
   return v;
 }
 
-/********************************/
+/**
+ * @brief Method to start reconstruction algorithm.
+ * 
+ */
 void Reconstruct()
 {
   // Read from DAQ file
@@ -186,9 +213,19 @@ void Reconstruct()
   //for (auto& d : mydata) std::cout << d.first << " " << d.second << std::endl;
 
   // Initialize the reconstructor
-  Reconstructor theReconstructor;
-  theReconstructor.Initialize(mydata, thePixelVec, theDiskRadius);
-  theReconstructor.Reconstruct();
-  theReconstructor.MakePlots("recoanatree.root");
+  majorana::Reconstructor theReconstructor;
+  theReconstructor.Initialize(mydata, 
+                              thePixelVec, 
+                              theDiskRadius,
+                              0.5,
+                              100,
+                              100);
+  theReconstructor.Reconstruct(true); 
+  theReconstructor.Dump();
+
+  // Write the reconstructed image
+  TFile f("recoanatree.root", "UPDATE");
+  theReconstructor.MLImage()->Write();
+  f.Close();
   cout << "Finished!" << endl;
 }

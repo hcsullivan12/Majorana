@@ -2,49 +2,45 @@
 #include <iostream>
 #include <string>
 
-// Majorana includes
-#include "Configuration.h"
-#include "G4Helper.h"
-#include "PixelTable.h"
+// majorana includes
+#include "majsim/Configuration.h"
+#include "majsim/G4Helper.h"
+#include "majutil/PixelTable.h"
 
 // ROOT includes
 #include "TFile.h"
 
 // Prototypes
-void HandleArgs(int argc, char **argv, majorana::Configuration* config);
-void InitializeFiles(const majorana::Configuration*);
+void HandleArgs(int argc, char **argv, majsim::Configuration* simConfig);
+void InitializeFiles(const majsim::Configuration*);
 void DisplayHelp();
 
+//------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
   // Initialize configuration
-  majorana::Configuration* config = majorana::Configuration::CreateInstance();
+  majsim::Configuration* simConfig = majsim::Configuration::CreateInstance();
   // Handle runtime args
-  HandleArgs(argc, argv, config); 
+  HandleArgs(argc, argv, simConfig); 
   // Initialize output files
-  InitializeFiles(config);
+  InitializeFiles(simConfig);
   // Initialize source configuration
-  if (config->SourceMode() == "pixel")
+  if (simConfig->SourceMode() == "pixel")
   {
     // Initialize pixels so we can make the reference table
-    majorana::PixelTable* pixelTable = majorana::PixelTable::CreateInstance();
-    pixelTable->Initialize(config->PixelizationPath());
+    majutil::PixelTable* pixelTable = majutil::PixelTable::CreateInstance();
+    pixelTable->Initialize(simConfig->PixelizationPath());
   }
-  else if (config->SourceMode() == "point" && config->Reconstruct())
-  {   
-    // If we're wanting to reconstruct in point mode
-    majorana::PixelTable* pixelTable = majorana::PixelTable::CreateInstance();
-    pixelTable->Initialize(config->PixelizationPath());
-    pixelTable->LoadReferenceTable(config->OpReferenceTablePath());
-  }
+  
   // Start G4
-  majorana::G4Helper* g4Helper = majorana::G4Helper::CreateInstance();
+  majsim::G4Helper* g4Helper = majsim::G4Helper::CreateInstance();
   g4Helper->StartG4();
 
   return 0;
 }
 
-void HandleArgs(int argc, char **argv, majorana::Configuration* config)
+//------------------------------------------------------------------------
+void HandleArgs(int argc, char **argv, majsim::Configuration* simConfig)
 {
   bool showVis = false;
   bool evdMode = false;
@@ -52,7 +48,6 @@ void HandleArgs(int argc, char **argv, majorana::Configuration* config)
   std::string pixelPath  = "";
   std::string opRefTPath = "";
   std::string simOutputPath  = "";
-  std::string recoAnaTPath   = "";
   
   unsigned nsipms(0);
   
@@ -69,54 +64,48 @@ void HandleArgs(int argc, char **argv, majorana::Configuration* config)
       pixelPath     = std::string(argv[arg+2]);
       opRefTPath    = std::string(argv[arg+3]);
       simOutputPath = std::string(argv[arg+4]);
-      recoAnaTPath  = std::string(argv[arg+5]);
     }
   }
   // Pass configuration
-  config->SetVisualization(showVis);
-  config->SetEvdMode(evdMode);
+  simConfig->SetVisualization(showVis);
+  simConfig->SetEvdMode(evdMode);
   assert(configPath != "");
-  config->Initialize(configPath);
+  simConfig->Initialize(configPath);
 
   // Overide 
-  if (nsipms > 0       && 
-      pixelPath  != "" && 
-      opRefTPath != "" &&
-      simOutputPath != "" &&
-      recoAnaTPath  != "")
+  if (nsipms > 0          && 
+      pixelPath     != "" && 
+      opRefTPath    != "" &&
+      simOutputPath != "")
   {
-    config->SetNSiPMs(nsipms);
-    config->SetPixelPath(pixelPath);
-    config->SetOpRefTablePath(opRefTPath);
-    config->SetSimOutputPath(simOutputPath);
-    config->SetRecoAnaPath(recoAnaTPath);
+    simConfig->SetNSiPMs(nsipms);
+    simConfig->SetPixelPath(pixelPath);
+    simConfig->SetOpRefTablePath(opRefTPath);
+    simConfig->SetSimOutputPath(simOutputPath);
   }
   // Safety check
-  config->CheckConfiguration();
+  simConfig->CheckConfiguration();
   // Output to terminal
-  config->PrintConfiguration();
+  simConfig->PrintConfiguration();
 }
 
+//------------------------------------------------------------------------
 void DisplayHelp()
 {
   std::cout << "\nUsage: ./simulate -c CONFIGPATH <Options>\n";
   std::cout << "Options:\n"
             << "  -h for help\n"
             << "  -vis ON/OFF (If ON, render visualization. Default is OFF.)\n"
-            << "  -ov  NSIPMS PIXELIZATIONPATH OPREFTABLEPATH SIMULATEOUTPUT RECOANATREE (If wanting to overide configuration.)";
+            << "  -ov  NSIPMS PIXELIZATIONPATH OPREFTABLEPATH SIMULATEOUTPUT (If wanting to overide configuration.)";
   std::cout << std::endl;
   std::exit(1);
 }
 
-void InitializeFiles(const majorana::Configuration* config)
+//------------------------------------------------------------------------
+void InitializeFiles(const majsim::Configuration* simConfig)
 {
-  TFile f1(config->SimulateOutputPath().c_str(), "RECREATE");
+  TFile f1(simConfig->SimulateOutputPath().c_str(), "RECREATE");
   f1.Close();
-  if (config->Reconstruct())
-  {
-    TFile f2(config->RecoAnaTreePath().c_str(), "RECREATE");
-    f2.Close();
-  }
 }
 
 

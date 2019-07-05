@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(Majorana)
 
-add_definitions(-DVERSION="v02_05_04")
+add_definitions(-DVERSION="v02_05_05")
 
 set(CMAKE_CXX_STANDARD 14)
 
@@ -31,9 +31,17 @@ add_definitions(${ROOT_CXX_FLAGS})
 # Project includes
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
-file(GLOB_RECURSE sources ${PROJECT_SOURCE_DIR}/src/*.cxx)
-file(GLOB_RECURSE headers ${PROJECT_SOURCE_DIR}/include/*.h)
-add_executable(simulate ${PROJECT_SOURCE_DIR}/simulate.cxx ${sources} ${headers})
+file(GLOB_RECURSE utilsources ${PROJECT_SOURCE_DIR}/src/majutil/*.cxx)
+file(GLOB_RECURSE utilheaders ${PROJECT_SOURCE_DIR}/include/majutil/*.h)
+
+file(GLOB_RECURSE simsources ${PROJECT_SOURCE_DIR}/src/majsim/*.cxx)
+file(GLOB_RECURSE simheaders ${PROJECT_SOURCE_DIR}/include/majsim/*.h)
+file(GLOB_RECURSE recosources ${PROJECT_SOURCE_DIR}/src/majreco/*.cxx)
+file(GLOB_RECURSE recoheaders ${PROJECT_SOURCE_DIR}/include/majreco/*.h)
+
+add_executable(simulate ${PROJECT_SOURCE_DIR}/simulate.cxx ${simsources} ${simheaders} ${utilsources} ${utilheaders})
+add_executable(reconstruct ${PROJECT_SOURCE_DIR}/reconstruct.cxx ${recosources} ${recoheaders} ${utilsources} ${utilheaders})
 
 target_link_libraries(simulate ${ROOT_LIBRARIES})
 target_link_libraries(simulate ${Geant4_LIBRARIES})
+target_link_libraries(reconstruct ${ROOT_LIBRARIES})
