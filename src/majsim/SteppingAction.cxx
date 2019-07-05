@@ -8,7 +8,7 @@
 
 #include "majsim/SteppingAction.h"
 #include "majsim/Configuration.h"
-#include "majsim/OpDetPhotonTable.h"
+#include "majutil/OpDetPhotonTable.h"
 
 #include "G4OpticalPhoton.hh"
 
@@ -51,7 +51,7 @@ void SteppingAction::UserSteppingAction(const G4Step* theStep)
     if (u < surfaceAbs) 
     {
       theTrack->SetTrackStatus(fStopAndKill);
-      OpDetPhotonTable* photonTable = OpDetPhotonTable::Instance();
+      majutil::OpDetPhotonTable* photonTable = majutil::OpDetPhotonTable::Instance();
       photonTable->IncPhotonsAbs();
     }
   }

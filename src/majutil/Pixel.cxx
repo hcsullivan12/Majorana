@@ -6,9 +6,9 @@
  *
  */
 
-#include "Pixel.h"
+#include "majutil/Pixel.h"
 
-namespace majorana
+namespace majutil
 {
 
 Pixel::Pixel(const unsigned& pixelID,

@@ -88,11 +88,12 @@
 #include "G4ParallelWorldProcess.hh"
 #include "G4SystemOfUnits.hh"
 
-#include "G4Helper.h"
-#include "Configuration.h"
-#include "OpBoundaryProcess.h"
-#include "PrimaryGeneratorAction.h"
-#include "OpDetPhotonTable.h"
+// majorana includes
+#include "majsim/G4Helper.h"
+#include "majsim/Configuration.h"
+#include "majsim/OpBoundaryProcess.h"
+#include "majsim/PrimaryGeneratorAction.h"
+#include "majutil/OpDetPhotonTable.h"
 
 /////////////////////////
 // Class Implementation
@@ -236,14 +237,16 @@ bool OpBoundaryProcess::CheckDetection(const G4Track& theTrack, const G4Step& th
            (thisTheta-delT) <= theta && theta <= (thisTheta+delT) )
       {
         // Detected!
-        std::vector<float> photonVertex = { genAction->GetSourcePositionRTZ()[0], 
-                                            genAction->GetSourcePositionRTZ()[1],
-                                            genAction->GetSourcePositionRTZ()[2] };
+        float x = genAction->GetSourcePositionRTZ()[0];
+        float y = genAction->GetSourcePositionRTZ()[1];
+        float z = genAction->GetSourcePositionRTZ()[2];
+
+        std::vector<float> photonVertex = { x, y, z };
 
         // Create the photon
-        majsim::Photon thePhoton(photonVertex);
+        majutil::Photon thePhoton(photonVertex);
         // Add to table 
-        majsim::OpDetPhotonTable* thePhotonTable = majsim::OpDetPhotonTable::Instance();
+        majutil::OpDetPhotonTable* thePhotonTable = majutil::OpDetPhotonTable::Instance();
         thePhotonTable->AddPhoton(mppc, thePhoton);
 
         return true;

@@ -6,7 +6,7 @@
  * 
  */
 
-#include "PixelTable.h"
+#include "majutil/PixelTable.h"
 
 #include <fstream>
 #include <assert.h>
@@ -14,11 +14,12 @@
 #include <iostream>
 #include <math.h>
 
-namespace majorana 
+namespace majutil 
 {
 
 PixelTable* PixelTable::instance = 0;
 
+//------------------------------------------------------------------------
 PixelTable* PixelTable::CreateInstance()
 {
   if (instance == 0)
@@ -29,12 +30,14 @@ PixelTable* PixelTable::CreateInstance()
   return instance;
 }
 
+//------------------------------------------------------------------------
 PixelTable* PixelTable::Instance()
 {
   assert(instance);
   return instance;
 }
 
+//------------------------------------------------------------------------
 PixelTable::PixelTable()
 {
   fPixelVec = std::make_shared<std::vector<Pixel>>();
@@ -43,9 +46,11 @@ PixelTable::PixelTable()
   fSpacing = 0;
 }
 
+//------------------------------------------------------------------------
 PixelTable::~PixelTable()
 {}
 
+//------------------------------------------------------------------------
 Pixel* PixelTable::GetPixel(const unsigned& id) 
 {
   auto it = std::find_if(fPixelVec->begin(), fPixelVec->end(), [id](const Pixel& pixel){ return pixel.ID() == id; }); 
@@ -59,6 +64,7 @@ Pixel* PixelTable::GetPixel(const unsigned& id)
   return &*it;
 }
 
+//------------------------------------------------------------------------
 void PixelTable::LoadReferenceTable(const std::string& path)
 {
   // Make sure pixels have been initialized
@@ -106,6 +112,7 @@ void PixelTable::LoadReferenceTable(const std::string& path)
   f.close();
 }
 
+//------------------------------------------------------------------------
 void PixelTable::Initialize(const std::string& pixelizationPath)
 {
   // Make pixels for each position

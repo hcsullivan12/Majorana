@@ -10,7 +10,6 @@
 #define MAJSIM_DETECTORCONSTRUCTION_H
 
 #include "majsim/Wheel.h"
-#include "majsim/MPPCSD.h"
 
 #include "G4VUserDetectorConstruction.hh"
 #include "G4LogicalVolume.hh"
@@ -47,7 +46,6 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4LogicalVolume*   fVolWorld; ///< Pointer to the world logical volume
     G4VPhysicalVolume* fPVWorld;  ///< Pointer to world physical volume
     Wheel*             fWheel;    ///< The SiPM wheel geometry
-    G4Cache<MPPCSD*>   fMPPCSD;   ///< SiPM sensitive detector
 };
 }
 

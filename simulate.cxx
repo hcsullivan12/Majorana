@@ -31,13 +31,7 @@ int main(int argc, char **argv)
     majutil::PixelTable* pixelTable = majutil::PixelTable::CreateInstance();
     pixelTable->Initialize(genConfig->PixelizationPath());
   }
-  else if (genConfig->SourceMode() == "point")
-  {   
-    // If we're wanting to reconstruct in point mode
-    majutil::PixelTable* pixelTable = majutil::PixelTable::CreateInstance();
-    pixelTable->Initialize(genConfig->PixelizationPath());
-    pixelTable->LoadReferenceTable(genConfig->OpReferenceTablePath());
-  }
+  
   // Start G4
   majsim::G4Helper* g4Helper = majsim::G4Helper::CreateInstance();
   g4Helper->StartG4();

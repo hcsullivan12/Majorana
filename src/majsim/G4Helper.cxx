@@ -130,34 +130,32 @@ void G4Helper::RunG4()
   {
     G4cout << "\n****  EVENT #" << e << "  ****" << G4endl;
     // Reset the generator
-    G4double r(0), thetaDeg(0), x(0), y(0), z(0), pixelSize(0);
-    G4int    n(0);
     if (config->SourceMode() == "pixel")
     {
       // Get the pixel table
       majutil::PixelTable* pixelTable = majutil::PixelTable::Instance();
       const majutil::Pixel* pixel     = pixelTable->GetPixel(steeringTable[e].pixelID);
 
-      r         = CLHEP::cm*pixel->R();
-      thetaDeg  = CLHEP::deg*pixel->Theta();
-      x         = CLHEP::cm*pixel->X();
-      y         = CLHEP::cm*pixel->Y();
-      z         = fDetector->WheelGeometry()->Thickness();
-      n         = steeringTable[e].n;
-      pixelSize = CLHEP::cm*pixel->Size(); 
-      std::cout << "pixelID = " << pixel->ID() << std::endl;
+      G4double r         = CLHEP::cm*pixel->R();
+      G4double thetaDeg  = CLHEP::deg*pixel->Theta();
+      G4double x         = CLHEP::cm*pixel->X();
+      G4double y         = CLHEP::cm*pixel->Y();
+      G4double z         = fDetector->WheelGeometry()->Thickness();
+      G4int    n         = steeringTable[e].n;
+      G4double pixelSize = CLHEP::cm*pixel->Size(); 
+      fGeneratorAction->Reset(r, thetaDeg, x, y, z, n, pixelSize);
     }
     else 
     {
-      r         = steeringTable[e].r;
-      thetaDeg  = steeringTable[e].thetaDeg; 
-      x         = steeringTable[e].x;
-      y         = steeringTable[e].y; 
-      z         = fDetector->WheelGeometry()->Thickness();
-      n         = steeringTable[e].n;
+      auto r         = steeringTable[e].r;
+      auto thetaDeg  = steeringTable[e].thetaDeg; 
+      auto x         = steeringTable[e].x;
+      auto y         = steeringTable[e].y; 
+      auto z         = fDetector->WheelGeometry()->Thickness();
+      auto n         = steeringTable[e].n;
+      fGeneratorAction->Reset(r, thetaDeg, x, y, z, n);
     }
-    fGeneratorAction->Reset(r, thetaDeg, x, y, z, n, pixelSize);
-  
+    
     // Start run!
     fRunManager->BeamOn(1);
     // Fill our ntuple

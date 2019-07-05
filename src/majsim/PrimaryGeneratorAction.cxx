@@ -8,7 +8,6 @@
 
 #include "majsim/PrimaryGeneratorAction.h"
 #include "majsim/Configuration.h"
-#include "majsim/PixelTable.h"
 
 #include "TVector3.h"
 #include "TH2.h"
@@ -16,6 +15,7 @@
 
 namespace majsim {
 
+//------------------------------------------------------------------------
 PrimaryGeneratorAction::PrimaryGeneratorAction()
 : G4VUserPrimaryGeneratorAction()
 {
@@ -32,16 +32,18 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
   fRandomEngine.setSeed(static_cast<long>(seed)); 
 }
 
+//------------------------------------------------------------------------
 PrimaryGeneratorAction::~PrimaryGeneratorAction()
 {}
 
+//------------------------------------------------------------------------
 void PrimaryGeneratorAction::Reset(const G4double& r,
                                    const G4double& thetaDeg,
                                    const G4double& x,
                                    const G4double& y,
                                    const G4double& z,
                                    const G4int&    n,
-                                   const G4double& pixelSize)
+                                   G4double binSize)
 {
   fSourcePositionRTZ.clear();
   fSourcePositionXYZ.clear();
@@ -54,28 +56,27 @@ void PrimaryGeneratorAction::Reset(const G4double& r,
   fSourcePositionXYZ.push_back(z);
   
   fNPrimaries = n;
-  fPixelSize  = pixelSize; 
+  fBinSize    = binSize; 
 }
 
+//------------------------------------------------------------------------
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 {
-  G4cout << "Source configuration: "
-         << "  nPrimaries = "        << fNPrimaries
-         << "  r = "                 << fSourcePositionRTZ[0]/cm 
-         << "  theta = "             << fSourcePositionRTZ[1]/deg 
-         << "  x = "                 << fSourcePositionXYZ[0]/cm 
-         << "  y = "                 << fSourcePositionXYZ[1]/cm
-         << G4endl;
+  std::cout << "Source configuration: "
+            << "  nPrimaries = "        << fNPrimaries
+            << "  r = "                 << fSourcePositionRTZ[0]/CLHEP::cm 
+            << "  theta = "             << fSourcePositionRTZ[1]/CLHEP::deg 
+            << "  x = "                 << fSourcePositionXYZ[0]/CLHEP::cm 
+            << "  y = "                 << fSourcePositionXYZ[1]/CLHEP::cm
+            << "\n";
   
   CLHEP::RandGaussQ gauss(fRandomEngine);
   CLHEP::RandFlat   flat(fRandomEngine);
 
   // Initialize true distribution
   auto config = Configuration::Instance();
-  auto pixelTable = PixelTable::Instance();
   double diskRadius = config->DiskRadius()/CLHEP::cm;
-  double pixelSpacing = pixelTable->GetSpacing();
-  size_t nBins = 2*std::floor(diskRadius/pixelSpacing) + 1; // this assumes there is a pixel at the origin
+  size_t nBins = 2*std::floor(diskRadius/fBinSize) + 1; // this assumes there is a pixel at the origin
 
   TH2I primHist("primHist", "primHist", nBins, -diskRadius, diskRadius, nBins, -diskRadius, diskRadius);
   for (unsigned xbin = 1; xbin <= primHist.GetXaxis()->GetNbins(); xbin++)
@@ -108,10 +109,10 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
     }
     else
     {
-      G4double a1 = fSourcePositionXYZ[0] - fPixelSize/2;
-      G4double b1 = fSourcePositionXYZ[0] + fPixelSize/2;
-      G4double a2 = fSourcePositionXYZ[1] - fPixelSize/2;
-      G4double b2 = fSourcePositionXYZ[1] + fPixelSize/2;
+      G4double a1 = fSourcePositionXYZ[0] - fBinSize/2;
+      G4double b1 = fSourcePositionXYZ[0] + fBinSize/2;
+      G4double a2 = fSourcePositionXYZ[1] - fBinSize/2;
+      G4double b2 = fSourcePositionXYZ[1] + fBinSize/2;
 
       // smear
       //x = flat.fire(a1, b1);
@@ -120,7 +121,7 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
       y = fSourcePositionXYZ[1];
     }
     // Just under the top surface
-    G4double z = fSourcePositionXYZ[2] - 0.1*cm;
+    G4double z = fSourcePositionXYZ[2] - 0.1*CLHEP::cm;
     // Sample the momentum
     G4double p = gauss.fire(fSourcePeakE, fSourcePeakESigma);
     // Keep generating until pZ < 0
@@ -142,7 +143,7 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
     //pY = 0;
     //pZ = 0;
     //x  = 0;
-    //y  = -0.01*cm;
+    //y  = -0.01*CLHEP::cm;
     //*******************
     
     // For the polarization vector, sample a new random direction
@@ -181,4 +182,5 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
     f.Close();
   }
 }
+
 }

@@ -47,10 +47,10 @@ class OpDetPhotonTable
     inline void IncPhotonsAbs() { fNPhotonsAbs++; };
 
     /**
-     * @brief Print contents of table.
+     * @brief Dump contents of table.
      * 
      */
-    void Print();
+    void Dump();
 
     /**
      * @brief Initialize our table.

@@ -38,8 +38,8 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
                const G4double& x,
                const G4double& y,
                const G4double& z,
-               const G4int&   n,
-               const G4double& pixelSize = 0);
+               const G4int&    n,
+               G4double pixelSize = 5*CLHEP::mm);
 
     std::vector<G4double> GetSourcePositionRTZ() const { return fSourcePositionRTZ; };
     std::vector<G4double> GetSourcePositionXYZ() const { return fSourcePositionXYZ; };
@@ -48,14 +48,14 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
   private:
     G4ParticleTable*      fParticleTable;
     unsigned              fNPrimaries;
-    std::vector<G4double> fSourcePositionRTZ;
-    std::vector<G4double> fSourcePositionXYZ;
-    G4double              fSourcePosSigma;
-    G4double              fSourcePeakE;
-    G4double              fSourcePeakESigma;
-    G4double              fPixelSize;
-    std::string           fSourceMode;
-    CLHEP::HepJamesRandom fRandomEngine;
+    std::vector<G4double> fSourcePositionRTZ; ///< Source position for this event in polar 
+    std::vector<G4double> fSourcePositionXYZ; ///< Source position for this event in cartesian
+    G4double              fSourcePosSigma;    ///< Sigma of point source distribution
+    G4double              fSourcePeakE;       
+    G4double              fSourcePeakESigma;  
+    G4double              fBinSize;           ///< Bin size for histogram 
+    std::string           fSourceMode;        ///< 
+    CLHEP::HepJamesRandom fRandomEngine;      ///< 
 };
 
 }

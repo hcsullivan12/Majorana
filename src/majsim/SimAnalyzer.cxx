@@ -1,12 +1,12 @@
 /**
- * @file Analyzer.h
+ * @file SimAnalyzer.h
  * @author H. Sullivan (hsulliva@fnal.gov)
  * @brief Module to produce a ROOT analysis TTree from simulation.
  * @date 07-04-2019
  * 
  */
 
-#include "majsim/Analyzer.h"
+#include "majsim/SimAnalyzer.h"
 #include "majsim/G4Helper.h"
 #include "majsim/Configuration.h"
 #include "majutil/OpDetPhotonTable.h"
@@ -18,7 +18,7 @@ namespace majsim
 {
 
 //------------------------------------------------------------------------
-Analyzer::Analyzer(const std::string& simOutputPath)
+SimAnalyzer::SimAnalyzer(const std::string& simOutputPath)
  : fAnaTree(NULL),
    fSimulateOutputPath(simOutputPath)
 {
@@ -44,7 +44,7 @@ Analyzer::Analyzer(const std::string& simOutputPath)
 }
 
 //------------------------------------------------------------------------
-Analyzer::~Analyzer()
+SimAnalyzer::~SimAnalyzer()
 {
   TFile f(fSimulateOutputPath.c_str(), "UPDATE");
   fAnaTree->Write();
@@ -54,14 +54,14 @@ Analyzer::~Analyzer()
 }
 
 //------------------------------------------------------------------------
-void Analyzer::Fill(const unsigned& e)
+void SimAnalyzer::Fill(const unsigned& e)
 {
   ResetVars();
 
   // Get the necessary information
-  OpDetPhotonTable* photonTable = OpDetPhotonTable::Instance();
-  G4Helper*         g4Helper    = G4Helper::Instance();
-  Configuration*    config      = Configuration::Instance();
+  majutil::OpDetPhotonTable* photonTable = majutil::OpDetPhotonTable::Instance();
+  majsim::G4Helper*          g4Helper    = majsim::G4Helper::Instance();
+  majsim::Configuration*     config      = majsim::Configuration::Instance();
 
   fEvent        = e;
   fNMPPCs       = g4Helper->GetDetectorConstruction()->WheelGeometry()->NMPPCs();
@@ -78,7 +78,7 @@ void Analyzer::Fill(const unsigned& e)
   fSourcePosRTZ.push_back(rtzVec[2]/CLHEP::cm);
   
   auto photonsDetected = photonTable->GetPhotonsDetected();
-  photonTable->Print();
+  photonTable->Dump();
 
   fNPhotonsAbs = photonTable->GetNPhotonsAbsorbed();
 
@@ -99,7 +99,7 @@ void Analyzer::Fill(const unsigned& e)
     float diffRad = (betaDeg - thetaDeg)*pi/180;
 
     float R = std::sqrt(r*r + fDiskRadius*fDiskRadius - 2*r*fDiskRadius*std::cos(diffRad));
-    float alphaDeg = std::abs(TMath::ASin(r*std::sin(diffRad)/R)*180/pi);
+    float alphaDeg = std::abs(std::asin(r*std::sin(diffRad)/R)*180/pi);
     
     fMPPCToSourceR.push_back(R);
     fMPPCToSourceT.push_back(alphaDeg);
@@ -108,7 +108,7 @@ void Analyzer::Fill(const unsigned& e)
 }
 
 //------------------------------------------------------------------------
-void Analyzer::ResetVars()
+void SimAnalyzer::ResetVars()
 {
   fEvent   = -99999;
   fPixelID = -99999;

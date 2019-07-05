@@ -12,11 +12,11 @@
 
 #include "G4Color.hh"
 #include "G4VisAttributes.hh"
-#include "G4SDManager.hh"
 
 namespace majsim
 {
 
+//------------------------------------------------------------------------
 DetectorConstruction::DetectorConstruction()
 : G4VUserDetectorConstruction(),
   fWheel(NULL),
@@ -34,11 +34,13 @@ DetectorConstruction::DetectorConstruction()
                      config->DiskThickness());
 }
 
+//------------------------------------------------------------------------
 DetectorConstruction::~DetectorConstruction()
 {
   if (fWheel) delete fWheel;
 }
 
+//------------------------------------------------------------------------
 G4VPhysicalVolume* DetectorConstruction::Construct()
 {
   InitializeMaterials();
@@ -52,6 +54,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   return fPVWorld;
 }
 
+//------------------------------------------------------------------------
 void DetectorConstruction::InitializeMaterials()
 {
   // Construct materials
@@ -59,6 +62,7 @@ void DetectorConstruction::InitializeMaterials()
   matMan->ConstructMaterials();
 }
 
+//------------------------------------------------------------------------
 void DetectorConstruction::InitializeDetector()
 {
   if (!fWheel) 
@@ -94,18 +98,8 @@ void DetectorConstruction::InitializeDetector()
   fWheel->ConstructVolume();
 }
 
+//------------------------------------------------------------------------
 void DetectorConstruction::ConstructSDandField()
-{
-  if (!fWheel) return;
- 
-  // MPPC SD
-  if (!fMPPCSD.Get()) 
-  {
-    //G4cout << "Construction mppcSD..." << G4endl;
-    MPPCSD* mppcSD = new MPPCSD("mppcSD");
-    fMPPCSD.Put(mppcSD);
-  }
-  G4SDManager::GetSDMpointer()->AddNewDetector(fMPPCSD.Get());
-  SetSensitiveDetector(fWheel->GetMPPCVolume(), fMPPCSD.Get());
-}
+{}
+
 }

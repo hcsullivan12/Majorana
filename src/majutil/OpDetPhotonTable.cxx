@@ -6,26 +6,29 @@
  * 
  */
 
-#include "OpDetPhotonTable.h"
-#include "Configuration.h"
+#include "majutil/OpDetPhotonTable.h"
+#include "majsim/Configuration.h"
 
 #include "globals.hh"
 
 #include <iostream> 
 #include <assert.h>
 
-namespace majorana 
+namespace majutil 
 {
 
+//------------------------------------------------------------------------
 Photon::Photon(const std::vector<float>& photonVertex)
  : fVertex(photonVertex)
 {}
 
+//------------------------------------------------------------------------
 Photon::~Photon()
 {}
 
 OpDetPhotonTable* OpDetPhotonTable::instance = 0;
 
+//------------------------------------------------------------------------
 OpDetPhotonTable* OpDetPhotonTable::CreateInstance()
 {
   if (instance == 0)
@@ -36,12 +39,14 @@ OpDetPhotonTable* OpDetPhotonTable::CreateInstance()
   return instance;
 }
 
+//------------------------------------------------------------------------
 OpDetPhotonTable* OpDetPhotonTable::Instance()
 {
   assert(instance);
   return instance;
 }
 
+//------------------------------------------------------------------------
 OpDetPhotonTable::OpDetPhotonTable()
  : fNPhotonsAbs(0)
 {
@@ -49,9 +54,11 @@ OpDetPhotonTable::OpDetPhotonTable()
   Initialize();
 }
 
+//------------------------------------------------------------------------
 OpDetPhotonTable::~OpDetPhotonTable()
 {}
 
+//------------------------------------------------------------------------
 void OpDetPhotonTable::AddPhoton(const unsigned& opchannel, const Photon& photon)
 { 
   if (fPhotonsDetected.find(opchannel) == fPhotonsDetected.end())
@@ -61,17 +68,19 @@ void OpDetPhotonTable::AddPhoton(const unsigned& opchannel, const Photon& photon
   fPhotonsDetected.find(opchannel)->second.push_back(photon);
 }
 
-void OpDetPhotonTable::Print()
+//------------------------------------------------------------------------
+void OpDetPhotonTable::Dump()
 {
-  //for (const auto& k : fPhotonsDetected)
+  for (const auto& k : fPhotonsDetected)
   {
-    //std::cout << "MPPC" << k.first << " detected " << k.second.size() << " photons\n";
+    std::cout << "MPPC" << k.first << " detected " << k.second.size() << " photons\n";
   }
 }
 
+//------------------------------------------------------------------------
 void OpDetPhotonTable::Initialize()
 {
-  Configuration* config = Configuration::Instance();
+  majsim::Configuration* config = majsim::Configuration::Instance();
   std::vector<Photon> vec;
   for (unsigned m = 1; m <= config->NMPPCs(); m++)
   {
