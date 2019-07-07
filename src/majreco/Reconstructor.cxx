@@ -125,12 +125,6 @@ void Reconstructor::DoEmMl(const float&  gamma,
  */
 void Reconstructor::DoChi2()
 {
-  // Assuming 50,000 photons were fired from a single pixel,
-  // what is the expected light yield from each pixel?
-  // Compute chi2 for pixel w/ to data
-
-  size_t nPhotons = 50000;
-
   // Pixel structure for minimum chi2
   struct Chi2Pixel {
     float chi2;
@@ -139,6 +133,9 @@ void Reconstructor::DoChi2()
   };
   Chi2Pixel chi2Pixel;
 
+  // Total amount of light seen
+  double totalCounts(0);
+  for (const auto& d : fData) totalCounts += d.second;
 
   float chi2Min(std::numeric_limits<float>::max());
   size_t nDet = fData.size();
@@ -148,25 +145,26 @@ void Reconstructor::DoChi2()
   {
     // The lookup table for this pixel
     auto lookupTable = pixel.ReferenceTable();
-    std::map<size_t, size_t> expectedData;
+    std::map<size_t, double> expectedWeight;
 
     // Loop over detectors
+    double totalExpectedWeight(0);
     for (size_t d = 1; d <= nDet; d++)
     {
       // How much light do we expect?
-      size_t nExpected = nPhotons * lookupTable[d-1];
-      expectedData.emplace(d, nExpected);
-    }
+      expectedWeight.emplace(d, lookupTable[d-1]);
+      totalExpectedWeight += lookupTable[d-1];
+    } 
 
     // Now calculate chi2 for this
     float chi2(0);
     for (size_t d = 1; d <= nDet; d++)
     {
-      size_t nExpected = expectedData.find(d)->second;
-      size_t nMeasured = fData.find(d)->second;
+      double expected = expectedWeight.find(d)->second/totalExpectedWeight;
+      double measured = fData.find(d)->second/totalCounts;
 
-      float diff2 = (nExpected - nMeasured)*(nExpected - nMeasured);
-      chi2 = chi2 + diff2/nExpected;
+      float diff2 = (expected - measured)*(expected - measured);
+      chi2 = chi2 + diff2/expected;
     }
 
     // Fill chi2 distribution
@@ -197,8 +195,12 @@ void Reconstructor::DoChi2()
   float sigma = 2.;
   if (fMLGauss) delete fMLGauss;
   
+  /**
+   * @todo Fix the 50000 here
+   * 
+   */
   fMLGauss = new TF2("g", "bigaus", -fDiskRadius, fDiskRadius, -fDiskRadius, fDiskRadius);
-  fMLGauss->SetParameters(nPhotons, chi2Pixel.vertex[0], sigma, chi2Pixel.vertex[1], sigma, 0);
+  fMLGauss->SetParameters(50000, chi2Pixel.vertex[0], sigma, chi2Pixel.vertex[1], sigma, 0);
 
   Double_t x, y;
   fMLGauss->GetMaximumXY(x, y);
