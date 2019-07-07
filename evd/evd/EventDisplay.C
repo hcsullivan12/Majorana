@@ -492,10 +492,21 @@ void MyMainFrame::UpdatePlots(const std::map<size_t, size_t>& mydata)
     TH2F *chi2Hist = nullptr;
     f.GetObject("chi2Final", chi2Hist);
     if (chi2Hist) {
-      chi2Hist->SetTitle("Chi2 Image");
+      chi2Hist->SetTitle("Chi2/n Image");
       chi2Hist->GetXaxis()->SetTitle("X [cm]");
       chi2Hist->GetYaxis()->SetTitle("Y [cm]");
+      for (size_t i=1;i<=chi2Hist->GetXaxis()->GetNbins();i++) for (size_t j=1;j<=chi2Hist->GetYaxis()->GetNbins();j++)chi2Hist->SetBinContent(i,j,chi2Hist->GetBinContent(i,j)/fNsipms);
       chi2Hist->Draw("colz");
+
+      //TH2F* chi2Hist68 = (TH2F*)chi2Hist->Clone(); 
+      //cout << "HEYY " << TMath::ChisquareQuantile(0.68, fNsipms) << endl;
+      //Double_t chi2Quant68[1] = {TMath::ChisquareQuantile(0.68, fNsipms)};
+      //chi2Hist68->Smooth();
+      //chi2Hist68->SetContour(1, chi2Quant68);
+      //chi2Hist68->SetLineWidth(3);
+      //chi2Hist68->SetLineColor(kRed);
+      //chi2Hist68->Draw("cont3 same");
+
       c2->cd();
       c2->Update();
     } else {cout << "\nWARNING: Couldn't find chi2 hist...\n";}

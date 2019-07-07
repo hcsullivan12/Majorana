@@ -133,6 +133,7 @@ void Reconstructor::DoChi2()
 
   size_t nPhotons = 50000;
   struct Chi2Pixel {
+    float chi2;
     std::vector<float> vertex;
     size_t Id;
   };
@@ -175,6 +176,7 @@ void Reconstructor::DoChi2()
     if (chi2 < chi2Min)
     {
       chi2Min = chi2;
+      chi2Pixel.chi2 = chi2;
       chi2Pixel.Id = pixel.ID();
       chi2Pixel.vertex.clear();
       chi2Pixel.vertex.push_back(pixel.X());
@@ -183,9 +185,10 @@ void Reconstructor::DoChi2()
   }
 
   std::cout << "\nChi2 pixel information:"
-            << "\nX  = " << chi2Pixel.vertex[0] 
-            << "\nY  = " << chi2Pixel.vertex[1]
-            << "\nId = " << chi2Pixel.Id
+            << "\nChi2 = " << chi2Pixel.chi2
+            << "\nX    = " << chi2Pixel.vertex[0] 
+            << "\nY    = " << chi2Pixel.vertex[1]
+            << "\nId   = " << chi2Pixel.Id
             << "\n";
 
   // form a 2D gaussian hypothesis centered on chi2 prediction
@@ -194,7 +197,6 @@ void Reconstructor::DoChi2()
   
   fMLGauss = new TF2("g", "bigaus", -fDiskRadius, fDiskRadius, -fDiskRadius, fDiskRadius);
   fMLGauss->SetParameters(nPhotons, chi2Pixel.vertex[0], sigma, chi2Pixel.vertex[1], sigma, 0);
-  std::cout << fMLGauss->Eval(chi2Pixel.vertex[0], chi2Pixel.vertex[1]) << std::endl; 
 
   Double_t x, y;
   fMLGauss->GetMaximumXY(x, y);
