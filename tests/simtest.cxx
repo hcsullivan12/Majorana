@@ -22,13 +22,10 @@ int main(int argc, char **argv)
   // Initialize configuration
   majsim::Configuration* simConfig = majsim::Configuration::CreateInstance();
 
-  std::cout << "HI\n";
-
   // Pass configuration
   simConfig->SetVisualization(false);
   simConfig->SetEvdMode(false);
   simConfig->Initialize("tests/SimConfiguration.ini");
-
 
   // Safety check
   simConfig->CheckConfiguration();
@@ -48,33 +45,6 @@ int main(int argc, char **argv)
   g4Helper->StartG4();
 
   return 0;
-}
-
-//------------------------------------------------------------------------
-void HandleArgs(int argc, char **argv, majsim::Configuration* simConfig)
-{
-  bool showVis = false;
-  bool evdMode = false;
-  std::string configPath = "";
-  std::string pixelPath  = "";
-  std::string opRefTPath = "";
-  std::string simOutputPath  = "";
-  
-  unsigned nsipms(0);
-  
-
-}
-
-//------------------------------------------------------------------------
-void DisplayHelp()
-{
-  std::cout << "\nUsage: ./simulate -c CONFIGPATH <Options>\n";
-  std::cout << "Options:\n"
-            << "  -h for help\n"
-            << "  -vis ON/OFF (If ON, render visualization. Default is OFF.)\n"
-            << "  -ov  NSIPMS PIXELIZATIONPATH OPREFTABLEPATH SIMULATEOUTPUT (If wanting to overide configuration.)";
-  std::cout << std::endl;
-  std::exit(1);
 }
 
 //------------------------------------------------------------------------

@@ -65,3 +65,5 @@ add_test(NAME recoTest COMMAND recotest)
 
 file(COPY ${PROJECT_SOURCE_DIR}/tests/SimConfiguration.ini
      DESTINATION ${PROJECT_BINARY_DIR}/tests/)
+file(COPY ${PROJECT_SOURCE_DIR}/tests/RecoConfiguration.ini
+     DESTINATION ${PROJECT_BINARY_DIR}/tests/)
