@@ -17,6 +17,8 @@ private:
    
    TRootEmbeddedCanvas *fCanvas1 = nullptr;
    TRootEmbeddedCanvas *fCanvas2 = nullptr;
+   TRootEmbeddedCanvas *fCanvas4 = nullptr;
+   TRootEmbeddedCanvas *fCanvas4 = nullptr;   
    
    TH2I *fPrimHist = nullptr;
 
@@ -33,6 +35,11 @@ private:
    TGVButtonGroup   *dataTypeButGroup;
    TGCheckButton             *isMCBut;
    TGCheckButton           *isDataBut;
+
+   TGVButtonGroup       *emmlButGroup;
+
+   TGCheckButton           *doEmMlBut;
+   TGCheckButton           *doChi2But;
    TGCheckButton      *doPenalizedBut;
 
    std::string fTopDir;
@@ -48,6 +55,7 @@ private:
    size_t      fPenalizedIter   = 100;
    double      fGamma      = 0.5;
    std::string fDataType   = "data";
+   std::string fMethod     = "chi2";
 
 public:
    MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir);
@@ -63,6 +71,8 @@ public:
    void UpdatePlots(const std::map<size_t, size_t>& mydata);
    void SetDataTypeMC();
    void SetDataTypeData();
+   void SetMethodChi2();
+   void SetMethodEmMl();
 };
 
 //------------------------------------------------------------------------
@@ -85,6 +95,7 @@ MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir
    hframe1->AddFrame(vframe1, new TGLayoutHints(kLHintsLeft | kLHintsExpandY,5,5,30,100));
 
    // 2nd vertical frame
+   TGHorizontalFrame *hframe3 = new TGHorizontalFrame(fMain,400,1000);
    fCanvas1 = new TRootEmbeddedCanvas("fCanvas1",vframe2,200,200);   
    vframe2->AddFrame(fCanvas1, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX | kLHintsCenterY | kLHintsExpandY,5,5,5,5));   
    fCanvas2 = new TRootEmbeddedCanvas("fCanvas2",vframe2,200,200);
@@ -183,10 +194,25 @@ MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir
    vhframe16->AddFrame(fPixelSizeEnt, new TGLayoutHints(kLHintsRight | kLHintsTop,5,5,2,5));
    vframe3->AddFrame(vhframe16, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
 
+   /* Method */   
+   TGHorizontalFrame *vhframe17 = new TGHorizontalFrame(vframe3,400,20);
+   vhframe17->AddFrame(new TGLabel(vhframe17, "Method: ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsLeft, 0,5,5,5));
+   doChi2But = new TGCheckButton(vhframe17, new TGHotString("Chi2"));
+   vhframe17->AddFrame(doChi2But, new TGLayoutHints(kLHintsRight, 5,5,5,5));
+   doChi2But->SetState(kButtonDown);
+   doChi2But->Connect("Clicked()","MyMainFrame",this,"SetMethodChi2()");
+   doEmMlBut = new TGCheckButton(vhframe17, new TGHotString("EM-ML"));
+   vhframe17->AddFrame(doEmMlBut, new TGLayoutHints(kLHintsRight, 5,5,5,5));
+   vframe3->AddFrame(vhframe17, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
+   if (doChi2But->IsOn()) doEmMlBut->SetState(kButtonUp);
+   else doEmMlBut->SetState(kButtonDown);
+   doEmMlBut->Connect("Clicked()","MyMainFrame",this,"SetMethodEmMl()");
+
    /* Gamma */   
+   dataTypeButGroup = new TGVButtonGroup(vframe3, "EM-ML Parameters");
    stream.str("");
    stream << fixed << setprecision(2) << fGamma;
-   TGHorizontalFrame *vhframe12 = new TGHorizontalFrame(vframe3,400,20);
+   TGHorizontalFrame *vhframe12 = new TGHorizontalFrame(dataTypeButGroup,400,20);
    vhframe12->AddFrame(new TGLabel(vhframe12, "Gamma: ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsLeft, 0,5,5,5));
    TGTextBuffer *gammaBuf = new TGTextBuffer(10);
    gammaBuf->AddText(0, stream.str().c_str());
@@ -195,18 +221,18 @@ MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir
    fGammaEnt->SetFont("-adobe-courier-r-*-*-12-*-*-*-*-*-iso8859-1");
    vhframe12->AddFrame(new TGLabel(vhframe12, "  ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsRight, 5,5,5,0));
    vhframe12->AddFrame(fGammaEnt, new TGLayoutHints(kLHintsRight | kLHintsTop,5,5,2,5));
-   vframe3->AddFrame(vhframe12, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
+   dataTypeButGroup->AddFrame(vhframe12, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
 
    /* Do penalized reconstruction */   
-   TGHorizontalFrame *vhframe11 = new TGHorizontalFrame(vframe3,400,20);
+   TGHorizontalFrame *vhframe11 = new TGHorizontalFrame(dataTypeButGroup,400,20);
    vhframe11->AddFrame(new TGLabel(vhframe11, "Do penalized: ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsLeft, 0,5,5,5));
    doPenalizedBut = new TGCheckButton(vhframe11, new TGHotString(""));
    vhframe11->AddFrame(doPenalizedBut, new TGLayoutHints(kLHintsRight, 5,40,5,5));
-   vframe3->AddFrame(vhframe11, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
+   dataTypeButGroup->AddFrame(vhframe11, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
    doPenalizedBut->SetState(kButtonDown);
 
    /* Unpenalized iter */   
-   TGHorizontalFrame *vhframe14 = new TGHorizontalFrame(vframe3,400,20);
+   TGHorizontalFrame *vhframe14 = new TGHorizontalFrame(dataTypeButGroup,400,20);
    vhframe14->AddFrame(new TGLabel(vhframe14, "Unpenalized iterations: ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsLeft, 0,5,5,5));
    TGTextBuffer *unpenIter = new TGTextBuffer(10);
    unpenIter->AddText(0, std::to_string(fUnpenalizedIter).c_str());
@@ -215,10 +241,10 @@ MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir
    fUnpenalizedIterEnt->SetFont("-adobe-courier-r-*-*-12-*-*-*-*-*-iso8859-1");
    vhframe14->AddFrame(new TGLabel(vhframe14, "  ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsRight, 5,5,5,0));
    vhframe14->AddFrame(fUnpenalizedIterEnt, new TGLayoutHints(kLHintsRight | kLHintsTop,5,5,2,5));
-   vframe3->AddFrame(vhframe14, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
+   dataTypeButGroup->AddFrame(vhframe14, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
 
    /* Unpenalized iter */   
-   TGHorizontalFrame *vhframe15 = new TGHorizontalFrame(vframe3,400,20);
+   TGHorizontalFrame *vhframe15 = new TGHorizontalFrame(dataTypeButGroup,400,20);
    vhframe15->AddFrame(new TGLabel(vhframe15, "Penalized iterations: ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsLeft, 0,5,5,5));
    TGTextBuffer *penIter = new TGTextBuffer(10);
    penIter->AddText(0, std::to_string(fPenalizedIter).c_str());
@@ -227,7 +253,9 @@ MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir
    fPenalizedIterEnt->SetFont("-adobe-courier-r-*-*-12-*-*-*-*-*-iso8859-1");
    vhframe15->AddFrame(new TGLabel(vhframe15, "  ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsRight, 5,5,5,0));
    vhframe15->AddFrame(fPenalizedIterEnt, new TGLayoutHints(kLHintsRight | kLHintsTop,5,5,2,5));
-   vframe3->AddFrame(vhframe15, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
+   dataTypeButGroup->AddFrame(vhframe15, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
+
+   vframe3->AddFrame(dataTypeButGroup, new TGLayoutHints(kLHintsExpandX,5,5,5,5) );
 
    /* Set Params */
    fSetParamBut = new TGTextButton(vframe3,"Set Parameters");
@@ -267,7 +295,7 @@ MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir
 
    /* Quit button */
    TGTextButton *quit = new TGTextButton(vframe3,"&Quit", "gApplication->Terminate(0)");
-   vframe3->AddFrame(quit, new TGLayoutHints(kLHintsExpandX | kLHintsBottom,5,5,5,150) );
+   vframe3->AddFrame(quit, new TGLayoutHints(kLHintsExpandX | kLHintsBottom,5,5,5,100) );
 
    /* Start button */
    fStartBut = new TGTextButton(vframe3,"Start");
@@ -321,6 +349,25 @@ void MyMainFrame::SetDataTypeMC()
 }
 
 //------------------------------------------------------------------------
+void MyMainFrame::SetMethodChi2()
+{
+  fMethod = "chi2";
+
+  if (doEmMlBut->IsOn()) doEmMlBut->SetState(kButtonUp);
+  doChi2But->SetState(kButtonDown);
+}
+
+//------------------------------------------------------------------------
+void MyMainFrame::SetMethodEmMl()
+{
+  fMethod = "emml";
+
+  if (doChi2But->IsOn()) doChi2But->SetState(kButtonUp);
+  doEmMlBut->SetState(kButtonDown);
+}
+
+
+//------------------------------------------------------------------------
 void MyMainFrame::ChangeStartLabel()
 {
   fStartBut->SetState(kButtonDown);
@@ -356,10 +403,14 @@ void MyMainFrame::StartReco()
    // Now we can pass our data to the reconstructor
    std::string pixelizationPath = fTopDir+"/production/production_v1_1/"+std::to_string(fPixelSize)+"mm/pixelization.txt";
    std::string opRefTablePath   = fTopDir+"/production/production_v1_1/"+std::to_string(fPixelSize)+"mm/"+std::to_string(fNsipms)+"sipms/splinedOpRefTable.txt";
+
+   // Call the specific reconstruct method based on method
    std::string doRecoCmd = "doReconstruct(\""+pixelizationPath              +"\",\""+opRefTablePath+"\","
-                                        " \""+fDataFilePath                   +"\", "+std::to_string(fDiskR)+","
-                                        " "+std::to_string(fGamma)          +", "+std::to_string(doPenalizedBut->IsOn())+","
-                                        " "+std::to_string(fPenalizedIter)  +", "+std::to_string(fUnpenalizedIter)+")";
+                                            " \""+fDataFilePath                   +"\", "+std::to_string(fDiskR)+","
+                                            " "+std::to_string(fGamma)          +", "+std::to_string(doPenalizedBut->IsOn())+","
+                                            " "+std::to_string(fPenalizedIter)  +", "+std::to_string(fUnpenalizedIter)+", "
+                                            " \""+fMethod+"\")";
+
    //cout << doRecoCmd << endl;
    gROOT->ProcessLine(doRecoCmd.c_str()); 
 

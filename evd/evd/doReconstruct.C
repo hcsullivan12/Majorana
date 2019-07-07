@@ -11,6 +11,7 @@ R__LOAD_LIBRARY(evd/libReconstructor.so)
 #include "Pixel.h"
 
 // Some useful variables
+std::string theMethod;
 std::string thePixelPath;
 std::string theOpRefPath;
 std::string theDataPath;
@@ -42,8 +43,10 @@ void doReconstruct(std::string pixelizationPath,
                    double      gamma,
                    size_t      doPenalized,
                    size_t      penalizedIter,
-                   size_t      upenalizedIter)
+                   size_t      upenalizedIter,
+                   std::string theMethod)
 {
+  theMethod          = theMethod;
   thePixelPath       = pixelizationPath;
   theOpRefPath       = opRefTablePath;
   theDataPath        = datapath;
@@ -225,19 +228,22 @@ void Reconstruct()
   //for (auto& d : mydata) std::cout << d.first << " " << d.second << std::endl;
 
   // Initialize the reconstructor
-  majreco::Reconstructor theReconstructor;
-  theReconstructor.Initialize(mydata, 
-                              thePixelVec, 
-                              theDiskRadius,
-                              theGamma,
-                              thePenalizedIter,
-                              theUnpenalizedIter);
-  theReconstructor.Reconstruct(theDoPenalized); 
+  majreco::Reconstructor theReconstructor(mydata, thePixelVec, theDiskRadius);
+  if (theMethod == "emml")
+  {
+    theReconstructor.DoEmMl(theGamma,
+                            theUnpenalizedIter,
+                            thePenalizedIter,
+                            theDoPenalized); 
+  }
+  else theReconstructor.DoChi2();
+
   theReconstructor.Dump();
 
   // Write the reconstructed image
   TFile f("recoanatree.root", "RECREATE");
   theReconstructor.MLImage()->Write();
+  theReconstructor.Chi2Image()->Write();
   f.Close();
   cout << "Finished!" << endl;
 }

@@ -22,83 +22,106 @@ namespace majreco
 {
 
 //------------------------------------------------------------------------
-Reconstructor::Reconstructor()
- : fDiskRadius(0),
+Reconstructor::Reconstructor(const std::map<size_t, size_t>&              data,
+                             std::shared_ptr<std::vector<majutil::Pixel>> pixelVec,
+                             const float&                                 diskRadius)
+ : fData(data),
+   fDiskRadius(diskRadius),
    fGamma(0),
    fPenalizedIterStop(100),
    fUnpenalizedIterStop(100),
-   fMLHistogram(nullptr),
-   fMLGauss(nullptr)
+   fMLHist(nullptr),
+   fMLGauss(nullptr),
+   fChi2Hist(nullptr)
 {
   fPixelVec = std::make_shared<std::vector<majutil::Pixel>>();
   fPixelVec.get()->clear();
+  fPixelVec.reset();
+  fPixelVec = pixelVec;
+
+  fDenomSums.clear();
+  fDenomSums.resize(fData.size());
+  fLogLikehs.clear();
+
+  // Initialize histogram and gaussian
+  float pixelSpacing = (*fPixelVec).front().Size();
+  size_t n = 2*fDiskRadius/pixelSpacing - 1; // assuming pixel is in the center
+  if (!fMLHist)   fMLHist  = new TH2F("histFinal", "histFinal", n, -fDiskRadius, fDiskRadius, n, -fDiskRadius, fDiskRadius);
+  if (!fMLGauss)  fMLGauss = new TF2("g", "bigaus", -fDiskRadius, fDiskRadius, -fDiskRadius, fDiskRadius);
+  if (!fChi2Hist) fChi2Hist = new TH2F("chi2Final", "chi2Final", n, -fDiskRadius, fDiskRadius, n, -fDiskRadius, fDiskRadius);
 }
+
 
 //------------------------------------------------------------------------
 Reconstructor::~Reconstructor()
 {
-  if (!fMLHistogram) delete fMLHistogram;
-  if (!fMLGauss)     delete fMLGauss;
+  if (fMLHist)   delete fMLHist;
+  if (fMLGauss)  delete fMLGauss;
+  if (fChi2Hist) delete fChi2Hist;
 }
 
-//------------------------------------------------------------------------
-void Reconstructor::Initialize(const std::map<size_t, size_t>&     data,
-                               std::shared_ptr<std::vector<majutil::Pixel>> pixelVec,
-                               const float&                        diskRadius,
-                               const float&                        gamma, 
-                               const size_t&                       pStop,
-                               const size_t&                       upStop)
+/**
+ * @brief Reconstructs the image by maximizing the likelihood. 
+ * 
+ * There are two versions: unpenalized and penalized. 
+ * The unpenalized method uses expectation maximization to minimize 
+ * the likelihood. The resulting 'Money Formula' is applied. The result 
+ * is an image of reconstructed pixel colors.
+ * The penalized method introduces a prior and maximizes the posterior. 
+ * This reduces to minimizing the likelihood where a regularization function
+ * has been added to the likelihood function. The regularization function is 
+ * chosen so that the prior is gaussian. 
+ * 
+ */
+void Reconstructor::DoEmMl(const float&  gamma, 
+                           const size_t& upStop,
+                           const size_t& pStop,
+                           const bool&   doPenalized)
 {
-  fData      = data;
-  fPixelVec.reset();
-  fPixelVec = pixelVec;
-
+  // Initialize variables
   fPenalizedIterStop   = pStop;
   fUnpenalizedIterStop = upStop;
-  fGamma = gamma;
+  fGamma               = gamma;
 
-  fDenomSums.clear();
-  fDenomSums.resize(fData.size());
-  fDiskRadius = diskRadius;
-  fLogLikehs.clear();
-
-  // Init histo and gaussian
-  float pixelSpacing = (*fPixelVec).front().Size();
-  size_t n = 2*fDiskRadius/pixelSpacing - 1; // assuming pixel is in the center
-  std::string name = "histFinal";
-  if (!fMLHistogram) fMLHistogram = new TH2F(name.c_str(), name.c_str(), n, -fDiskRadius, fDiskRadius, n, -fDiskRadius, fDiskRadius);
-  if (!fMLGauss)     fMLGauss     = new TF2("g", "bigaus", -fDiskRadius, fDiskRadius, -fDiskRadius, fDiskRadius);
-}
-
-//------------------------------------------------------------------------
-void Reconstructor::Reconstruct(const bool& doPenalized)
-{
   // first do unpenalized
   // this will give us our prior for a penalized reconstruction
-  //std::cout << "Starting unpenalized reconstruction...\n";
-  //DoUnpenalized();
-
+  std::cout << "Starting unpenalized reconstruction...\n";
+  DoUnpenalized();
   // Update histogram
-  //std::cout << "Updating histogram...\n";
-  //UpdateHistogram();
+  UpdateHistogram();
 
-  // calculate chi2
-  std::cout << "Starting chi2 calculation...\n";
-  DoChi2();
+  // Let's fit our current estimate using a 2D gaussian
+  fMLHist->Fit(fMLGauss, "NQ");
+  Double_t maxX, maxY;
+  fMLGauss->GetMaximumXY(maxX, maxY);
+  fEstimateX          = maxX;
+  fEstimateY          = maxY;
 
   // option to do penalized
-  //if (doPenalized) 
+  if (doPenalized) 
   {
     // Initialize our priors
     InitializePriors();
-    //std::cout << "Starting penalized reconstruction...\n";
-    //DoPenalized();
-    //std::cout << "Updating histogram...\n";
-    //UpdateHistogram();
+    std::cout << "Starting penalized reconstruction...\n";
+    DoPenalized();
+    std::cout << "Updating histogram...\n";
+    UpdateHistogram();
   }
 }
 
-//------------------------------------------------------------------------
+/**
+ * @brief Reconstructs mean position based on Chi2 minimization.
+ * 
+ * This method uses the lookup tables to estimate the expected number of 
+ * counts for each detector. A Chi2 is calculated and minimized using the 
+ * expected and the measured counts. After minimization, a 2D gaussian is
+ * formed using the minimum chi2 X and Y value.
+ * 
+ * @todo Need to devise a way to get the number of photons to be used in
+ *       the 'expected' calculation. Also, what do we use for the sigma 
+ *       in the gaussian? 
+ * 
+ */
 void Reconstructor::DoChi2()
 {
   // we have the "data", what is the truth?
@@ -143,6 +166,11 @@ void Reconstructor::DoChi2()
       chi2 = chi2 + diff2/nExpected;
     }
 
+    // Fill chi2 distribution
+    size_t xBin = fChi2Hist->GetXaxis()->FindBin(pixel.X());
+    size_t yBin = fChi2Hist->GetYaxis()->FindBin(pixel.Y());
+    fChi2Hist->SetBinContent(xBin, yBin, chi2);
+
     // check for minimum
     if (chi2 < chi2Min)
     {
@@ -161,20 +189,17 @@ void Reconstructor::DoChi2()
             << "\n";
 
   // form a 2D gaussian hypothesis centered on chi2 prediction
-  if (fMLGauss) delete fMLGauss;
   float sigma = 2.;
+  if (fMLGauss) delete fMLGauss;
   
   fMLGauss = new TF2("g", "bigaus", -fDiskRadius, fDiskRadius, -fDiskRadius, fDiskRadius);
-  //fMLGauss = new TF2("g", "bigaus", -chi2Pixel.vertex[0]-sigma, chi2Pixel.vertex[0]+sigma, -chi2Pixel.vertex[1]-sigma, chi2Pixel.vertex[1]+sigma);
   fMLGauss->SetParameters(nPhotons, chi2Pixel.vertex[0], sigma, chi2Pixel.vertex[1], sigma, 0);
+  std::cout << fMLGauss->Eval(chi2Pixel.vertex[0], chi2Pixel.vertex[1]) << std::endl; 
 
-  // Let's fit our current estimate using a 2D gaussian
-  //fMLHistogram->Fit(fMLGauss, "NQ");
-  Double_t maxX, maxY;
-  fMLGauss->GetMaximumXY(maxX, maxY);
-  fMLX          = maxX;
-  fMLY          = maxY;
-
+  Double_t x, y;
+  fMLGauss->GetMaximumXY(x, y);
+  fEstimateX = x;
+  fEstimateY = y;
 }
 
 //------------------------------------------------------------------------
@@ -182,21 +207,26 @@ void Reconstructor::InitializePriors()
 {
   // We should an updated gaussian fit now
   fPriors.resize(fPixelVec->size());
-  //TH2F temp("temp", "temp", fMLHistogram->GetXaxis()->GetNbins(), -fDiskRadius, fDiskRadius, fMLHistogram->GetXaxis()->GetNbins(), -fDiskRadius, fDiskRadius);
   for (const auto& pixel : *fPixelVec) 
   {
     auto content = fMLGauss->Eval(pixel.X(), pixel.Y());
-    auto xBin = fMLHistogram->GetXaxis()->FindBin(pixel.X());
-    auto yBin = fMLHistogram->GetYaxis()->FindBin(pixel.Y());
-    fMLHistogram->SetBinContent(xBin, yBin, content);
+    auto xBin = fMLHist->GetXaxis()->FindBin(pixel.X());
+    auto yBin = fMLHist->GetYaxis()->FindBin(pixel.Y());
     fPriors[pixel.ID()-1] = content;
   }
-  TFile f("temp.root", "RECREATE");
-  fMLHistogram->Write();
-  f.Close();
 }
 
-//------------------------------------------------------------------------
+/**
+ * @brief Do unpenalized version of reconstruction.
+ * 
+ * The procedure is as follows:
+ * 1) Make initial estimates for pixel intensities
+ * 2) Make next prediction
+ * 3) Check for convergence
+ *      if yes, save, return
+ *      if not, old estimates = current estimates -> 2)
+ * 
+ */
 void Reconstructor::DoUnpenalized()
 {
   // Initialize the pixels
@@ -226,7 +256,12 @@ void Reconstructor::UnpenalizedEstimate()
   }
 }
 
-//------------------------------------------------------------------------
+/**
+ * @brief Do penalized version of reconstruction. Same as 
+ *        unpenalized except uses different formula to update
+ *        estimates.
+ * 
+ */
 void Reconstructor::DoPenalized()
 {
   // Initialize the pixels
@@ -356,19 +391,24 @@ bool Reconstructor::CheckConvergence()
   return false;
 }
 
-//------------------------------------------------------------------------
+/**
+ * @brief Updates the ML histogram with current estimates. Fits 
+ *        distribution using a 2D gaussian function to find the
+ *        mean x and y coordinates.
+ * 
+ */
 void Reconstructor::UpdateHistogram()
 {
   // Fill and find total amount of light
   float totalInt(0);
   for (const auto& v : *fPixelVec)
   {
-    size_t xbin = fMLHistogram->GetXaxis()->FindBin(v.X());
-    size_t ybin = fMLHistogram->GetYaxis()->FindBin(v.Y());
-    fMLHistogram->SetBinContent(xbin, ybin, v.Intensity());
+    size_t xbin = fMLHist->GetXaxis()->FindBin(v.X());
+    size_t ybin = fMLHist->GetYaxis()->FindBin(v.Y());
+    fMLHist->SetBinContent(xbin, ybin, v.Intensity());
     totalInt = totalInt + v.Intensity();
   } 
-  fMLTotalLight = totalInt;
+  fEstimateTotalLight = totalInt;
 }
 
 //------------------------------------------------------------------------
@@ -379,9 +419,9 @@ void Reconstructor::Dump()
             << "\nPenalized stop:     " << fPenalizedIterStop
             << "\nPenalty strength:   " << fGamma
             << "\nDisk radius:        " << fDiskRadius
-            << "\nML estimate for X:  " << fMLX
-            << "\nML estimate for Y:  " << fMLY
-            << "\nML estimate for LY: " << fMLTotalLight
+            << "\nEstimate for X:     " << fEstimateX
+            << "\nEstimate for Y:     " << fEstimateY
+            << "\nEstimate for LY:    " << fEstimateTotalLight
             << "\n";
 }
 
