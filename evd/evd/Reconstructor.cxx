@@ -75,31 +75,106 @@ void Reconstructor::Reconstruct(const bool& doPenalized)
 {
   // first do unpenalized
   // this will give us our prior for a penalized reconstruction
-  std::cout << "Starting unpenalized reconstruction...\n";
-  DoUnpenalized();
+  //std::cout << "Starting unpenalized reconstruction...\n";
+  //DoUnpenalized();
 
   // Update histogram
-  std::cout << "Updating histogram...\n";
-  UpdateHistogram();
+  //std::cout << "Updating histogram...\n";
+  //UpdateHistogram();
+
+  // calculate chi2
+  std::cout << "Starting chi2 calculation...\n";
+  DoChi2();
+
+  // option to do penalized
+  //if (doPenalized) 
+  {
+    // Initialize our priors
+    InitializePriors();
+    //std::cout << "Starting penalized reconstruction...\n";
+    //DoPenalized();
+    //std::cout << "Updating histogram...\n";
+    //UpdateHistogram();
+  }
+}
+
+//------------------------------------------------------------------------
+void Reconstructor::DoChi2()
+{
+  // we have the "data", what is the truth?
+
+  // Let's go backwards
+  // Assuming 50,000 photons were fired from a single pixel,
+  // what is the expected light yield from each pixel?
+  // Compute chi2 for pixel w/ to data
+
+  size_t nPhotons = 50000;
+  struct Chi2Pixel {
+    std::vector<float> vertex;
+    size_t Id;
+  };
+  Chi2Pixel chi2Pixel;
+  float chi2Min(std::numeric_limits<float>::max());
+  
+  // Loop over pixels
+  for (const auto& pixel : *fPixelVec)
+  {
+    // The lookup table for this pixel
+    auto lookupTable = pixel.ReferenceTable();
+    size_t nDet = fData.size();
+    std::map<size_t, size_t> expectedData;
+
+    // Loop over detectors
+    for (size_t d = 1; d <= nDet; d++)
+    {
+      // How much light do we expect?
+      size_t nExpected = nPhotons * lookupTable[d-1];
+      expectedData.emplace(d, nExpected);
+    }
+
+    // Now calculate chi2 for this
+    float chi2(0);
+    for (size_t d = 1; d <= nDet; d++)
+    {
+      size_t nExpected = expectedData.find(d)->second;
+      size_t nMeasured = fData.find(d)->second;
+
+      float diff2 = (nExpected - nMeasured)*(nExpected - nMeasured);
+      chi2 = chi2 + diff2/nExpected;
+    }
+
+    // check for minimum
+    if (chi2 < chi2Min)
+    {
+      chi2Min = chi2;
+      chi2Pixel.Id = pixel.ID();
+      chi2Pixel.vertex.clear();
+      chi2Pixel.vertex.push_back(pixel.X());
+      chi2Pixel.vertex.push_back(pixel.Y());
+    }
+  }
+
+  std::cout << "\nChi2 pixel information:"
+            << "\nX  = " << chi2Pixel.vertex[0] 
+            << "\nY  = " << chi2Pixel.vertex[1]
+            << "\nId = " << chi2Pixel.Id
+            << "\n";
+
+  // form a 2D gaussian hypothesis centered on chi2 prediction
+  if (fMLGauss) delete fMLGauss;
+  float sigma = 2.;
+  
+  fMLGauss = new TF2("g", "bigaus", -fDiskRadius, fDiskRadius, -fDiskRadius, fDiskRadius);
+  //fMLGauss = new TF2("g", "bigaus", -chi2Pixel.vertex[0]-sigma, chi2Pixel.vertex[0]+sigma, -chi2Pixel.vertex[1]-sigma, chi2Pixel.vertex[1]+sigma);
+  fMLGauss->SetParameters(nPhotons, chi2Pixel.vertex[0], sigma, chi2Pixel.vertex[1], sigma, 0);
 
   // Let's fit our current estimate using a 2D gaussian
-  fMLHistogram->Fit(fMLGauss, "NQ");
+  //fMLHistogram->Fit(fMLGauss, "NQ");
   Double_t maxX, maxY;
   fMLGauss->GetMaximumXY(maxX, maxY);
   fMLX          = maxX;
   fMLY          = maxY;
 
-  // option to do penalized
-  if (doPenalized) 
-  {
-    // Initialize our priors
-    InitializePriors();
-
-    std::cout << "Starting penalized reconstruction...\n";
-    DoPenalized();
-    std::cout << "Updating histogram...\n";
-    UpdateHistogram();
-  }
 }
 
 //------------------------------------------------------------------------
@@ -107,7 +182,18 @@ void Reconstructor::InitializePriors()
 {
   // We should an updated gaussian fit now
   fPriors.resize(fPixelVec->size());
-  for (const auto& pixel : *fPixelVec) fPriors[pixel.ID()-1] = fMLGauss->Eval(pixel.X(), pixel.Y());
+  //TH2F temp("temp", "temp", fMLHistogram->GetXaxis()->GetNbins(), -fDiskRadius, fDiskRadius, fMLHistogram->GetXaxis()->GetNbins(), -fDiskRadius, fDiskRadius);
+  for (const auto& pixel : *fPixelVec) 
+  {
+    auto content = fMLGauss->Eval(pixel.X(), pixel.Y());
+    auto xBin = fMLHistogram->GetXaxis()->FindBin(pixel.X());
+    auto yBin = fMLHistogram->GetYaxis()->FindBin(pixel.Y());
+    fMLHistogram->SetBinContent(xBin, yBin, content);
+    fPriors[pixel.ID()-1] = content;
+  }
+  TFile f("temp.root", "RECREATE");
+  fMLHistogram->Write();
+  f.Close();
 }
 
 //------------------------------------------------------------------------

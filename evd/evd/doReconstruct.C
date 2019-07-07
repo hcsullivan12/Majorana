@@ -236,7 +236,7 @@ void Reconstruct()
   theReconstructor.Dump();
 
   // Write the reconstructed image
-  TFile f("recoanatree.root", "UPDATE");
+  TFile f("recoanatree.root", "RECREATE");
   theReconstructor.MLImage()->Write();
   f.Close();
   cout << "Finished!" << endl;

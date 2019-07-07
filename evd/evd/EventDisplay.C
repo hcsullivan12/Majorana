@@ -18,6 +18,8 @@ private:
    TRootEmbeddedCanvas *fCanvas1 = nullptr;
    TRootEmbeddedCanvas *fCanvas2 = nullptr;
    
+   TH2I *fPrimHist = nullptr;
+
    TGTextButton         *fStartBut;
    TGTextButton      *fSetParamBut;
    
@@ -37,7 +39,8 @@ private:
    bool        fIsRunning  = false;
    double      fLastUpdate = 0;
    TTimer      *fTimer     = nullptr;
-   std::string fDataFile   = "./daq/data.txt";
+   std::string fDataFilePath = "./daq/data.txt";
+   std::string fTrueDistPath = "../output/simulateOutput.root";
    double      fDiskR      = 14.5;
    int         fNsipms     = 64;
    int         fPixelSize  = 5;
@@ -62,6 +65,7 @@ public:
    void SetDataTypeData();
 };
 
+//------------------------------------------------------------------------
 MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir) 
 {
    // Create a main frame
@@ -291,12 +295,14 @@ MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir
    std::cout << std::endl;
 }
 
+//------------------------------------------------------------------------
 MyMainFrame::~MyMainFrame() {
   // Clean up used widgets: frames, buttons, layout hints
   fMain->Cleanup();
   delete fMain;
 }
 
+//------------------------------------------------------------------------
 void MyMainFrame::SetDataTypeData()
 {
   fDataType = "data";
@@ -305,6 +311,7 @@ void MyMainFrame::SetDataTypeData()
   isDataBut->SetState(kButtonDown);
 }
 
+//------------------------------------------------------------------------
 void MyMainFrame::SetDataTypeMC()
 {
   fDataType = "mc";
@@ -313,34 +320,34 @@ void MyMainFrame::SetDataTypeMC()
   isMCBut->SetState(kButtonDown);
 }
 
+//------------------------------------------------------------------------
 void MyMainFrame::ChangeStartLabel()
 {
   fStartBut->SetState(kButtonDown);
 
   // If it is not currently running, start it
-  if (!fIsRunning) 
+  if (std::string(*fStartBut->GetText()) == "Start") 
   {
     fStartBut->SetText("Stop");
     // Start the time to check for updated daq file
-    std::cout << "\n"
-              << "Listening for DAQ files...\n";
+    std::cout << "\nListening for DAQ files...\n";
     if (fTimer) fTimer->Start(1000, kFALSE);
-    fIsRunning = true;
   } 
   else 
   {
     std::cout << "Stopping reconstruction...\n";
     fStartBut->SetText("Start");
     if (fTimer) fTimer->Stop();
-    fIsRunning = false;
   }
   fStartBut->SetState(kButtonUp);
 }
 
+//------------------------------------------------------------------------
 void MyMainFrame::StartReco() 
 {
    std::cout << "//////////////////////////////////////////////////////\n";
    std::cout << "\nStarting reconstruction..." << std::endl;
+   fIsRunning = true;
    
    // We will read our DAQ file twice
    auto mydata = ReadDataFile();
@@ -350,7 +357,7 @@ void MyMainFrame::StartReco()
    std::string pixelizationPath = fTopDir+"/production/production_v1_1/"+std::to_string(fPixelSize)+"mm/pixelization.txt";
    std::string opRefTablePath   = fTopDir+"/production/production_v1_1/"+std::to_string(fPixelSize)+"mm/"+std::to_string(fNsipms)+"sipms/splinedOpRefTable.txt";
    std::string doRecoCmd = "doReconstruct(\""+pixelizationPath              +"\",\""+opRefTablePath+"\","
-                                        " \""+fDataFile                     +"\", "+std::to_string(fDiskR)+","
+                                        " \""+fDataFilePath                   +"\", "+std::to_string(fDiskR)+","
                                         " "+std::to_string(fGamma)          +", "+std::to_string(doPenalizedBut->IsOn())+","
                                         " "+std::to_string(fPenalizedIter)  +", "+std::to_string(fUnpenalizedIter)+")";
    //cout << doRecoCmd << endl;
@@ -358,12 +365,16 @@ void MyMainFrame::StartReco()
 
    // Update plots
    UpdatePlots(mydata);
+   std::cout << "Updated plots...\n";
+   // Finished
+   fIsRunning = false;
 }
 
+//------------------------------------------------------------------------
 const std::map<size_t, size_t> MyMainFrame::ReadDataFile() 
 {
   // The file should contain the number of photons detected by the sipms
-  std::ifstream theFile(fDataFile.c_str());
+  std::ifstream theFile(fDataFilePath.c_str());
   std::string line;
   std::map<size_t, size_t> v;
   if (theFile.is_open()) {
@@ -386,16 +397,17 @@ const std::map<size_t, size_t> MyMainFrame::ReadDataFile()
   return v;
 }
 
+//------------------------------------------------------------------------
 void MyMainFrame::UpdatePlots(const std::map<size_t, size_t>& mydata) 
 {
   // Grab the top canvas
   TCanvas *tc = fCanvas1->GetCanvas();
   tc->Clear();
-  
+
   // We need the resulting plot from reco
   TFile f("recoanatree.root", "READ");
   if (f.IsOpen()) {
-    gStyle->SetPalette(kDarkBodyRadiator);
+    gStyle->SetPalette(kDeepSea);//kDarkBodyRadiator);
     TH2F *recoHist = nullptr;
     f.GetObject("histFinal", recoHist);
     if (recoHist) {
@@ -410,13 +422,12 @@ void MyMainFrame::UpdatePlots(const std::map<size_t, size_t>& mydata)
   
   // Grab the bottom canvas
   TCanvas *bc = fCanvas2->GetCanvas();
-  
+  bc->Clear();
   if (fDataType == "data")
   {
     // Make a histogram of the data
     TH1I *h = new TH1I("h", "Measured Light Yield", mydata.size(), 0.5, mydata.size()+0.5);
     for (const auto& d : mydata) h->SetBinContent(d.first, d.second);
-    bc->Clear();
     h->SetLineColor(4);
     h->SetLineWidth(4);
     h->GetXaxis()->SetTitle("SiPM ID");
@@ -427,27 +438,22 @@ void MyMainFrame::UpdatePlots(const std::map<size_t, size_t>& mydata)
   }
   if (fDataType == "mc")
   {
-    // Grab the true distribution for the simulate output
-    // This is not the best solution but it'll do for now
-    std::string trueDistPath = fTopDir+"/output/simulateOutput.root";
-    TFile s(trueDistPath.c_str(), "READ");
-    if (s.IsOpen()) {
-      gStyle->SetPalette(kDarkBodyRadiator);
-      TH2I *primHist = nullptr;
-      s.GetObject("primHist", primHist);
-      if (primHist) {
-        primHist->SetTitle("True");
-        primHist->GetXaxis()->SetTitle("X [cm]");
-        primHist->GetYaxis()->SetTitle("Y [cm]");
-        bc->Clear();
-        primHist->Draw("colz");
-        bc->cd();
-        bc->Update();
-      } else {cout << "\nWARNING: Couldn't find true distribution...\n";}
-    } else {cout << "\nWARNING: Couldn't find simulate output path named \'"+trueDistPath+"\'...\n";}
+    gStyle->SetPalette(kDeepSea);//kDarkBodyRadiator);
+
+    if (fPrimHist) 
+    {
+      cout << "HERE\n";
+      fPrimHist->SetTitle("True");
+      fPrimHist->GetXaxis()->SetTitle("X [cm]");
+      fPrimHist->GetYaxis()->SetTitle("Y [cm]");
+      fPrimHist->Draw("colz");
+      bc->cd();
+      bc->Update();
+    } else {cout << "\nWARNING: Couldn't find true distribution...\n";}
   }
 }
 
+//------------------------------------------------------------------------
 void MyMainFrame::SetParameters()
 {
   // Get the current settings
@@ -477,25 +483,39 @@ void MyMainFrame::SetParameters()
             << std::endl;
 }
 
+//------------------------------------------------------------------------
 bool MyMainFrame::IsDAQFileModified() 
 {
   struct stat fileStat;
-  int err = stat(fDataFile.c_str(), &fileStat);
+  int err = stat(fDataFilePath.c_str(), &fileStat);
   if (err != 0) {
-    perror(fDataFile.c_str());
+    perror(fDataFilePath.c_str());
   }
   if (fileStat.st_mtime > fLastUpdate) {
-     fLastUpdate = fileStat.st_mtime;
-     return true;
+    fLastUpdate = fileStat.st_mtime; 
+    return true;
   }
   return false;
 }
 
+//------------------------------------------------------------------------
 void MyMainFrame::HandleTimer() 
 {
-   if (IsDAQFileModified()) StartReco();
+  if (!fIsRunning && IsDAQFileModified()) 
+  {
+    std::cout << "Detected new DAQ file!\n";
+    // Grab the true distribution
+    TFile s(fTrueDistPath.c_str(), "READ");
+    if (s.IsOpen()) {
+      s.GetObject("primHist", fPrimHist);
+      if (!fPrimHist) cout << "\nWARNING: Couldn't find true distribution...\n";
+      //s.Close();
+    } else {cout << "\nWARNING: Couldn't find simulate output path named \'"+fTrueDistPath+"\'...\n";}
+    StartReco();
+  }
 }
 
+//------------------------------------------------------------------------
 void EventDisplay(std::string topDir) 
 {
   // Popup the GUI...

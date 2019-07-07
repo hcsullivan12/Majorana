@@ -60,7 +60,13 @@ public:
    * 
    * @param doPenalized Option to run penalized reconstruction (default true).
    */  
-  void Reconstruct(const bool& doPenalized = true);                  
+  void Reconstruct(const bool& doPenalized = true);    
+
+  /**
+   * @brief Compute the chi2 
+   * 
+   */
+  void DoChi2();              
 
   /**
    * @brief Dump configuration and reconstruction results.

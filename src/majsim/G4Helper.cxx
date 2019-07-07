@@ -168,10 +168,19 @@ void G4Helper::RunG4()
       auto data = photonTable->GetPhotonsDetected();
       for (const auto& d : data) outfile << d.second.size() << " ";
     }
+    
+    // Write true distribution
+    TFile f(config->SimulateOutputPath().c_str(), "UPDATE");
+    fGeneratorAction->GetPrimHist()->Write();
+    f.Close();
+
     // Fill our ntuple
     analyzer.Fill(e);
     // Clear the photon table!
     photonTable->Reset();
+  
+    // Sleep if in evd mode
+    if (config->EvdMode()) sleep(3);
   }
 }
 
