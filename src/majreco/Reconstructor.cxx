@@ -118,10 +118,6 @@ void Reconstructor::DoEmMl(const float&  gamma,
  * expected and the measured counts. After minimization, a 2D gaussian is
  * formed using the minimum chi2 X and Y value.
  * 
- * @todo Need to devise a way to get the number of photons to be used in
- *       the 'expected' calculation. Also, what do we use for the sigma 
- *       in the gaussian? 
- * 
  */
 void Reconstructor::DoChi2()
 {
@@ -197,6 +193,7 @@ void Reconstructor::DoChi2()
   
   /**
    * @todo Fix the 50000 here
+   * @todo What do we use for the sigma in the gaussian? 
    * 
    */
   fMLGauss = new TF2("g", "bigaus", -fDiskRadius, fDiskRadius, -fDiskRadius, fDiskRadius);
