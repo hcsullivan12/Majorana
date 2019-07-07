@@ -23,8 +23,10 @@ RecoAnalyzer::RecoAnalyzer()
 {
   // Reset variables
   ResetVars();
+
   // Get config
   Configuration* config = Configuration::Instance();
+  fRecoOutputPath = config->RecoOutputPath();
   
   fAnaTree = new TTree("anatree", "analysis tree");
 
@@ -33,9 +35,9 @@ RecoAnalyzer::RecoAnalyzer()
 //------------------------------------------------------------------------
 RecoAnalyzer::~RecoAnalyzer()
 {
-  //TFile f(fSimulateOutputPath.c_str(), "UPDATE");
-  //fAnaTree->Write();
-  //f.Close();
+  TFile f(fRecoOutputPath.c_str(), "UPDATE");
+  fAnaTree->Write();
+  f.Close();
 
   if (fAnaTree) delete fAnaTree;
 }

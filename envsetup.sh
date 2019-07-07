@@ -1,3 +1,5 @@
+#!bin/bash
+
 # Setup the needed environment
 export MAJORANADIR=$( cd $(dirname ${BASH_SOURCE[0]}) && pwd )
 

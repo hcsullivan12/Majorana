@@ -10,6 +10,7 @@
 #include "majreco/Configuration.h"
 #include "majutil/PixelTable.h"
 #include "majreco/Reconstructor.h"
+#include "majreco/RecoAnalyzer.h"
 
 #include <assert.h>
 
@@ -57,6 +58,7 @@ void RecoHelper::Start()
   // Read the tree from simulation
   TFile simFile(config->SimulateOutputPath().c_str(), "READ");
   TTree* tree = (TTree*)simFile.Get("anatree");
+  assert(tree);
   auto nentries = tree->GetEntries();
 
   // Variables to extract from tree
@@ -77,9 +79,13 @@ void RecoHelper::Start()
   tree->SetBranchAddress("sourcePosXYZ", &sourcePosXYZ);
   tree->SetBranchAddress("mppcToLY",     &sipmToLY);
 
+  // Create RecoAnatree object
+  RecoAnalyzer analyzer;
+
   // Loop over all entries in the tree from simulation.
   for (auto entry = 0; entry < nentries; entry++)
   {
+    std::cout << "\nReconstructing event " << entry << std::endl;
     tree->GetEntry(entry);
 
     // Make sure the values make sense first
@@ -93,20 +99,21 @@ void RecoHelper::Start()
     for (size_t d = 1; d <= sipmToLY->size(); d++) { data.emplace(d, (*sipmToLY)[d-1]); }
 
     // Initialize our reconstruction algorithm 
-    Reconstructor reconstructor;
-    reconstructor.Initialize(data, 
-                             pixelTable->GetPixels(), 
-                             diskRadius,
-                             config->Gamma(),
-                             config->PenalizedStopId(),
-                             config->UnpenalizedStopId());
-
-    reconstructor.Reconstruct(config->DoPenalized()); 
+    Reconstructor reconstructor(data, pixelTable->GetPixels(), diskRadius);
+    //reconstructor.DoEmMl(config->Gamma(),
+    //                     config->UnpenalizedStopId(),
+    //                     config->PenalizedStopId(),
+    //                     config->DoPenalized());
+ 
+    reconstructor.DoChi2();
     reconstructor.Dump();
     // Write the reconstructed image
     TFile f(config->RecoOutputPath().c_str(), "UPDATE");
     reconstructor.MLImage()->Write();
+    reconstructor.Chi2Image()->Write();
     f.Close();
+
+    analyzer.Fill(entry);
   }
 }
 

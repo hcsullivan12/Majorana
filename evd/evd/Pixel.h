@@ -11,7 +11,7 @@
 #ifndef PIXEL_H
 #define PIXEL_H
 
-namespace majorana 
+namespace majutil
 {
 
 class Pixel

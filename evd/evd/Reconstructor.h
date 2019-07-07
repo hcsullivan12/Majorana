@@ -6,8 +6,8 @@
  * 
  */
 
-#ifndef RECONSTRUCTOR_H
-#define RECONSTRUCTOR_H
+#ifndef MAJRECO_RECONSTRUCTOR_H
+#define MAJRECO_RECONSTRUCTOR_H
 
 #include "Pixel.h"
 
@@ -15,10 +15,10 @@
 #include <list>
 #include <memory>
 
-#include <TH2.h>
-#include <TF2.h>
+#include "TH2.h"
+#include "TF2.h"
 
-namespace majorana
+namespace majreco
 {
 
 class Reconstructor 
@@ -27,40 +27,39 @@ class Reconstructor
 public:
 
   /**
-   * @brief Contructor, intialized or pixel containers.
+   * @brief Construct a new Reconstructor object
    * 
+   * @param data Map from detector ID to detector counts
+   * @param pixelVec Vector of pixels
+   * @param diskRadius Radius of the disk
    */
-  Reconstructor();
+  Reconstructor(const std::map<size_t, size_t>&              data,
+                std::shared_ptr<std::vector<majutil::Pixel>> pixelVec,
+                const float&                                 diskRadius);
   ~Reconstructor();
 
-  /**
-   * @brief Initialize our container and parameters for reconstruction.
-   * 
-   * @param data Map from SiPM ID to measured counts.
-   * @param pixelVec Pointer to the pixels.
-   * @param diskRadius Used for plotting.
-   * @param gamma Strength parameter for penalty function (default 0).
-   * @param pStop Iteration number to stop penalized reconstruction.
-   * @param upStop Iteration number to stop unpenalized reconstruction.
-   */
-  void Initialize(const std::map<size_t, size_t>&     data,
-                  std::shared_ptr<std::vector<Pixel>> pixelList,
-                  const float&                        diskRadius,
-                  const float&                        gamma, 
-                  const size_t&                       pStop,
-                  const size_t&                       upStop);
+
+  void Clean() { if(!fMLHist) delete fMLHist; if(!fMLGauss) delete fMLGauss; if(!fChi2Hist) delete fChi2Hist;}
+
 
   /**
    * @brief Entry point to reconstruction algorithm.
    * 
-   * There are two reconstruction stages: unpenalized and penalized.
-   * The current method is to always run the unpenalized reconstruction.
-   * The user has the option to subsequently run the penalized reconstruction
-   * using information from the unpenalized reconstruction.
+   * @param gamma Regularization parameter
+   * @param upStop Iteration number to stop unpenalized method
+   * @param pStop Iteration number to stop penalized method
+   * @param doPenalized Option to run penalized method
+   */
+  void DoEmMl(const float&  gamma, 
+              const size_t& pStop,
+              const size_t& upStop,
+              const bool&   doPenalized);    
+
+  /**
+   * @brief Reconstructs mean position based on Chi2 minimization.
    * 
-   * @param doPenalized Option to run penalized reconstruction (default true).
-   */  
-  void Reconstruct(const bool& doPenalized = true);                  
+   */
+  void DoChi2();              
 
   /**
    * @brief Dump configuration and reconstruction results.
@@ -69,9 +68,10 @@ public:
   void Dump();
 
   const double   ML()    const { return fMLLogLikelihood; }
-  const float    X()     const { return fMLX; }
-  const float    Y()     const { return fMLY; }
-  TH2F*          MLImage() { return fMLHistogram; }
+  const float    X()     const { return fEstimateX; }
+  const float    Y()     const { return fEstimateY; }
+  TH2F*          MLImage() { return fMLHist; }
+  TH2F*          Chi2Image() { return fChi2Hist; }
     
 private:
   
@@ -87,13 +87,6 @@ private:
 
   /**
    * @brief Do unpenalized version of reconstruction.
-   * 
-   * The procedure is as follows:
-   * 1) Make initial estimates for pixel intensities
-   * 2) Make next prediction
-   * 3) Check for convergence
-   *      *if yes, save, return
-   *      *if not, old estimates = current estimates -> 2)
    * 
    */
   void DoUnpenalized();
@@ -150,7 +143,7 @@ private:
                      const std::vector<float>& referenceTable);
 
   /**
-   * @brief Method to check for convergence. Currently returns true.
+   * @brief Method to check for convergence. Currently returns false.
    * @todo Finish writing.
    * 
    * @return true If converged.
@@ -178,15 +171,16 @@ private:
    */
   void InitializePriors();
    
-  TH2F*                        fMLHistogram;           ///< The reconstructed image
+  TH2F*                        fMLHist;                ///< The reconstructed image 
+  TH2F*                        fChi2Hist;              ///< The Chi2 image
   TF2*                         fMLGauss;               ///< Gaussian fit to point source
   double                       fMLLogLikelihood;       ///< Log likelihood for the MLE
-  float                        fMLTotalLight;          ///< MLE for total light
-  float                        fMLX;                   ///< MLE for x (cm)
-  float                        fMLY;                   ///< MLE for y (cm)
+  float                        fEstimateTotalLight;    ///< MLE for total light
+  float                        fEstimateX;             ///< MLE for x (cm)
+  float                        fEstimateY;             ///< MLE for y (cm)
   float                        fDiskRadius;            ///< Disk radius 
-  std::shared_ptr<std::vector<Pixel>> fPixelVec;       ///< List of pixels
-  std::vector<float>           fDenomSums;             ///< Map of sipm to denominator sum
+  std::shared_ptr<std::vector<majutil::Pixel>> fPixelVec;  ///< List of pixels
+  std::vector<float>           fDenomSums;                 ///< Map of sipm to denominator sum
   std::map<size_t, size_t>     fData;                      ///< Measured counts (sipm, np.e.)
   std::vector<float>           fLogLikehs;             ///< Container for logL at each iteration 
   std::vector<float>           fPriors;                ///< Container for priors used in penalized reconstruction
