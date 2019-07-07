@@ -58,6 +58,7 @@ void RecoHelper::Start()
   // Read the tree from simulation
   TFile simFile(config->SimulateOutputPath().c_str(), "READ");
   TTree* tree = (TTree*)simFile.Get("anatree");
+  assert(tree);
   auto nentries = tree->GetEntries();
 
   // Variables to extract from tree

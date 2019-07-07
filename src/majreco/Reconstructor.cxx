@@ -30,6 +30,7 @@ Reconstructor::Reconstructor(const std::map<size_t, size_t>&              data,
    fGamma(0),
    fPenalizedIterStop(100),
    fUnpenalizedIterStop(100),
+   fEstimateTotalLight(0),
    fMLHist(nullptr),
    fMLGauss(nullptr),
    fChi2Hist(nullptr)
@@ -124,20 +125,21 @@ void Reconstructor::DoEmMl(const float&  gamma,
  */
 void Reconstructor::DoChi2()
 {
-  // we have the "data", what is the truth?
-
-  // Let's go backwards
   // Assuming 50,000 photons were fired from a single pixel,
   // what is the expected light yield from each pixel?
   // Compute chi2 for pixel w/ to data
 
   size_t nPhotons = 50000;
+
+  // Pixel structure for minimum chi2
   struct Chi2Pixel {
     float chi2;
     std::vector<float> vertex;
     size_t Id;
   };
   Chi2Pixel chi2Pixel;
+
+
   float chi2Min(std::numeric_limits<float>::max());
   size_t nDet = fData.size();
   
@@ -176,7 +178,8 @@ void Reconstructor::DoChi2()
     if (chi2 < chi2Min)
     {
       chi2Min = chi2;
-      chi2Pixel.Id = pixel.ID();
+      chi2Pixel.chi2 = chi2;
+      chi2Pixel.Id   = pixel.ID();
       chi2Pixel.vertex.clear();
       chi2Pixel.vertex.push_back(pixel.X());
       chi2Pixel.vertex.push_back(pixel.Y());

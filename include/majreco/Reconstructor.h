@@ -175,7 +175,7 @@ private:
   TH2F*                        fChi2Hist;              ///< The Chi2 image
   TF2*                         fMLGauss;               ///< Gaussian fit to point source
   double                       fMLLogLikelihood;       ///< Log likelihood for the MLE
-  float                        fEstimateTotalLight;    ///< MLE for total light
+  size_t                       fEstimateTotalLight;    ///< MLE for total light
   float                        fEstimateX;             ///< MLE for x (cm)
   float                        fEstimateY;             ///< MLE for y (cm)
   float                        fDiskRadius;            ///< Disk radius 

@@ -36,7 +36,7 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
 //------------------------------------------------------------------------
 PrimaryGeneratorAction::~PrimaryGeneratorAction()
 {
-  if (fPrimHist) delete fPrimHist;
+  //if (fPrimHist) delete fPrimHist;
 }
 
 //------------------------------------------------------------------------
@@ -60,6 +60,12 @@ void PrimaryGeneratorAction::Reset(const G4double& r,
   
   fNPrimaries = n;
   fBinSize    = binSize; 
+
+  // Initialize true distribution
+  double diskRadius = Configuration::Instance()->DiskRadius()/CLHEP::cm;
+  size_t nBins = 2*std::floor(diskRadius/(binSize/CLHEP::cm)) + 1; // this assumes there is a pixel at the origin
+
+  if (!fPrimHist) fPrimHist = new TH2I("primHist", "primHist", nBins, -diskRadius, diskRadius, nBins, -diskRadius, diskRadius);
 }
 
 //------------------------------------------------------------------------
@@ -76,14 +82,7 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
   CLHEP::RandGaussQ gauss(fRandomEngine);
   CLHEP::RandFlat   flat(fRandomEngine);
 
-  // Initialize true distribution
-  auto config = Configuration::Instance();
-  double diskRadius = config->DiskRadius()/CLHEP::cm;
-  double binSize    = fBinSize/CLHEP::cm;
-  size_t nBins = 2*std::floor(diskRadius/binSize) + 1; // this assumes there is a pixel at the origin
-
-  if (fPrimHist) delete fPrimHist;
-  fPrimHist = new TH2I("primHist", "primHist", nBins, -diskRadius, diskRadius, nBins, -diskRadius, diskRadius);
+  auto diskRadius = Configuration::Instance()->DiskRadius()/CLHEP::cm;
   for (unsigned xbin = 1; xbin <= fPrimHist->GetXaxis()->GetNbins(); xbin++)
   {
     for (unsigned ybin = 1; ybin <= fPrimHist->GetYaxis()->GetNbins(); ybin++) 
