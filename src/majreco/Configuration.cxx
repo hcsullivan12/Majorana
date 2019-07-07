@@ -19,11 +19,11 @@
 
 // Preprocessing variables
 #ifdef VERSION
-#define majrecoVersion VERSION
+#define majoranaVersion VERSION
 #endif
 
 #ifdef PROJECTDIR
-#define majrecoDir PROJECTDIR
+#define majoranaDir PROJECTDIR
 #endif
 
 namespace majreco
@@ -82,10 +82,10 @@ void Configuration::ReadConfigFile()
   fUnpenalizedStopId  = boost::lexical_cast<size_t>(recoSect.get_child("unpenalizedStopId").get_value(""));
   fGamma              = boost::lexical_cast<float>(recoSect.get_child("gamma").get_value(""));
   // Files
-  fSimulateOutputPath   = std::string(majrecoDir)+"/"+filesSect.get_child("simulateOutputPath").get_value("");
-  fRecoOutputPath       = std::string(majrecoDir)+"/"+filesSect.get_child("recoOutputPath").get_value("");
-  fOpReferenceTablePath = std::string(majrecoDir)+"/"+filesSect.get_child("opReferenceTablePath").get_value("");
-  fPixelizationPath     = std::string(majrecoDir)+"/"+filesSect.get_child("pixelizationPath").get_value(""); 
+  fSimulateOutputPath   = std::string(majoranaDir)+"/"+filesSect.get_child("simulateOutputPath").get_value("");
+  fRecoOutputPath       = std::string(majoranaDir)+"/"+filesSect.get_child("recoOutputPath").get_value("");
+  fOpReferenceTablePath = std::string(majoranaDir)+"/"+filesSect.get_child("opReferenceTablePath").get_value("");
+  fPixelizationPath     = std::string(majoranaDir)+"/"+filesSect.get_child("pixelizationPath").get_value(""); 
 }
 
 //------------------------------------------------------------------------
@@ -101,7 +101,7 @@ void Configuration::PrintConfiguration()
 {
   // Hello there!
   std::cout << std::setfill('-') << std::setw(60) << "-" << std::setfill(' ')  << std::endl;
-  std::cout << "              Majorana " << majrecoVersion                     << std::endl;
+  std::cout << "              Majorana " << majoranaVersion                     << std::endl;
   //std::cout << "       Simulation software for SiPM Wheel           "        << std::endl;
   std::cout                                                                    << std::endl;
   std::cout << "Majorana Configuration:\n"
