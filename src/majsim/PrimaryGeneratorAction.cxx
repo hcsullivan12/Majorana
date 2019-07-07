@@ -36,7 +36,7 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
 //------------------------------------------------------------------------
 PrimaryGeneratorAction::~PrimaryGeneratorAction()
 {
-  if (!fPrimHist) delete fPrimHist;
+  if (fPrimHist) delete fPrimHist;
 }
 
 //------------------------------------------------------------------------

@@ -28,7 +28,8 @@ class RecoAnalyzer
   private: 
     void ResetVars();
 
-    TTree* fAnaTree;
+    TTree*      fAnaTree;
+    std::string fRecoOutputPath;
 
 };
 }
