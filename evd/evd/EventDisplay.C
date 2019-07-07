@@ -17,7 +17,7 @@ private:
    
    TRootEmbeddedCanvas *fCanvas1 = nullptr;
    TRootEmbeddedCanvas *fCanvas2 = nullptr;
-   TRootEmbeddedCanvas *fCanvas4 = nullptr;
+   TRootEmbeddedCanvas *fCanvas3 = nullptr;
    TRootEmbeddedCanvas *fCanvas4 = nullptr;   
    
    TH2I *fPrimHist = nullptr;
@@ -94,14 +94,23 @@ MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir
    vframe1->Resize(200,1000);
    hframe1->AddFrame(vframe1, new TGLayoutHints(kLHintsLeft | kLHintsExpandY,5,5,30,100));
 
-   // 2nd vertical frame
+   // horizontal frames for canvases
    TGHorizontalFrame *hframe3 = new TGHorizontalFrame(fMain,400,1000);
-   fCanvas1 = new TRootEmbeddedCanvas("fCanvas1",vframe2,200,200);   
-   vframe2->AddFrame(fCanvas1, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX | kLHintsCenterY | kLHintsExpandY,5,5,5,5));   
-   fCanvas2 = new TRootEmbeddedCanvas("fCanvas2",vframe2,200,200);
-   vframe2->AddFrame(fCanvas2, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX | kLHintsCenterY | kLHintsExpandY,5,5,5,5));
+   fCanvas1 = new TRootEmbeddedCanvas("fCanvas1",hframe3,200,200);   
+   hframe3->AddFrame(fCanvas1, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX | kLHintsCenterY | kLHintsExpandY,5,5,5,5)); 
+   fCanvas2 = new TRootEmbeddedCanvas("fCanvas2",hframe3,200,200);
+   hframe3->AddFrame(fCanvas2, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX | kLHintsCenterY | kLHintsExpandY,5,5,5,5));
+
+   TGHorizontalFrame *hframe4 = new TGHorizontalFrame(fMain,400,1000);
+   fCanvas3 = new TRootEmbeddedCanvas("fCanvas3",hframe4,200,200);   
+   hframe4->AddFrame(fCanvas3, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX | kLHintsCenterY | kLHintsExpandY,5,5,5,5)); 
+   fCanvas4 = new TRootEmbeddedCanvas("fCanvas4",hframe4,200,200);
+   hframe4->AddFrame(fCanvas4, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX | kLHintsCenterY | kLHintsExpandY,5,5,5,5));
+
+   vframe2->AddFrame(hframe3, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX | kLHintsCenterY | kLHintsExpandY,5,5,5,5)); 
+   vframe2->AddFrame(hframe4, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX | kLHintsCenterY | kLHintsExpandY,5,5,5,5)); 
    vframe2->Resize(1100,1000);
-   hframe1->AddFrame(vframe2, new TGLayoutHints(kLHintsLeft | kLHintsExpandX | kLHintsCenterY | kLHintsExpandY, 5,5,20,20) );
+   hframe1->AddFrame(vframe2, new TGLayoutHints(kLHintsLeft | kLHintsExpandX | kLHintsCenterY | kLHintsExpandY, 5,5,5,5) );
 
    // bold font for labels
    TGGC *fTextGC;
@@ -451,29 +460,74 @@ const std::map<size_t, size_t> MyMainFrame::ReadDataFile()
 //------------------------------------------------------------------------
 void MyMainFrame::UpdatePlots(const std::map<size_t, size_t>& mydata) 
 {
+  ///////////////////
+  // Updating canvas 1
   // Grab the top canvas
-  TCanvas *tc = fCanvas1->GetCanvas();
-  tc->Clear();
+  TCanvas *c1 = fCanvas1->GetCanvas();
+  c1->Clear();
 
   // We need the resulting plot from reco
   TFile f("recoanatree.root", "READ");
   if (f.IsOpen()) {
-    gStyle->SetPalette(kDeepSea);//kDarkBodyRadiator);
+    gStyle->SetPalette(kDarkBodyRadiator);
     TH2F *recoHist = nullptr;
     f.GetObject("histFinal", recoHist);
     if (recoHist) {
-      recoHist->SetTitle("Reconstructed");
+      recoHist->SetTitle("Reconstructed Image");
       recoHist->GetXaxis()->SetTitle("X [cm]");
       recoHist->GetYaxis()->SetTitle("Y [cm]");
       recoHist->Draw("colz");
-      tc->cd();
-      tc->Update();
+      c1->cd();
+      c1->Update();
     } else {cout << "\nWARNING: Couldn't find reco hist...\n";}
   } else {cout << "\nWARNING: Couldn't open root file...\n";}
-  
+  ///////////////////
+
+  ///////////////////
+  // Updating canvas 2
+  TCanvas *c2 = fCanvas2->GetCanvas();
+  c2->Clear();
+  if (f.IsOpen()) {
+    gStyle->SetPalette(kDarkBodyRadiator);
+    TH2F *chi2Hist = nullptr;
+    f.GetObject("chi2Final", chi2Hist);
+    if (chi2Hist) {
+      chi2Hist->SetTitle("Chi2 Image");
+      chi2Hist->GetXaxis()->SetTitle("X [cm]");
+      chi2Hist->GetYaxis()->SetTitle("Y [cm]");
+      chi2Hist->Draw("colz");
+      c2->cd();
+      c2->Update();
+    } else {cout << "\nWARNING: Couldn't find chi2 hist...\n";}
+  } else {cout << "\nWARNING: Couldn't open root file...\n";}
+  ///////////////////
+
+  ///////////////////
+  // Updating canvas 3
   // Grab the bottom canvas
-  TCanvas *bc = fCanvas2->GetCanvas();
-  bc->Clear();
+  TCanvas *c3 = fCanvas3->GetCanvas();
+  c3->Clear();
+  if (fDataType == "mc")
+  {
+    gStyle->SetPalette(kDeepSea);//kDarkBodyRadiator);
+
+    if (fPrimHist) 
+    {
+      cout << "HERE\n";
+      fPrimHist->SetTitle("True Image");
+      fPrimHist->GetXaxis()->SetTitle("X [cm]");
+      fPrimHist->GetYaxis()->SetTitle("Y [cm]");
+      fPrimHist->Draw("colz");
+      c3->cd();
+      c3->Update();
+    } else {cout << "\nWARNING: Couldn't find true distribution...\n";}
+  }
+  ////////////////////
+
+  ////////////////////
+  // Updating canvas 4
+  TCanvas *c4 = fCanvas4->GetCanvas();
+  c4->Clear();
   if (fDataType == "data")
   {
     // Make a histogram of the data
@@ -484,24 +538,11 @@ void MyMainFrame::UpdatePlots(const std::map<size_t, size_t>& mydata)
     h->GetXaxis()->SetTitle("SiPM ID");
     //h->SetBarOffset(0.5);
     h->Draw("");
-    bc->cd();
-    bc->Update();
+    c4->cd();
+    c4->Update();
   }
-  if (fDataType == "mc")
-  {
-    gStyle->SetPalette(kDeepSea);//kDarkBodyRadiator);
-
-    if (fPrimHist) 
-    {
-      cout << "HERE\n";
-      fPrimHist->SetTitle("True");
-      fPrimHist->GetXaxis()->SetTitle("X [cm]");
-      fPrimHist->GetYaxis()->SetTitle("Y [cm]");
-      fPrimHist->Draw("colz");
-      bc->cd();
-      bc->Update();
-    } else {cout << "\nWARNING: Couldn't find true distribution...\n";}
-  }
+  ///////////////////
+  
 }
 
 //------------------------------------------------------------------------

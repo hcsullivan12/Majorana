@@ -200,6 +200,15 @@ void Reconstructor::DoChi2()
   fMLGauss->GetMaximumXY(x, y);
   fEstimateX = x;
   fEstimateY = y;
+
+  // Fill reco image
+  for (const auto& pixel : *fPixelVec) 
+  {
+    auto content = fMLGauss->Eval(pixel.X(), pixel.Y());
+    auto xBin = fMLHist->GetXaxis()->FindBin(pixel.X());
+    auto yBin = fMLHist->GetYaxis()->FindBin(pixel.Y());
+    fMLHist->SetBinContent(xBin, yBin, content);
+  }
 }
 
 //------------------------------------------------------------------------
