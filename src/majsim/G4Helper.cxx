@@ -161,10 +161,26 @@ void G4Helper::RunG4()
     
     // Start run!
     fRunManager->BeamOn(1);
+    // Update DAQ file if in evd mode
+    if (config->EvdMode())
+    {
+      std::ofstream outfile(config->DAQFilePath().c_str());
+      auto data = photonTable->GetPhotonsDetected();
+      for (const auto& d : data) outfile << d.second.size() << " ";
+    }
+    
+    // Write true distribution
+    TFile f(config->SimulateOutputPath().c_str(), "UPDATE");
+    fGeneratorAction->GetPrimHist()->Write();
+    f.Close();
+
     // Fill our ntuple
     analyzer.Fill(e);
     // Clear the photon table!
     photonTable->Reset();
+  
+    // Sleep if in evd mode
+    if (config->EvdMode()) sleep(3);
   }
 }
 

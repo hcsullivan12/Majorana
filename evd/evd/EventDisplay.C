@@ -10,8 +10,6 @@
 #include <sys/stat.h>
 #include "doReconstruct.C"
 
-//#include "ev_display_WheelReco.cxx"
-
 class MyMainFrame {
    RQ_OBJECT("MyMainFrame")
 private:
@@ -19,29 +17,45 @@ private:
    
    TRootEmbeddedCanvas *fCanvas1 = nullptr;
    TRootEmbeddedCanvas *fCanvas2 = nullptr;
+   TRootEmbeddedCanvas *fCanvas3 = nullptr;
+   TRootEmbeddedCanvas *fCanvas4 = nullptr;   
    
+   TH2I *fPrimHist = nullptr;
+
    TGTextButton         *fStartBut;
    TGTextButton      *fSetParamBut;
    
-   TGTextEntry        *fDiskREnt;
-   TGTextEntry       *fNsipmsEnt;
-   TGTextEntry    *fPixelSizeEnt;
+   TGTextEntry        *fDiskREnt = nullptr;
+   TGTextEntry       *fNsipmsEnt = nullptr;
+   TGTextEntry    *fPixelSizeEnt = nullptr;
+   TGTextEntry        *fGammaEnt = nullptr;
+   TGTextEntry  *fUnpenalizedIterEnt = nullptr;
+   TGTextEntry    *fPenalizedIterEnt = nullptr;
 
    TGVButtonGroup   *dataTypeButGroup;
    TGCheckButton             *isMCBut;
    TGCheckButton           *isDataBut;
 
-   bool fIsRunning = false;
-   double fLastUpdate = 0;
-   TTimer *fTimer = nullptr;
-   std::string fDataFile = "./daq/data.txt";
+   TGVButtonGroup       *emmlButGroup;
+
+   TGCheckButton           *doEmMlBut;
+   TGCheckButton           *doChi2But;
+   TGCheckButton      *doPenalizedBut;
+
    std::string fTopDir;
-   double fDiskR  = 14.5;
-   int fNsipms    = 64;
-   int fPixelSize = 5;
-   double fX;
-   double fY;
-   std::string fDataType = "data";
+   bool        fIsRunning  = false;
+   double      fLastUpdate = 0;
+   TTimer      *fTimer     = nullptr;
+   std::string fDataFilePath = "./daq/data.txt";
+   std::string fTrueDistPath = "../output/simulateOutput.root";
+   double      fDiskR      = 14.5;
+   int         fNsipms     = 64;
+   int         fPixelSize  = 5;
+   size_t      fUnpenalizedIter = 100;
+   size_t      fPenalizedIter   = 100;
+   double      fGamma      = 0.5;
+   std::string fDataType   = "data";
+   std::string fMethod     = "chi2";
 
 public:
    MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir);
@@ -53,12 +67,15 @@ public:
    void SetParameters();
    bool IsDAQFileModified();
    void HandleTimer();
-   const std::map<unsigned, unsigned> ReadDataFile();
-   void UpdatePlots(const std::map<unsigned, unsigned>& mydata);
+   const std::map<size_t, size_t> ReadDataFile();
+   void UpdatePlots(const std::map<size_t, size_t>& mydata);
    void SetDataTypeMC();
    void SetDataTypeData();
+   void SetMethodChi2();
+   void SetMethodEmMl();
 };
 
+//------------------------------------------------------------------------
 MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir) 
 {
    // Create a main frame
@@ -77,13 +94,23 @@ MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir
    vframe1->Resize(200,1000);
    hframe1->AddFrame(vframe1, new TGLayoutHints(kLHintsLeft | kLHintsExpandY,5,5,30,100));
 
-   // 2nd vertical frame
-   fCanvas1 = new TRootEmbeddedCanvas("fCanvas1",vframe2,200,200);   
-   vframe2->AddFrame(fCanvas1, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX | kLHintsCenterY | kLHintsExpandY,5,5,5,5));   
-   fCanvas2 = new TRootEmbeddedCanvas("fCanvas2",vframe2,200,200);
-   vframe2->AddFrame(fCanvas2, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX | kLHintsCenterY | kLHintsExpandY,5,5,5,5));
+   // horizontal frames for canvases
+   TGHorizontalFrame *hframe3 = new TGHorizontalFrame(fMain,400,1000);
+   fCanvas1 = new TRootEmbeddedCanvas("fCanvas1",hframe3,200,200);   
+   hframe3->AddFrame(fCanvas1, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX | kLHintsCenterY | kLHintsExpandY,5,5,5,5)); 
+   fCanvas2 = new TRootEmbeddedCanvas("fCanvas2",hframe3,200,200);
+   hframe3->AddFrame(fCanvas2, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX | kLHintsCenterY | kLHintsExpandY,5,5,5,5));
+
+   TGHorizontalFrame *hframe4 = new TGHorizontalFrame(fMain,400,1000);
+   fCanvas3 = new TRootEmbeddedCanvas("fCanvas3",hframe4,200,200);   
+   hframe4->AddFrame(fCanvas3, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX | kLHintsCenterY | kLHintsExpandY,5,5,5,5)); 
+   fCanvas4 = new TRootEmbeddedCanvas("fCanvas4",hframe4,200,200);
+   hframe4->AddFrame(fCanvas4, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX | kLHintsCenterY | kLHintsExpandY,5,5,5,5));
+
+   vframe2->AddFrame(hframe3, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX | kLHintsCenterY | kLHintsExpandY,5,5,5,5)); 
+   vframe2->AddFrame(hframe4, new TGLayoutHints(kLHintsExpandX | kLHintsCenterX | kLHintsCenterY | kLHintsExpandY,5,5,5,5)); 
    vframe2->Resize(1100,1000);
-   hframe1->AddFrame(vframe2, new TGLayoutHints(kLHintsLeft | kLHintsExpandX | kLHintsCenterY | kLHintsExpandY, 5,5,20,20) );
+   hframe1->AddFrame(vframe2, new TGLayoutHints(kLHintsLeft | kLHintsExpandX | kLHintsCenterY | kLHintsExpandY, 5,5,5,5) );
 
    // bold font for labels
    TGGC *fTextGC;
@@ -134,7 +161,7 @@ MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir
    fTextGC1 = gClient->GetGC(&gval1, kTRUE);
    //gClient->GetColorByName("black", blackcolor);
    TGLabel *tRecoConfig = new TGLabel(vframe3, "Configuration", fTextGC->GetGC(), labelboldfont, kChildFrame);
-   vframe3->AddFrame(tRecoConfig, new TGLayoutHints(kLHintsCenterX, 5,5,150,5));
+   vframe3->AddFrame(tRecoConfig, new TGLayoutHints(kLHintsCenterX, 5,5,30,5));
 
    /* Disk Radius */
    stringstream stream;
@@ -162,17 +189,82 @@ MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir
    vhframe10->AddFrame(fNsipmsEnt, new TGLayoutHints(kLHintsRight | kLHintsTop,5,5,2,5));
    vframe3->AddFrame(vhframe10, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
 
-   /* Pixel size */   
-   TGHorizontalFrame *vhframe11 = new TGHorizontalFrame(vframe3,400,20);
-   vhframe11->AddFrame(new TGLabel(vhframe11, "Pixel size: ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsLeft, 0,5,5,5));
-   TGTextBuffer *pixelSize = new TGTextBuffer(10);
-   pixelSize->AddText(0, std::to_string(fPixelSize).c_str());
-   fPixelSizeEnt = new TGTextEntry(vhframe11, pixelSize);
+   /* pixel size */   
+   stream.str("");
+   stream << fixed << setprecision(2) << fPixelSize;
+   TGHorizontalFrame *vhframe16 = new TGHorizontalFrame(vframe3,400,20);
+   vhframe16->AddFrame(new TGLabel(vhframe16, "Pixel spacing: ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsLeft, 0,5,5,5));
+   TGTextBuffer *pixelsize = new TGTextBuffer(10);
+   pixelsize->AddText(0, stream.str().c_str());
+   fPixelSizeEnt = new TGTextEntry(vhframe16, pixelsize);
    fPixelSizeEnt->Resize(50, fPixelSizeEnt->GetDefaultHeight());
    fPixelSizeEnt->SetFont("-adobe-courier-r-*-*-12-*-*-*-*-*-iso8859-1");
-   vhframe11->AddFrame(new TGLabel(vhframe11, "mm", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsRight, 5,5,5,0));
-   vhframe11->AddFrame(fPixelSizeEnt, new TGLayoutHints(kLHintsRight | kLHintsTop,5,5,2,5));
-   vframe3->AddFrame(vhframe11, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
+   vhframe16->AddFrame(new TGLabel(vhframe16, "mm", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsRight, 5,5,5,0));
+   vhframe16->AddFrame(fPixelSizeEnt, new TGLayoutHints(kLHintsRight | kLHintsTop,5,5,2,5));
+   vframe3->AddFrame(vhframe16, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
+
+   /* Method */   
+   TGHorizontalFrame *vhframe17 = new TGHorizontalFrame(vframe3,400,20);
+   vhframe17->AddFrame(new TGLabel(vhframe17, "Method: ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsLeft, 0,5,5,5));
+   doChi2But = new TGCheckButton(vhframe17, new TGHotString("Chi2"));
+   vhframe17->AddFrame(doChi2But, new TGLayoutHints(kLHintsRight, 5,5,5,5));
+   doChi2But->SetState(kButtonDown);
+   doChi2But->Connect("Clicked()","MyMainFrame",this,"SetMethodChi2()");
+   doEmMlBut = new TGCheckButton(vhframe17, new TGHotString("EM-ML"));
+   vhframe17->AddFrame(doEmMlBut, new TGLayoutHints(kLHintsRight, 5,5,5,5));
+   vframe3->AddFrame(vhframe17, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
+   if (doChi2But->IsOn()) doEmMlBut->SetState(kButtonUp);
+   else doEmMlBut->SetState(kButtonDown);
+   doEmMlBut->Connect("Clicked()","MyMainFrame",this,"SetMethodEmMl()");
+
+   /* Gamma */   
+   dataTypeButGroup = new TGVButtonGroup(vframe3, "EM-ML Parameters");
+   stream.str("");
+   stream << fixed << setprecision(2) << fGamma;
+   TGHorizontalFrame *vhframe12 = new TGHorizontalFrame(dataTypeButGroup,400,20);
+   vhframe12->AddFrame(new TGLabel(vhframe12, "Gamma: ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsLeft, 0,5,5,5));
+   TGTextBuffer *gammaBuf = new TGTextBuffer(10);
+   gammaBuf->AddText(0, stream.str().c_str());
+   fGammaEnt = new TGTextEntry(vhframe12, gammaBuf);
+   fGammaEnt->Resize(50, fGammaEnt->GetDefaultHeight());
+   fGammaEnt->SetFont("-adobe-courier-r-*-*-12-*-*-*-*-*-iso8859-1");
+   vhframe12->AddFrame(new TGLabel(vhframe12, "  ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsRight, 5,5,5,0));
+   vhframe12->AddFrame(fGammaEnt, new TGLayoutHints(kLHintsRight | kLHintsTop,5,5,2,5));
+   dataTypeButGroup->AddFrame(vhframe12, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
+
+   /* Do penalized reconstruction */   
+   TGHorizontalFrame *vhframe11 = new TGHorizontalFrame(dataTypeButGroup,400,20);
+   vhframe11->AddFrame(new TGLabel(vhframe11, "Do penalized: ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsLeft, 0,5,5,5));
+   doPenalizedBut = new TGCheckButton(vhframe11, new TGHotString(""));
+   vhframe11->AddFrame(doPenalizedBut, new TGLayoutHints(kLHintsRight, 5,40,5,5));
+   dataTypeButGroup->AddFrame(vhframe11, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
+   doPenalizedBut->SetState(kButtonDown);
+
+   /* Unpenalized iter */   
+   TGHorizontalFrame *vhframe14 = new TGHorizontalFrame(dataTypeButGroup,400,20);
+   vhframe14->AddFrame(new TGLabel(vhframe14, "Unpenalized iterations: ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsLeft, 0,5,5,5));
+   TGTextBuffer *unpenIter = new TGTextBuffer(10);
+   unpenIter->AddText(0, std::to_string(fUnpenalizedIter).c_str());
+   fUnpenalizedIterEnt = new TGTextEntry(vhframe14, unpenIter);
+   fUnpenalizedIterEnt->Resize(50, fUnpenalizedIterEnt->GetDefaultHeight());
+   fUnpenalizedIterEnt->SetFont("-adobe-courier-r-*-*-12-*-*-*-*-*-iso8859-1");
+   vhframe14->AddFrame(new TGLabel(vhframe14, "  ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsRight, 5,5,5,0));
+   vhframe14->AddFrame(fUnpenalizedIterEnt, new TGLayoutHints(kLHintsRight | kLHintsTop,5,5,2,5));
+   dataTypeButGroup->AddFrame(vhframe14, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
+
+   /* Unpenalized iter */   
+   TGHorizontalFrame *vhframe15 = new TGHorizontalFrame(dataTypeButGroup,400,20);
+   vhframe15->AddFrame(new TGLabel(vhframe15, "Penalized iterations: ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsLeft, 0,5,5,5));
+   TGTextBuffer *penIter = new TGTextBuffer(10);
+   penIter->AddText(0, std::to_string(fPenalizedIter).c_str());
+   fPenalizedIterEnt = new TGTextEntry(vhframe15, penIter);
+   fPenalizedIterEnt->Resize(50, fPenalizedIterEnt->GetDefaultHeight());
+   fPenalizedIterEnt->SetFont("-adobe-courier-r-*-*-12-*-*-*-*-*-iso8859-1");
+   vhframe15->AddFrame(new TGLabel(vhframe15, "  ", fTextGC1->GetGC(), label1font, kChildFrame), new TGLayoutHints(kLHintsRight, 5,5,5,0));
+   vhframe15->AddFrame(fPenalizedIterEnt, new TGLayoutHints(kLHintsRight | kLHintsTop,5,5,2,5));
+   dataTypeButGroup->AddFrame(vhframe15, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,5,5));
+
+   vframe3->AddFrame(dataTypeButGroup, new TGLayoutHints(kLHintsExpandX,5,5,5,5) );
 
    /* Set Params */
    fSetParamBut = new TGTextButton(vframe3,"Set Parameters");
@@ -212,7 +304,7 @@ MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir
 
    /* Quit button */
    TGTextButton *quit = new TGTextButton(vframe3,"&Quit", "gApplication->Terminate(0)");
-   vframe3->AddFrame(quit, new TGLayoutHints(kLHintsExpandX | kLHintsBottom,5,5,5,200) );
+   vframe3->AddFrame(quit, new TGLayoutHints(kLHintsExpandX | kLHintsBottom,5,5,5,100) );
 
    /* Start button */
    fStartBut = new TGTextButton(vframe3,"Start");
@@ -240,12 +332,14 @@ MyMainFrame::MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir
    std::cout << std::endl;
 }
 
+//------------------------------------------------------------------------
 MyMainFrame::~MyMainFrame() {
   // Clean up used widgets: frames, buttons, layout hints
   fMain->Cleanup();
   delete fMain;
 }
 
+//------------------------------------------------------------------------
 void MyMainFrame::SetDataTypeData()
 {
   fDataType = "data";
@@ -254,6 +348,7 @@ void MyMainFrame::SetDataTypeData()
   isDataBut->SetState(kButtonDown);
 }
 
+//------------------------------------------------------------------------
 void MyMainFrame::SetDataTypeMC()
 {
   fDataType = "mc";
@@ -262,67 +357,93 @@ void MyMainFrame::SetDataTypeMC()
   isMCBut->SetState(kButtonDown);
 }
 
+//------------------------------------------------------------------------
+void MyMainFrame::SetMethodChi2()
+{
+  fMethod = "chi2";
+
+  if (doEmMlBut->IsOn()) doEmMlBut->SetState(kButtonUp);
+  doChi2But->SetState(kButtonDown);
+}
+
+//------------------------------------------------------------------------
+void MyMainFrame::SetMethodEmMl()
+{
+  fMethod = "emml";
+
+  if (doChi2But->IsOn()) doChi2But->SetState(kButtonUp);
+  doEmMlBut->SetState(kButtonDown);
+}
+
+
+//------------------------------------------------------------------------
 void MyMainFrame::ChangeStartLabel()
 {
   fStartBut->SetState(kButtonDown);
 
   // If it is not currently running, start it
-  if (!fIsRunning) 
+  if (std::string(*fStartBut->GetText()) == "Start") 
   {
     fStartBut->SetText("Stop");
     // Start the time to check for updated daq file
-    std::cout << "\n"
-              << "Listening for DAQ files...\n";
+    std::cout << "\nListening for DAQ files...\n";
     if (fTimer) fTimer->Start(1000, kFALSE);
-    fIsRunning = true;
   } 
   else 
   {
     std::cout << "Stopping reconstruction...\n";
     fStartBut->SetText("Start");
     if (fTimer) fTimer->Stop();
-    fIsRunning = false;
   }
   fStartBut->SetState(kButtonUp);
 }
 
+//------------------------------------------------------------------------
 void MyMainFrame::StartReco() 
 {
    std::cout << "//////////////////////////////////////////////////////\n";
    std::cout << "\nStarting reconstruction..." << std::endl;
+   fIsRunning = true;
    
-   // Not the most efficient, but we will read our DAQ file twice
+   // We will read our DAQ file twice
    auto mydata = ReadDataFile();
    if (mydata.size() != fNsipms) {cout << "\nWarning: Data size not equal to " << fNsipms << "\n"; return;}
 
    // Now we can pass our data to the reconstructor
    std::string pixelizationPath = fTopDir+"/production/production_v1_1/"+std::to_string(fPixelSize)+"mm/pixelization.txt";
    std::string opRefTablePath   = fTopDir+"/production/production_v1_1/"+std::to_string(fPixelSize)+"mm/"+std::to_string(fNsipms)+"sipms/splinedOpRefTable.txt";
-   std::string doRecoCmd = "doReconstruct(\""+pixelizationPath+"\",\""+opRefTablePath+"\", \""+fDataFile+"\", "+std::to_string(fDiskR)+")";
+
+   // Call the specific reconstruct method based on method
+   std::string doRecoCmd = "doReconstruct(\""+pixelizationPath              +"\",\""+opRefTablePath+"\","
+                                            " \""+fDataFilePath                   +"\", "+std::to_string(fDiskR)+","
+                                            " "+std::to_string(fGamma)          +", "+std::to_string(doPenalizedBut->IsOn())+","
+                                            " "+std::to_string(fPenalizedIter)  +", "+std::to_string(fUnpenalizedIter)+", "
+                                            " \""+fMethod+"\")";
+
    //cout << doRecoCmd << endl;
    gROOT->ProcessLine(doRecoCmd.c_str()); 
 
    // Update plots
    UpdatePlots(mydata);
+   std::cout << "Updated plots...\n";
+   // Finished
+   fIsRunning = false;
 }
 
-const std::map<unsigned, unsigned> MyMainFrame::ReadDataFile() 
+//------------------------------------------------------------------------
+const std::map<size_t, size_t> MyMainFrame::ReadDataFile() 
 {
   // The file should contain the number of photons detected by the sipms
-  std::ifstream theFile(fDataFile.c_str());
+  std::ifstream theFile(fDataFilePath.c_str());
   std::string line;
-  std::map<unsigned, unsigned> v;
+  std::map<size_t, size_t> v;
   if (theFile.is_open()) {
-    std::getline(theFile, line);
-    if (!line.size()) return v;
-    // this is x and y
-    fX = std::stod(line.substr(0, line.find(" "))); 
-    fY = std::stod(line.substr(line.find(" ")+1));
-
     // this is data
     std::getline(theFile, line);
   }
+  if (!line.size()) return v;
 
+  // remove white space
   size_t pos = 0;
   size_t counter = 1;
   std::string delimiter = " ";
@@ -336,12 +457,15 @@ const std::map<unsigned, unsigned> MyMainFrame::ReadDataFile()
   return v;
 }
 
-void MyMainFrame::UpdatePlots(const std::map<unsigned, unsigned>& mydata) 
+//------------------------------------------------------------------------
+void MyMainFrame::UpdatePlots(const std::map<size_t, size_t>& mydata) 
 {
+  ///////////////////
+  // Updating canvas 1
   // Grab the top canvas
-  TCanvas *tc = fCanvas1->GetCanvas();
-  tc->Clear();
-  
+  TCanvas *c1 = fCanvas1->GetCanvas();
+  c1->Clear();
+
   // We need the resulting plot from reco
   TFile f("recoanatree.root", "READ");
   if (f.IsOpen()) {
@@ -349,92 +473,152 @@ void MyMainFrame::UpdatePlots(const std::map<unsigned, unsigned>& mydata)
     TH2F *recoHist = nullptr;
     f.GetObject("histFinal", recoHist);
     if (recoHist) {
-      recoHist->SetTitle("Reconstructed");
+      recoHist->SetTitle("Reconstructed Image");
       recoHist->GetXaxis()->SetTitle("X [cm]");
       recoHist->GetYaxis()->SetTitle("Y [cm]");
       recoHist->Draw("colz");
-      tc->cd();
-      tc->Update();
+      c1->cd();
+      c1->Update();
     } else {cout << "\nWARNING: Couldn't find reco hist...\n";}
   } else {cout << "\nWARNING: Couldn't open root file...\n";}
-  
+  ///////////////////
+
+  ///////////////////
+  // Updating canvas 2
+  TCanvas *c2 = fCanvas2->GetCanvas();
+  c2->Clear();
+  if (f.IsOpen()) {
+    gStyle->SetPalette(kDarkBodyRadiator);
+    TH2F *chi2Hist = nullptr;
+    f.GetObject("chi2Final", chi2Hist);
+    if (chi2Hist) {
+      chi2Hist->SetTitle("Chi2/n Image");
+      chi2Hist->GetXaxis()->SetTitle("X [cm]");
+      chi2Hist->GetYaxis()->SetTitle("Y [cm]");
+      for (size_t i=1;i<=chi2Hist->GetXaxis()->GetNbins();i++) for (size_t j=1;j<=chi2Hist->GetYaxis()->GetNbins();j++)chi2Hist->SetBinContent(i,j,chi2Hist->GetBinContent(i,j)/fNsipms);
+      chi2Hist->Draw("colz");
+
+      //TH2F* chi2Hist68 = (TH2F*)chi2Hist->Clone(); 
+      //cout << "HEYY " << TMath::ChisquareQuantile(0.68, fNsipms) << endl;
+      //Double_t chi2Quant68[1] = {TMath::ChisquareQuantile(0.68, fNsipms)};
+      //chi2Hist68->Smooth();
+      //chi2Hist68->SetContour(1, chi2Quant68);
+      //chi2Hist68->SetLineWidth(3);
+      //chi2Hist68->SetLineColor(kRed);
+      //chi2Hist68->Draw("cont3 same");
+
+      c2->cd();
+      c2->Update();
+    } else {cout << "\nWARNING: Couldn't find chi2 hist...\n";}
+  } else {cout << "\nWARNING: Couldn't open root file...\n";}
+  ///////////////////
+
+  ///////////////////
+  // Updating canvas 3
   // Grab the bottom canvas
-  TCanvas *bc = fCanvas2->GetCanvas();
-  
+  TCanvas *c3 = fCanvas3->GetCanvas();
+  c3->Clear();
+  if (fDataType == "mc")
+  {
+    gStyle->SetPalette(kDeepSea);//kDarkBodyRadiator);
+
+    if (fPrimHist) 
+    {
+      cout << "HERE\n";
+      fPrimHist->SetTitle("True Image");
+      fPrimHist->GetXaxis()->SetTitle("X [cm]");
+      fPrimHist->GetYaxis()->SetTitle("Y [cm]");
+      fPrimHist->Draw("colz");
+      c3->cd();
+      c3->Update();
+    } else {cout << "\nWARNING: Couldn't find true distribution...\n";}
+  }
+  ////////////////////
+
+  ////////////////////
+  // Updating canvas 4
+  TCanvas *c4 = fCanvas4->GetCanvas();
+  c4->Clear();
   if (fDataType == "data")
   {
     // Make a histogram of the data
     TH1I *h = new TH1I("h", "Measured Light Yield", mydata.size(), 0.5, mydata.size()+0.5);
     for (const auto& d : mydata) h->SetBinContent(d.first, d.second);
-    bc->Clear();
     h->SetLineColor(4);
     h->SetLineWidth(4);
     h->GetXaxis()->SetTitle("SiPM ID");
     //h->SetBarOffset(0.5);
     h->Draw("");
-    bc->cd();
-    bc->Update();
+    c4->cd();
+    c4->Update();
   }
-  if (fDataType == "mc")
-  {
-    // Grab the true distribution for the simulate output
-    // This is not the best solution but it'll do for now
-    std::string trueDistPath = "trueDist.root";
-    TFile s(trueDistPath.c_str(), "READ");
-    if (s.IsOpen()) {
-      gStyle->SetPalette(kDarkBodyRadiator);
-      TH2I *primHist = nullptr;
-      s.GetObject("primHist", primHist);
-      if (primHist) {
-        primHist->SetTitle("True");
-        primHist->GetXaxis()->SetTitle("X [cm]");
-        primHist->GetYaxis()->SetTitle("Y [cm]");
-        bc->Clear();
-        primHist->Draw("colz");
-        bc->cd();
-        bc->Update();
-      } else {cout << "\nWARNING: Couldn't find true distribution...\n";}
-    } else {cout << "\nWARNING: Couldn't find simulate output path named \'"+trueDistPath+"\'...\n";}
-  }
+  ///////////////////
+  
 }
 
+//------------------------------------------------------------------------
 void MyMainFrame::SetParameters()
 {
   // Get the current settings
+
+  // Do not allow to change disk radius
   stringstream stream;
   stream << fixed << setprecision(2) << fDiskR;
   fDiskREnt->SetText(stream.str().c_str());
 
+
   fNsipms    = std::stoi(fNsipmsEnt->GetText());
-  fPixelSize = std::stoi(fPixelSizeEnt->GetText());
+  fPixelSize = std::stod(fPixelSizeEnt->GetText());
+  fGamma     = std::stod(fGammaEnt->GetText());
+  std::string doPenalizedStr = doPenalizedBut->IsOn() ? "yes" : "no";
+  fUnpenalizedIter = std::stoi(fUnpenalizedIterEnt->GetText());
+  fPenalizedIter   = std::stoi(fPenalizedIterEnt->GetText());
 
   std::cout << "\n"
             << "Updating parameters...\n"
             << "Disk radius set to:        " << fDiskR     << "\n"
             << "Number of SiPMs set to:    " << fNsipms    << "\n"
             << "Pixel size set to:         " << fPixelSize << "\n"
+            << "Gamma set to:              " << fGamma     << "\n"
+            << "Do penalized:              " << doPenalizedStr << "\n"
+            << "Unpenalized iterations:    " << fUnpenalizedIter << "\n"
+            << "Penalized iterations:    " << fPenalizedIter << "\n"
             << std::endl;
 }
 
+//------------------------------------------------------------------------
 bool MyMainFrame::IsDAQFileModified() 
 {
   struct stat fileStat;
-  int err = stat(fDataFile.c_str(), &fileStat);
+  int err = stat(fDataFilePath.c_str(), &fileStat);
   if (err != 0) {
-    perror(fDataFile.c_str());
+    perror(fDataFilePath.c_str());
   }
   if (fileStat.st_mtime > fLastUpdate) {
-     fLastUpdate = fileStat.st_mtime;
-     return true;
+    fLastUpdate = fileStat.st_mtime; 
+    return true;
   }
   return false;
 }
 
+//------------------------------------------------------------------------
 void MyMainFrame::HandleTimer() 
 {
-   if (IsDAQFileModified()) StartReco();
+  if (!fIsRunning && IsDAQFileModified()) 
+  {
+    std::cout << "Detected new DAQ file!\n";
+    // Grab the true distribution
+    TFile s(fTrueDistPath.c_str(), "READ");
+    if (s.IsOpen()) {
+      s.GetObject("primHist", fPrimHist);
+      if (!fPrimHist) cout << "\nWARNING: Couldn't find true distribution...\n";
+      //s.Close();
+    } else {cout << "\nWARNING: Couldn't find simulate output path named \'"+fTrueDistPath+"\'...\n";}
+    StartReco();
+  }
 }
 
+//------------------------------------------------------------------------
 void EventDisplay(std::string topDir) 
 {
   // Popup the GUI...

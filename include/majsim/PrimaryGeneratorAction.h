@@ -21,6 +21,8 @@
 #include "CLHEP/Random/RandFlat.h"
 #include "CLHEP/Random/RandGaussQ.h"
 
+#include "TH2.h"
+
 class G4Event;
 
 namespace majsim {
@@ -42,6 +44,7 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
                G4double pixelSize = 5*CLHEP::mm);
 
     std::vector<G4double> GetSourcePositionRTZ() const { return fSourcePositionRTZ; };
+    TH2I*                 GetPrimHist()                { return fPrimHist; };
     std::vector<G4double> GetSourcePositionXYZ() const { return fSourcePositionXYZ; };
     unsigned           GetNPrimaries()           const { return fNPrimaries; };
 
@@ -56,6 +59,7 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
     G4double              fBinSize;           ///< Bin size for histogram 
     std::string           fSourceMode;        ///< 
     CLHEP::HepJamesRandom fRandomEngine;      ///< 
+    TH2I*                 fPrimHist;
 };
 
 }

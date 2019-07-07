@@ -17,7 +17,8 @@ namespace majsim {
 
 //------------------------------------------------------------------------
 PrimaryGeneratorAction::PrimaryGeneratorAction()
-: G4VUserPrimaryGeneratorAction()
+: G4VUserPrimaryGeneratorAction(),
+  fPrimHist(nullptr)
 {
   fParticleTable = 0;
 
@@ -34,7 +35,9 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
 
 //------------------------------------------------------------------------
 PrimaryGeneratorAction::~PrimaryGeneratorAction()
-{}
+{
+  //if (fPrimHist) delete fPrimHist;
+}
 
 //------------------------------------------------------------------------
 void PrimaryGeneratorAction::Reset(const G4double& r,
@@ -57,6 +60,12 @@ void PrimaryGeneratorAction::Reset(const G4double& r,
   
   fNPrimaries = n;
   fBinSize    = binSize; 
+
+  // Initialize true distribution
+  double diskRadius = Configuration::Instance()->DiskRadius()/CLHEP::cm;
+  size_t nBins = 2*std::floor(diskRadius/(binSize/CLHEP::cm)) + 1; // this assumes there is a pixel at the origin
+
+  if (!fPrimHist) fPrimHist = new TH2I("primHist", "primHist", nBins, -diskRadius, diskRadius, nBins, -diskRadius, diskRadius);
 }
 
 //------------------------------------------------------------------------
@@ -73,21 +82,15 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
   CLHEP::RandGaussQ gauss(fRandomEngine);
   CLHEP::RandFlat   flat(fRandomEngine);
 
-  // Initialize true distribution
-  auto config = Configuration::Instance();
-  double diskRadius = config->DiskRadius()/CLHEP::cm;
-  double binSize    = fBinSize/CLHEP::cm;
-  size_t nBins = 2*std::floor(diskRadius/binSize) + 1; // this assumes there is a pixel at the origin
-
-  TH2I primHist("primHist", "primHist", nBins, -diskRadius, diskRadius, nBins, -diskRadius, diskRadius);
-  for (unsigned xbin = 1; xbin <= primHist.GetXaxis()->GetNbins(); xbin++)
+  auto diskRadius = Configuration::Instance()->DiskRadius()/CLHEP::cm;
+  for (unsigned xbin = 1; xbin <= fPrimHist->GetXaxis()->GetNbins(); xbin++)
   {
-    for (unsigned ybin = 1; ybin <= primHist.GetYaxis()->GetNbins(); ybin++) 
+    for (unsigned ybin = 1; ybin <= fPrimHist->GetYaxis()->GetNbins(); ybin++) 
     {
-      float xV = primHist.GetXaxis()->GetBinCenter(xbin);
-      float yV = primHist.GetYaxis()->GetBinCenter(ybin);
+      float xV = fPrimHist->GetXaxis()->GetBinCenter(xbin);
+      float yV = fPrimHist->GetYaxis()->GetBinCenter(ybin);
       if ((xV*xV + yV*yV) > diskRadius*diskRadius) continue;
-      primHist.SetBinContent(xbin, ybin, 1); // this gives a nicer plot
+      fPrimHist->SetBinContent(xbin, ybin, 1); // this gives a nicer plot
     }
   }
 
@@ -106,7 +109,7 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 
       float xTemp = x/10;
       float yTemp = y/10;
-      if((xTemp*xTemp+yTemp*yTemp) < diskRadius*diskRadius) primHist.Fill(xTemp, yTemp);
+      if((xTemp*xTemp+yTemp*yTemp) < diskRadius*diskRadius) fPrimHist->Fill(xTemp, yTemp);
     }
     else
     {
@@ -175,10 +178,6 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
                                 polarization[2]);
     vertex->SetPrimary(g4Particle);
   }
-  
-  TFile f(config->SimulateOutputPath().c_str(), "UPDATE");
-  primHist.Write();
-  f.Close();
   
 }
 
