@@ -28,34 +28,63 @@ RecoAnalyzer::RecoAnalyzer()
   Configuration* config = Configuration::Instance();
   fRecoOutputPath = config->RecoOutputPath();
   
-  fAnaTree = new TTree("anatree", "analysis tree");
+  fOutputFile = new TFile(fRecoOutputPath.c_str(), "UPDATE");
+  fAnaTree    = new TTree("anatree", "analysis tree");
+  fAnaTree->SetDirectory(fOutputFile);
 
+  fAnaTree->Branch("event",      &fEvent, "event/I");
+  fAnaTree->Branch("nPixels",    &fNPixels, "nPixels/I");
+  fAnaTree->Branch("diskRadius", &fDiskRadius, "diskRadius/D");
+  fAnaTree->Branch("nPrimaries", &fNPrimaries, "nPrimaries/I");
+  fAnaTree->Branch("sourcePosXYZ",  &fSourcePosXYZ);
+  fAnaTree->Branch("sipmToLY",      &fSiPMToLY);
+  fAnaTree->Branch("recoTotalLY",   &fRecoTotalLY, "recoTotalLY/I");
 }
 
 //------------------------------------------------------------------------
 RecoAnalyzer::~RecoAnalyzer()
 {
-  TFile f(fRecoOutputPath.c_str(), "UPDATE");
   fAnaTree->Write();
-  f.Close();
 
-  if (fAnaTree) delete fAnaTree;
+  if (fAnaTree)    delete fAnaTree;
+  if (fOutputFile) delete fOutputFile;
 }
 
 //------------------------------------------------------------------------
-void RecoAnalyzer::Fill(const unsigned& e)
+void RecoAnalyzer::Fill(const size_t&             e,
+                        const size_t&             nPixels,
+                        const float&              diskRadius,
+                        const size_t&             nPrimaries,
+                        const std::vector<float>& sourcePosXYZ,
+                        const std::vector<int>&   sipmToLY,
+                        const size_t&             recoLY)
 {
   ResetVars();
+  /**
+   * @todo nPixels showing large value. May not be filling in simulation.
+   * 
+   */
+  fEvent        = e;
+  fNPixels      = 0;//nPixels;
+  fDiskRadius   = diskRadius;
+  fNPrimaries   = nPrimaries;
+  fSourcePosXYZ = sourcePosXYZ;
+  fSiPMToLY     = sipmToLY;
+  fRecoTotalLY  = recoLY;
 
-
-  
   fAnaTree->Fill();
 }
 
 //------------------------------------------------------------------------
 void RecoAnalyzer::ResetVars()
 {
- 
+  fEvent      = -99999;
+  fNPixels    = -99999;
+  fDiskRadius = -99999;
+  fNPrimaries = -99999;
+  fRecoTotalLY = -99999;
+  fSourcePosXYZ.clear();
+  fSiPMToLY.clear();
 }
 
 }

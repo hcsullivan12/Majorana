@@ -59,7 +59,7 @@ public:
    * @brief Reconstructs mean position based on Chi2 minimization.
    * 
    */
-  void DoChi2();              
+  void DoChi2(const size_t& iter);              
 
   /**
    * @brief Dump configuration and reconstruction results.
@@ -70,6 +70,7 @@ public:
   const double   ML()    const { return fMLLogLikelihood; }
   const float    X()     const { return fEstimateX; }
   const float    Y()     const { return fEstimateY; }
+  const size_t   TotalLight() const { return fEstimateTotalLight; }
   TH2F*          MLImage() { return fMLHist; }
   TH2F*          Chi2Image() { return fChi2Hist; }
     

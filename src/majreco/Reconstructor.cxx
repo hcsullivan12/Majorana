@@ -119,8 +119,10 @@ void Reconstructor::DoEmMl(const float&  gamma,
  * formed using the minimum chi2 X and Y value.
  * 
  */
-void Reconstructor::DoChi2()
+void Reconstructor::DoChi2(const size_t& upStop)
 {
+  fUnpenalizedIterStop = upStop;
+
   // Pixel structure for minimum chi2
   struct Chi2Pixel {
     float chi2;
@@ -194,6 +196,10 @@ void Reconstructor::DoChi2()
   /**
    * @todo Fix the 50000 here
    * @todo What do we use for the sigma in the gaussian? 
+   * @todo I can think of two methods to get the total light yield. The first
+   *       method uses the results of the unpenalized algorithm. The second is 
+   *       to scale the total detected light by some constant (may not be independent
+   *       of position).
    * 
    */
   fMLGauss = new TF2("g", "bigaus", -fDiskRadius, fDiskRadius, -fDiskRadius, fDiskRadius);
@@ -212,6 +218,10 @@ void Reconstructor::DoChi2()
     auto yBin = fMLHist->GetYaxis()->FindBin(pixel.Y());
     fMLHist->SetBinContent(xBin, yBin, content);
   }
+
+  // Use unpenalized reco to estimate total light
+  DoUnpenalized();
+  UpdateHistogram();
 }
 
 //------------------------------------------------------------------------

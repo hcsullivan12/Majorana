@@ -10,6 +10,7 @@
 #define MAJRECO_RECOANALYZER_HH
 
 #include "TTree.h"
+#include "TFile.h"
 
 namespace majreco {
 
@@ -23,14 +24,28 @@ class RecoAnalyzer
     RecoAnalyzer();
     ~RecoAnalyzer();
 
-    void Fill(const unsigned& e);
+    void Fill(const size_t&             e,
+              const size_t&             nPixels,
+              const float&              diskRadius,
+              const size_t&             nPrimaries,
+              const std::vector<float>& sourcePosXYZ,
+              const std::vector<int>&   sipmToLY,
+              const size_t&             recoLY);
       
   private: 
     void ResetVars();
 
     TTree*      fAnaTree;
+    TFile*      fOutputFile;
     std::string fRecoOutputPath;
 
+    int                fEvent;
+    int                fNPixels;
+    float              fDiskRadius;
+    int                fNPrimaries;
+    std::vector<float> fSourcePosXYZ;
+    std::vector<int> fSiPMToLY;
+    int                fRecoTotalLY;
 };
 }
 #endif
