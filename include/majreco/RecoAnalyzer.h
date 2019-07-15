@@ -30,7 +30,8 @@ class RecoAnalyzer
               const size_t&             nPrimaries,
               const std::vector<float>& sourcePosXYZ,
               const std::vector<int>&   sipmToLY,
-              const size_t&             recoLY);
+              const size_t&             recoLY,
+              const std::vector<float>& recoPosXYZ);
       
   private: 
     void ResetVars();
@@ -46,6 +47,7 @@ class RecoAnalyzer
     std::vector<float> fSourcePosXYZ;
     std::vector<int> fSiPMToLY;
     int                fRecoTotalLY;
+    std::vector<float> fRecoPosXYZ;
 };
 }
 #endif

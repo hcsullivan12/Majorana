@@ -498,15 +498,6 @@ void MyMainFrame::UpdatePlots(const std::map<size_t, size_t>& mydata)
       for (size_t i=1;i<=chi2Hist->GetXaxis()->GetNbins();i++) for (size_t j=1;j<=chi2Hist->GetYaxis()->GetNbins();j++)chi2Hist->SetBinContent(i,j,chi2Hist->GetBinContent(i,j)/fNsipms);
       chi2Hist->Draw("colz");
 
-      //TH2F* chi2Hist68 = (TH2F*)chi2Hist->Clone(); 
-      //cout << "HEYY " << TMath::ChisquareQuantile(0.68, fNsipms) << endl;
-      //Double_t chi2Quant68[1] = {TMath::ChisquareQuantile(0.68, fNsipms)};
-      //chi2Hist68->Smooth();
-      //chi2Hist68->SetContour(1, chi2Quant68);
-      //chi2Hist68->SetLineWidth(3);
-      //chi2Hist68->SetLineColor(kRed);
-      //chi2Hist68->Draw("cont3 same");
-
       c2->cd();
       c2->Update();
     } else {cout << "\nWARNING: Couldn't find chi2 hist...\n";}
@@ -524,7 +515,6 @@ void MyMainFrame::UpdatePlots(const std::map<size_t, size_t>& mydata)
 
     if (fPrimHist) 
     {
-      cout << "HERE\n";
       fPrimHist->SetTitle("True Image");
       fPrimHist->GetXaxis()->SetTitle("X [cm]");
       fPrimHist->GetYaxis()->SetTitle("Y [cm]");
@@ -539,19 +529,29 @@ void MyMainFrame::UpdatePlots(const std::map<size_t, size_t>& mydata)
   // Updating canvas 4
   TCanvas *c4 = fCanvas4->GetCanvas();
   c4->Clear();
-  if (fDataType == "data")
-  {
-    // Make a histogram of the data
-    TH1I *h = new TH1I("h", "Measured Light Yield", mydata.size(), 0.5, mydata.size()+0.5);
-    for (const auto& d : mydata) h->SetBinContent(d.first, d.second);
-    h->SetLineColor(4);
-    h->SetLineWidth(4);
-    h->GetXaxis()->SetTitle("SiPM ID");
-    //h->SetBarOffset(0.5);
-    h->Draw("");
-    c4->cd();
-    c4->Update();
+  gStyle->SetOptStat(0);
+  // Make a histogram of the data
+  TH1I *h = new TH1I("h", "Measured Light Yield", mydata.size(), 0.5, mydata.size()+0.5);
+  for (const auto& d : mydata) h->SetBinContent(d.first, d.second);
+  h->SetLineColor(4);
+  h->SetLineWidth(4);
+  h->GetXaxis()->SetTitle("SiPM ID");
+  h->Draw();
+  int max = h->GetMaximum();
+  if (f.IsOpen()) {
+    TH1I *expdataHist = nullptr;
+    f.GetObject("expdata", expdataHist);
+    if (expdataHist) {
+      expdataHist->SetMarkerColor(1);
+      expdataHist->SetMarkerStyle(8);
+      expdataHist->Draw("p same");
+      int thisMax = expdataHist->GetMaximum();
+      if (thisMax > max) h->SetMaximum(thisMax);
+      h->SetMinimum(0);
+    } else {cout << "\nWARNING: Couldn't find expdata hist...\n";}
   }
+  c4->cd();
+  c4->Update();
   ///////////////////
   
 }

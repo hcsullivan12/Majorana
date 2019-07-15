@@ -123,14 +123,6 @@ void Reconstructor::DoChi2(const size_t& upStop)
 {
   fUnpenalizedIterStop = upStop;
 
-  // Pixel structure for minimum chi2
-  struct Chi2Pixel {
-    float chi2;
-    std::vector<float> vertex;
-    size_t Id;
-  };
-  Chi2Pixel chi2Pixel;
-
   // Total amount of light seen
   double totalCounts(0);
   for (const auto& d : fData) totalCounts += d.second;
@@ -139,6 +131,7 @@ void Reconstructor::DoChi2(const size_t& upStop)
   size_t nDet = fData.size();
   
   // Loop over pixels
+  size_t iPix(0);
   for (const auto& pixel : *fPixelVec)
   {
     // The lookup table for this pixel
@@ -174,19 +167,20 @@ void Reconstructor::DoChi2(const size_t& upStop)
     if (chi2 < chi2Min)
     {
       chi2Min = chi2;
-      chi2Pixel.chi2 = chi2;
-      chi2Pixel.Id   = pixel.ID();
-      chi2Pixel.vertex.clear();
-      chi2Pixel.vertex.push_back(pixel.X());
-      chi2Pixel.vertex.push_back(pixel.Y());
+      fChi2Pixel.chi2 = chi2;
+      fChi2Pixel.id = iPix;
+      fChi2Pixel.vertex.clear();
+      fChi2Pixel.vertex.push_back(pixel.X());
+      fChi2Pixel.vertex.push_back(pixel.Y());
     }
+    iPix++;
   }
 
   std::cout << "\nChi2 pixel information:"
-            << "\nChi2 = " << chi2Pixel.chi2
-            << "\nX    = " << chi2Pixel.vertex[0] 
-            << "\nY    = " << chi2Pixel.vertex[1]
-            << "\nId   = " << chi2Pixel.Id
+            << "\nChi2 = " << fChi2Pixel.chi2
+            << "\nX    = " << fChi2Pixel.vertex[0] 
+            << "\nY    = " << fChi2Pixel.vertex[1]
+            << "\nId   = " << fChi2Pixel.id
             << "\n";
 
   // form a 2D gaussian hypothesis centered on chi2 prediction
@@ -196,14 +190,21 @@ void Reconstructor::DoChi2(const size_t& upStop)
   /**
    * @todo Fix the 50000 here
    * @todo What do we use for the sigma in the gaussian? 
-   * @todo I can think of two methods to get the total light yield. The first
-   *       method uses the results of the unpenalized algorithm. The second is 
-   *       to scale the total detected light by some constant (may not be independent
-   *       of position).
    * 
    */
+
+  double tempNum(0);
+  double tempDen(0);
+  auto lookupTable = (*fPixelVec)[fChi2Pixel.id].ReferenceTable();
+  for (size_t d = 1; d <= nDet; d++)
+  {
+    tempNum += lookupTable[d-1]*fData.find(d)->second;
+    tempDen += lookupTable[d-1]*lookupTable[d-1];
+  }
+  fEstimateTotalLight = tempNum/tempDen;
+
   fMLGauss = new TF2("g", "bigaus", -fDiskRadius, fDiskRadius, -fDiskRadius, fDiskRadius);
-  fMLGauss->SetParameters(50000, chi2Pixel.vertex[0], sigma, chi2Pixel.vertex[1], sigma, 0);
+  fMLGauss->SetParameters(fEstimateTotalLight, fChi2Pixel.vertex[0], sigma, fChi2Pixel.vertex[1], sigma, 0);
 
   Double_t x, y;
   fMLGauss->GetMaximumXY(x, y);
@@ -218,10 +219,19 @@ void Reconstructor::DoChi2(const size_t& upStop)
     auto yBin = fMLHist->GetYaxis()->FindBin(pixel.Y());
     fMLHist->SetBinContent(xBin, yBin, content);
   }
+}
 
-  // Use unpenalized reco to estimate total light
-  DoUnpenalized();
-  UpdateHistogram();
+//------------------------------------------------------------------------
+const std::map<size_t, size_t> Reconstructor::ExpectedCounts()
+{
+  std::map<size_t, size_t> expCounts;
+  auto opTable = (*fPixelVec)[fChi2Pixel.id].ReferenceTable();
+  for (size_t d = 1; d <= fData.size(); d++)
+  {
+    double expected = fEstimateTotalLight * opTable[d-1];
+    expCounts.emplace(d, expected);
+  }
+  return expCounts;
 }
 
 //------------------------------------------------------------------------

@@ -39,6 +39,7 @@ RecoAnalyzer::RecoAnalyzer()
   fAnaTree->Branch("sourcePosXYZ",  &fSourcePosXYZ);
   fAnaTree->Branch("sipmToLY",      &fSiPMToLY);
   fAnaTree->Branch("recoTotalLY",   &fRecoTotalLY, "recoTotalLY/I");
+  fAnaTree->Branch("recoPosXYZ",    &fRecoPosXYZ);
 }
 
 //------------------------------------------------------------------------
@@ -57,7 +58,8 @@ void RecoAnalyzer::Fill(const size_t&             e,
                         const size_t&             nPrimaries,
                         const std::vector<float>& sourcePosXYZ,
                         const std::vector<int>&   sipmToLY,
-                        const size_t&             recoLY)
+                        const size_t&             recoLY,
+                        const std::vector<float>& recoPosXYZ)
 {
   ResetVars();
   /**
@@ -71,6 +73,7 @@ void RecoAnalyzer::Fill(const size_t&             e,
   fSourcePosXYZ = sourcePosXYZ;
   fSiPMToLY     = sipmToLY;
   fRecoTotalLY  = recoLY;
+  fRecoPosXYZ   = recoPosXYZ;
 
   fAnaTree->Fill();
 }
@@ -85,6 +88,7 @@ void RecoAnalyzer::ResetVars()
   fRecoTotalLY = -99999;
   fSourcePosXYZ.clear();
   fSiPMToLY.clear();
+  fRecoPosXYZ.clear();
 }
 
 }

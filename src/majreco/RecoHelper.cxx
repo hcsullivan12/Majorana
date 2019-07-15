@@ -107,6 +107,8 @@ void RecoHelper::Start()
  
     reconstructor.DoChi2(config->UnpenalizedStopId());
     reconstructor.Dump();
+    
+    std::vector<float> recoPos = {reconstructor.X(), reconstructor.Y(), 1.0};
 
     analyzer.Fill(entry, 
                   nPixels,
@@ -114,7 +116,8 @@ void RecoHelper::Start()
                   nPrimaries,
                   *sourcePosXYZ,
                   *sipmToLY,
-                  reconstructor.TotalLight());
+                  reconstructor.TotalLight(),
+                  recoPos);
   }
 }
 
