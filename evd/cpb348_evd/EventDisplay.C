@@ -56,6 +56,7 @@ private:
    double      fGamma      = 0.5;
    std::string fDataType   = "data";
    std::string fMethod     = "chi2";
+   RecoHelper  fRecoHelper;
 
 public:
    MyMainFrame(const TGWindow *p,UInt_t w,UInt_t h, std::string topDir);
@@ -68,11 +69,12 @@ public:
    bool IsDAQFileModified();
    void HandleTimer();
    const std::map<size_t, size_t> ReadDataFile();
-   void UpdatePlots(const std::map<size_t, size_t>& mydata);
+   void UpdatePlots();
    void SetDataTypeMC();
    void SetDataTypeData();
    void SetMethodChi2();
    void SetMethodEmMl();
+   void UpdateRecoHelper();
 };
 
 //------------------------------------------------------------------------
@@ -385,6 +387,10 @@ void MyMainFrame::ChangeStartLabel()
   if (std::string(*fStartBut->GetText()) == "Start") 
   {
     fStartBut->SetText("Stop");
+
+    // Initialize reco helper
+    UpdateRecoHelper();
+
     // Start the time to check for updated daq file
     std::cout << "\nListening for DAQ files...\n";
     if (fTimer) fTimer->Start(1000, kFALSE);
@@ -399,33 +405,48 @@ void MyMainFrame::ChangeStartLabel()
 }
 
 //------------------------------------------------------------------------
+void MyMainFrame::UpdateRecoHelper()
+{
+  std::string pixelizationPath = fTopDir+"/production/production_v1_1/"+std::to_string(fPixelSize)+"mm/pixelization.txt";
+  std::string opRefTablePath   = fTopDir+"/production/production_v1_1/"+std::to_string(fPixelSize)+"mm/"+std::to_string(fNsipms)+"sipms/splinedOpRefTable.txt";
+  
+  // if these are new, we will load the new pixel scheme
+  std::string oldPixelPath  = fRecoHelper.thePixelPath;
+  std::string oldOpRefPath  = fRecoHelper.theOpRefPath;
+
+  fRecoHelper.theMethod          = fMethod;
+  fRecoHelper.thePixelPath       = pixelizationPath;
+  fRecoHelper.theOpRefPath       = opRefTablePath;
+  fRecoHelper.theDiskRadius      = fDiskR;
+  fRecoHelper.theGamma           = fGamma;
+  fRecoHelper.theDoPenalized     = doPenalizedBut->IsOn();
+  fRecoHelper.thePenalizedIter   = fPenalizedIter;
+  fRecoHelper.theUnpenalizedIter = fUnpenalizedIter;
+  fRecoHelper.thePixelSpacing    = fPixelSize/10.; // in cm
+
+  // Load pixels if needed
+  if (fRecoHelper.thePixelPath != oldPixelPath) LoadPixelization(fRecoHelper);
+  if (fRecoHelper.theOpRefPath != oldOpRefPath) LoadOpRefTable(fRecoHelper);
+}
+
+//------------------------------------------------------------------------
 void MyMainFrame::StartReco() 
 {
    std::cout << "//////////////////////////////////////////////////////\n";
    std::cout << "\nStarting reconstruction..." << std::endl;
    fIsRunning = true;
    
-   // We will read our DAQ file twice
-   auto mydata = ReadDataFile();
-   if (mydata.size() != fNsipms) {cout << "\nWarning: Data size not equal to " << fNsipms << "\n"; return;}
+   // Read the daq file
+   fRecoHelper.theData = ReadDataFile();
+   if (fRecoHelper.theData.size() != fNsipms) {cout << "\nWarning: Data size not equal to " << fNsipms << "\n"; return;}
 
-   // Now we can pass our data to the reconstructor
-   std::string pixelizationPath = fTopDir+"/production/production_v1_1/"+std::to_string(fPixelSize)+"mm/pixelization.txt";
-   std::string opRefTablePath   = fTopDir+"/production/production_v1_1/"+std::to_string(fPixelSize)+"mm/"+std::to_string(fNsipms)+"sipms/splinedOpRefTable.txt";
-
-   // Call the specific reconstruct method based on method
-   std::string doRecoCmd = "doReconstruct(\""+pixelizationPath              +"\",\""+opRefTablePath+"\","
-                                            " \""+fDataFilePath                   +"\", "+std::to_string(fDiskR)+","
-                                            " "+std::to_string(fGamma)          +", "+std::to_string(doPenalizedBut->IsOn())+","
-                                            " "+std::to_string(fPenalizedIter)  +", "+std::to_string(fUnpenalizedIter)+", "
-                                            " \""+fMethod+"\")";
-
-   //cout << doRecoCmd << endl;
-   gROOT->ProcessLine(doRecoCmd.c_str()); 
+   // Start reconstruction
+   Reconstruct(fRecoHelper);
 
    // Update plots
-   UpdatePlots(mydata);
+   UpdatePlots();
    std::cout << "Updated plots...\n";
+
    // Finished
    fIsRunning = false;
 }
@@ -458,7 +479,7 @@ const std::map<size_t, size_t> MyMainFrame::ReadDataFile()
 }
 
 //------------------------------------------------------------------------
-void MyMainFrame::UpdatePlots(const std::map<size_t, size_t>& mydata) 
+void MyMainFrame::UpdatePlots() 
 {
   ///////////////////
   // Updating canvas 1
@@ -531,8 +552,8 @@ void MyMainFrame::UpdatePlots(const std::map<size_t, size_t>& mydata)
   c4->Clear();
   gStyle->SetOptStat(0);
   // Make a histogram of the data
-  TH1I *h = new TH1I("h", "Measured Light Yield", mydata.size(), 0.5, mydata.size()+0.5);
-  for (const auto& d : mydata) h->SetBinContent(d.first, d.second);
+  TH1I *h = new TH1I("h", "Measured Light Yield", fRecoHelper.theData.size(), 0.5, fRecoHelper.theData.size()+0.5);
+  for (const auto& d : fRecoHelper.theData) h->SetBinContent(d.first, d.second);
   h->SetLineColor(4);
   h->SetLineWidth(4);
   h->GetXaxis()->SetTitle("SiPM ID");
@@ -584,6 +605,9 @@ void MyMainFrame::SetParameters()
             << "Unpenalized iterations:    " << fUnpenalizedIter << "\n"
             << "Penalized iterations:    " << fPenalizedIter << "\n"
             << std::endl;
+
+  // Update reco helper
+  UpdateRecoHelper();
 }
 
 //------------------------------------------------------------------------

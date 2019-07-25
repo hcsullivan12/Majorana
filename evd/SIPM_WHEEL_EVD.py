@@ -15,5 +15,5 @@ print('')
 print('Running event display...')
 print('')
 
-command = 'root -l \'./evd/EventDisplay.C(\"'+top_dir+'\")\''
+command = 'root -l \'./cpb348_evd/EventDisplay.C(\"'+top_dir+'\")\''
 os.system(command)

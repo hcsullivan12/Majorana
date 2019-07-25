@@ -10,13 +10,9 @@ const std::vector<float>    sipmPed        = {50,50,50,50,50,50,50,50,50,50,50,5
 const unsigned ledTriggers = 5000;
 
 std::vector<std::vector<Double_t>> param;
-std::vector<TH1F> histVec;
 std::string theOutputPath;
 std::string theTreePath;
 std::string theEvdPath;
-
-void initHistos();
-void ana();
 
 //------------------------------------------------------------------------
 void doAnalyze(std::string treepath, std::string outputpath, std::string evdpath)
@@ -26,8 +22,6 @@ void doAnalyze(std::string treepath, std::string outputpath, std::string evdpath
   theTreePath   = treepath;
   theOutputPath = outputpath;
   theEvdPath    = evdpath;
-  // Initialize histograms
-  initHistos();
 
   UShort_t chg[32];
   TFile theFile(theTreePath.c_str(), "READ");
@@ -36,108 +30,27 @@ void doAnalyze(std::string treepath, std::string outputpath, std::string evdpath
   theTree->SetBranchAddress("chg", chg);
   unsigned nentries = theTree->GetEntries();
 
-  std::vector<int> tempCount(febChannelsVec.size(), 0.);
+  // Get the ADC integrals
+  std::vector<float> theCounts(febChannelsVec.size(), 0.);
   for (Long64_t jentry=0; jentry<nentries; jentry++) 
   {
     theTree->GetEntry(jentry);
    
-    // Fill the histos
-    unsigned counter(0);
-    for (const auto& febID : febChannelsVec)
+    size_t counter(0);
+    for (const auto& febId : febChannelsVec)
     {
-      histVec[counter].Fill(chg[febID]);
-      tempCount[counter] += chg[febID];
+      theCounts[counter] += chg[febId];
       counter++;
     }
   }
 
-  // Plotting/fitting
-  std::cout << "Running ana...\n";
-  bool isZero = false;
-  bool isTooLarge = false;
-  long int thresh = 10000000000000;
-  for (const auto& c : tempCount) 
+  // Normalize to one trigger
+  // And N = (1/G) * integral
+  size_t counter(0);
+  for (auto& i : theCounts) 
   {
-    isZero     = c == 0 ? true : false;
-    isTooLarge = c > thresh ? true : false; 
-  }
-  if (isTooLarge) cout << "too  Large\n";
-  if (!isZero && !isTooLarge) ana();
-  gROOT->cd("Rint:/");
-  theTree->Reset();
-  param.clear();
-  histVec.clear();
-}
-
-//------------------------------------------------------------------------
-void initHistos()
-{
-  histVec.clear();
-  for (const auto& s : sipmIDVec)
-  {
-    std::string name = "SiPM"+std::to_string(s)+"_hist";
-    TH1F* h = ((TH1F*)(gROOT->FindObject(name.c_str())));
-    if (h) delete h;
-
-    histVec.push_back( TH1F(name.c_str(), name.c_str(), 200, 0, 2000) );
-  }
-}
-
-//------------------------------------------------------------------------
-void ana()
-{
-  gStyle->SetOptFit(1);
-  gROOT->SetBatch(kTRUE);
-
-  // Draw
-  TCanvas* c = ((TCanvas*)(gROOT->FindObject("SiPM Canvas")));
-  if (c) delete c;
-  TCanvas c1("SiPM Canvas", "SiPM Spectra", 1000, 1000);
-  c1.Divide(4,4);
-  
-  unsigned counter(0);
-  for (auto& h : histVec)
-  {
-    c1.cd(counter+1);
-
-    float mean = h.GetMean();
-    float sig  = h.GetStdDev();
-
-    TF1 fit("fit", "gaus", mean - sig, mean + sig);
-    fit.SetParameters(1000, mean, sig);
-    h.Fit(&fit, "RQ");
-    std::vector<Double_t> temp = {fit.GetParameter(0), fit.GetParameter(1), fit.GetParameter(2)};
-    param.push_back(temp);
-
-    h.SetMarkerStyle(8);
-    h.SetMarkerSize(1);
-    h.Draw("pe1");
-
-    counter++;
-  }
-
-  // save results of fitting
-  std::cout << "Saving results from doAnalyze...\n";
-  TFile f(theOutputPath.c_str(), "RECREATE");
-  c1.Write();
-  f.Close();
-
-  // find area within n*sigma of mean
-  counter = 0;
-  std::vector<unsigned> theCounts;
-  for (const auto& p : param)
-  {
-    TF1 gaus("fit", "gaus");
-    gaus.SetParameters(p[0]/ledTriggers, 0., p[2]);
-
-    Double_t theArea = gaus.Integral(-2*p[2], 2*p[2]);
-
-    // How many photons does the mean correspond to?
-    unsigned n = p[1]/sipmGains[counter];
-    
-    theCounts.push_back(theArea*n);
-    //cout<<theArea*n<<std::endl;
-    //cout << std::round(theArea/sipmGains[counter]) << endl;
+    i /= ledTriggers;
+    i /= sipmGains[counter];
     counter++;
   }
 
@@ -152,4 +65,7 @@ void ana()
     }
   }
   outfile.close();
+
+  gROOT->cd("Rint:/");
+  theTree->Reset();
 }
