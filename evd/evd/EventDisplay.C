@@ -511,7 +511,7 @@ void MyMainFrame::UpdatePlots(const std::map<size_t, size_t>& mydata)
   c3->Clear();
   if (fDataType == "mc")
   {
-    gStyle->SetPalette(kDeepSea);//kDarkBodyRadiator);
+    gStyle->SetPalette(kDarkBodyRadiator);
 
     if (fPrimHist) 
     {
