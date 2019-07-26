@@ -236,7 +236,7 @@ void Reconstruct()
                             thePenalizedIter,
                             theDoPenalized); 
   }
-  else theReconstructor.DoChi2();
+  else theReconstructor.DoChi2(theUnpenalizedIter);
 
   theReconstructor.Dump();
 
@@ -244,6 +244,11 @@ void Reconstruct()
   TFile f("recoanatree.root", "RECREATE");
   theReconstructor.MLImage()->Write();
   theReconstructor.Chi2Image()->Write();
+  
+  auto expdata = theReconstructor.ExpectedCounts();
+  TH1I h("expdata", "expdata", expdata.size(), 0.5, expdata.size()+0.5);
+  for (const auto& d : expdata) h.SetBinContent(d.first, d.second);
+  h.Write();
   f.Close();
   cout << "Finished!" << endl;
 }

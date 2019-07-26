@@ -105,15 +105,19 @@ void RecoHelper::Start()
     //                     config->PenalizedStopId(),
     //                     config->DoPenalized());
  
-    reconstructor.DoChi2();
+    reconstructor.DoChi2(config->UnpenalizedStopId());
     reconstructor.Dump();
-    // Write the reconstructed image
-    TFile f(config->RecoOutputPath().c_str(), "UPDATE");
-    reconstructor.MLImage()->Write();
-    reconstructor.Chi2Image()->Write();
-    f.Close();
+    
+    std::vector<float> recoPos = {reconstructor.X(), reconstructor.Y(), 1.0};
 
-    analyzer.Fill(entry);
+    analyzer.Fill(entry, 
+                  nPixels,
+                  diskRadius,
+                  nPrimaries,
+                  *sourcePosXYZ,
+                  *sipmToLY,
+                  reconstructor.TotalLight(),
+                  recoPos);
   }
 }
 
