@@ -26,6 +26,14 @@ class Reconstructor
 
 public:
 
+  // Pixel structure for minimum chi2
+  struct Chi2Pixel {
+    float chi2;
+    std::vector<float> vertex;
+    size_t id;
+  };
+
+
   /**
    * @brief Construct a new Reconstructor object
    * 
@@ -59,7 +67,7 @@ public:
    * @brief Reconstructs mean position based on Chi2 minimization.
    * 
    */
-  void DoChi2();              
+  void DoChi2(const size_t& iter);              
 
   /**
    * @brief Dump configuration and reconstruction results.
@@ -70,8 +78,10 @@ public:
   const double   ML()    const { return fMLLogLikelihood; }
   const float    X()     const { return fEstimateX; }
   const float    Y()     const { return fEstimateY; }
+  const size_t   TotalLight() const { return fEstimateTotalLight; }
   TH2F*          MLImage() { return fMLHist; }
   TH2F*          Chi2Image() { return fChi2Hist; }
+  const std::map<size_t,size_t> ExpectedCounts();
     
 private:
   
@@ -187,6 +197,7 @@ private:
   float                        fGamma;                 ///< Strength parameter for penalty function
   size_t                       fUnpenalizedIterStop;   ///< Iteration number to hault unpenalized reconstruction
   size_t                       fPenalizedIterStop;     ///< Iteration number to hault penalized reconstruction
+  Chi2Pixel                    fChi2Pixel;
 };
 }
 

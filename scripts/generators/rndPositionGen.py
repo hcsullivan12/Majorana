@@ -7,10 +7,11 @@ def getPosition(diskradius):
     x = random.uniform(-diskradius, diskradius)
     y = random.uniform(-diskradius, diskradius)
 
-    #r = (x*x+y*y)**0.5
-    #if (r >= (diskradius-1) or r <=0.3*diskradius): getPosition(diskradius)
-    return x,y
-
+    r = (x*x+y*y)**0.5
+    if r >= (diskradius-1): 
+      return getPosition(diskradius)
+    else:
+      return x, y
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Make pixels")
