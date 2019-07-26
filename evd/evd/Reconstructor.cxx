@@ -111,7 +111,7 @@ void Reconstructor::DoEmMl(const float&  gamma,
 }
 
 /**
- * @brief Reconstructs mean position based on Chi2 minimization.
+ * @brief Reconstructs mean position based on minimizing a chi2 metric.
  * 
  * This method uses the lookup tables to estimate the expected number of 
  * counts for each detector. A Chi2 is calculated and minimized using the 
@@ -132,6 +132,8 @@ void Reconstructor::DoChi2(const size_t& upStop)
   
   // Loop over pixels
   size_t iPix(0);
+  std::vector<std::vector<float>> accumulator;
+  accumulator.reserve(fPixelVec->size());
   for (const auto& pixel : *fPixelVec)
   {
     // The lookup table for this pixel
@@ -162,6 +164,8 @@ void Reconstructor::DoChi2(const size_t& upStop)
     size_t xBin = fChi2Hist->GetXaxis()->FindBin(pixel.X());
     size_t yBin = fChi2Hist->GetYaxis()->FindBin(pixel.Y());
     fChi2Hist->SetBinContent(xBin, yBin, chi2);
+    std::vector<float> temp = {chi2, pixel.X(), pixel.Y()};
+    accumulator.push_back(temp);
 
     // check for minimum
     if (chi2 < chi2Min)
@@ -176,6 +180,21 @@ void Reconstructor::DoChi2(const size_t& upStop)
     iPix++;
   }
 
+  // For the sigma, let's use the distance to where our chi2 metric doubles 
+  // in value from the minimum
+  float value(1.5*fChi2Pixel.chi2);
+  std::sort( accumulator.begin(), accumulator.end(), [](const auto& l, const auto& r) {return l[0] < r[0];} );
+  auto it = std::find_if( accumulator.begin(), accumulator.end(), [value](const auto& v) {return v[0] > value;} );
+  // default (if something goes wrong)
+  float sigma(2.);
+  if (it != accumulator.end())
+  {
+    // 2d distance from minimum point
+    float diffX = it->at(1) - fChi2Pixel.vertex[0];
+    float diffY = it->at(2) - fChi2Pixel.vertex[1];
+    sigma = std::sqrt(diffX*diffX + diffY*diffY);
+  }
+
   std::cout << "\nChi2 pixel information:"
             << "\nChi2 = " << fChi2Pixel.chi2
             << "\nX    = " << fChi2Pixel.vertex[0] 
@@ -184,19 +203,9 @@ void Reconstructor::DoChi2(const size_t& upStop)
             << "\n";
 
   // form a 2D gaussian hypothesis centered on chi2 prediction
-  float sigma = 2.;
   if (fMLGauss) delete fMLGauss;
   
-  /**
-   * @todo Fix the 50000 here
-   * @todo What do we use for the sigma in the gaussian? 
-   * @todo I can think of two methods to get the total light yield. The first
-   *       method uses the results of the unpenalized algorithm. The second is 
-   *       to scale the total detected light by some constant (may not be independent
-   *       of position).
-   * 
-   */
-
+  /// @todo What do we use for the sigma in the gaussian? 
   double tempNum(0);
   double tempDen(0);
   auto lookupTable = (*fPixelVec)[fChi2Pixel.id].ReferenceTable();
@@ -209,6 +218,7 @@ void Reconstructor::DoChi2(const size_t& upStop)
 
   fMLGauss = new TF2("g", "bigaus", -fDiskRadius, fDiskRadius, -fDiskRadius, fDiskRadius);
   fMLGauss->SetParameters(fEstimateTotalLight, fChi2Pixel.vertex[0], sigma, fChi2Pixel.vertex[1], sigma, 0);
+  fMLGauss->SetParameter(0, fEstimateTotalLight/(2*M_PI*sigma*sigma));
 
   Double_t x, y;
   fMLGauss->GetMaximumXY(x, y);
@@ -219,6 +229,7 @@ void Reconstructor::DoChi2(const size_t& upStop)
   for (const auto& pixel : *fPixelVec) 
   {
     auto content = fMLGauss->Eval(pixel.X(), pixel.Y());
+    if (content < 5) content = 5; // plotting 
     auto xBin = fMLHist->GetXaxis()->FindBin(pixel.X());
     auto yBin = fMLHist->GetYaxis()->FindBin(pixel.Y());
     fMLHist->SetBinContent(xBin, yBin, content);
