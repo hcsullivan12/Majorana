@@ -498,6 +498,11 @@ void MyMainFrame::UpdatePlots()
       recoHist->GetXaxis()->SetTitle("X [cm]");
       recoHist->GetYaxis()->SetTitle("Y [cm]");
       recoHist->Draw("colz");
+      if (fDataType == "mc")
+      {
+        recoHist->SetMinimum(0);
+        recoHist->SetMaximum(fPrimHist->GetMaximum());
+      }
       c1->cd();
       c1->Update();
     } else {cout << "\nWARNING: Couldn't find reco hist...\n";}
