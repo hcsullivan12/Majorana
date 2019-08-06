@@ -1,0 +1,120 @@
+import argparse
+import os
+import ROOT
+import RecoHelper as rh
+
+#####################################################################
+utilities = """
+class Pixel {
+public:
+    Pixel(int pid, float x, float y){
+        _x  = x;
+        _y  = y;
+        _id = pid;
+    };
+    float x(){return _x;};
+    float y(){return _y;};
+    std::map<int,float> lookup_table(){return _lookup_table;};
+    void add(int sid, float p){_lookup_table.emplace(sid,p);};
+
+private:
+    float _x;
+    float _y;
+    int   _id;
+    std::map<int,float> _lookup_table;
+};
+
+class PixelTable : public std::map<int, Pixel> {
+public:
+    PixelTable(){};
+    void add(size_t s, Pixel c) { this->emplace(s,c); };
+};
+"""
+
+#####################################################################
+def init_pixel_table(prod_dir, pixel_spacing, nsipms):
+    # load the pixels and lookup table
+    ppath, oppath = form_path(prod_dir, pixel_spacing, nsipms)
+    return load_pixels(ppath, oppath)
+
+#####################################################################
+def form_path(prod_dir, pixel_spacing, nsipms):
+    # get path to pixelization and look up table
+    pixelpath = str(pixel_spacing+'mm/pixelization.txt')
+    oprefpath = str(pixel_spacing+'mm/'+nsipms+'sipms/splinedOpRefTable.txt')
+    _ppath  = os.path.join(str(prod_dir), pixelpath)
+    _oppath = os.path.join(str(prod_dir), oprefpath)
+    return _ppath, _oppath
+
+#####################################################################
+def load_pixels(ppath,oppath):
+    ROOT.gInterpreter.ProcessLine(utilities)
+    _pixels = ROOT.PixelTable()
+
+    with open(ppath) as f:
+        # skip header: id x y
+        line = f.readline()
+        while True:
+            line = f.readline()
+            line_vec = line.split()
+            if len(line_vec) < 1: break
+            pixel = ROOT.Pixel(int(line_vec[0]), float(line_vec[1]), float(line_vec[2]))
+            _pixels.add(int(line_vec[0]), pixel)
+    with open(oppath) as f:
+        # skip first line: id sipm prob
+        line = f.readline()
+        while True:
+            line    = f.readline()
+            line_vec = line.split()
+            if len(line_vec) < 1: break
+            _pixels[int(line_vec[0])].add(int(line_vec[1]), float(line_vec[2]))
+    return _pixels
+
+#####################################################################
+def parse_config(path):
+    try:                from ConfigParser import SafeConfigParser
+    except ImportError: from configparser import SafeConfigParser
+    
+    cfg = SafeConfigParser()
+    # want case sensitive
+    cfg.optionxform = str
+    if not os.path.exists(path):
+        raise ValueError('No such file: %s' % path)
+    cfg.read(path)
+    return cfg
+
+
+#####################################################################
+def convert(cfg):
+    dat = {}
+    for secname in cfg.sections():
+        for k,v in cfg.items(secname):
+            dat[k] = v
+    return dat
+
+#####################################################################
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Reconstruction algorithm for SiPM Wheel")
+    parser.add_argument("-c", "--config", help="The configuration file",    required=True)
+    parser.add_argument("-o", "--output", help="The name of output ntuple", required=True)
+    parser.add_argument("-i", "--input", help="The path to ntuple", required=True)
+    args = parser.parse_args()
+
+    # parse config
+    cfg = parse_config(args.config)
+    assert cfg.sections()
+    cfg = convert(cfg)
+
+    # initialize output file
+    f = ROOT.TFile.Open(args.output, 'RECREATE')
+    f.Close()
+
+    # load pixel table
+    pixel_table = init_pixel_table(cfg['prodDir'], cfg['pixelSpacing'], cfg['nsipms'])
+
+    # start reconstruction
+    reco_helper = rh.RecoHelper(args.input, pixel_table.getPixels(), args.output, cfg)
+    reco_helper.reconstruct()
+    
+
+

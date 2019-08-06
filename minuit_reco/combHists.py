@@ -3,8 +3,8 @@ import ROOT
 rf = ROOT.TFile.Open('output.root', 'READ')
 sf = ROOT.TFile.Open('../output/simulateOutput_64.root', 'READ')
 
-sh = sf.Get('primHist;2')
-rh = rf.Get('event1_image')
+sh = sf.Get('primHist;1')
+rh = rf.Get('event0_image')
 
 ROOT.gStyle.SetPalette(ROOT.kDarkBodyRadiator)
 c1 = ROOT.TCanvas('c1', 'c1', 800, 800)
