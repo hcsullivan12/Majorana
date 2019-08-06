@@ -1,6 +1,7 @@
 import ROOT
 from iminuit import Minuit
 import math
+import numpy as np
 
 #####################################################################
 class RecoHelper:
@@ -18,6 +19,11 @@ class RecoHelper:
         while _s < self._disk_radius:
             _s += spacing
             self._pixel_range += 2
+
+        self._vfunc_get_psn_param = np.vectorize(self.v_get_psn_param)
+        self._vfunc_get_kernel = np.vectorize(self.v_get_kernel)
+
+        self._gaus = ROOT.TF2('_gaus', 'bigaus', -1*self._disk_radius, self._disk_radius, -1*self._disk_radius, self._disk_radius)
 
     #------------------------------
     def reconstruct(self):
@@ -101,6 +107,12 @@ class RecoHelper:
         _xbin = _prof.GetXaxis().FindBin(pixel.x())
         _ybin = _prof.GetYaxis().FindBin(pixel.y())
         return _prof.GetBinContent(_xbin, _ybin)
+        #_a = N * (2*math.pi*sig_x*sig_y)**-1  
+        #_ex = math.exp( (-2*sig_x*sig_x)**-1 * (_x - mu_x)**2 )
+        #_ey = math.exp( (-2*sig_y*sig_y)**-1 * (_y - mu_y)**2 )
+        ##if -7 < _x and _x < -5.5 and -7 < _y and _y < -5.5:
+        #    #print _a, _ex, _ey, N, mu_x, mu_y, sig_x, sig_y, _a*_ex*_ey
+        #return _a * _ex * _ey
 
     #------------------------------
     def least_squares(self, N, mu_x, mu_y, sig_x, sig_y):
@@ -113,15 +125,36 @@ class RecoHelper:
 
     #------------------------------
     def neg_log_likelihood(self, N, mu_x, mu_y, sig_x, sig_y):
+        sids = list(self._data.keys())
+        _vs  = self._vfunc_get_psn_param(sids, N, mu_x, mu_y, sig_x, sig_y)
         _sum = 0
-        for sid,count in self._data.iteritems():
-            print sid
-            _v = self.get_psn_param(sid, N, mu_x, mu_y, sig_x, sig_y)
-            if _v < 0.001:
-                _v = 0.001
-            _sum += count * math.log(_v) - _v
-        return -1 * _sum
+        print 'hey'
+        for sid,v in zip(sids,_vs):
+            if v < 0.001:
+                _sum += self._data[sid] * math.log(0.001) - 0.001
+            else:
+                _sum += self._data[sid] * math.log(0.001) - 0.001
+        return _sum
+
+    #------------------------------
+    def v_get_psn_param(self, sid, N, mu_x, mu_y, sig_x, sig_y):
+        pids = list(self._pixels.keys())
+        _krn = self._vfunc_get_kernel(pids, sid, N, mu_x, mu_y, sig_x, sig_y)
+        print _krn
+        return sum(_krn)
     
+    #------------------------------
+    def v_get_kernel(self, pid, sid, N, mu_x, mu_y, sig_x, sig_y):
+        # we have a new gaussian
+        self._gaus.SetParameters(1./(2*math.pi*sig_x*sig_y), mu_x, sig_x, mu_y, sig_y, 0)
+        # fire!
+        #self._prof.Reset()
+        _prof = ROOT.TH2D('prof', 'prof', self._pixel_range,-1*self._disk_radius, self._disk_radius, self._pixel_range, -1*self._disk_radius, self._disk_radius)
+        _prof.FillRandom('_gaus', int(N))
+        _xbin = _prof.GetXaxis().FindBin(self._pixels[pid].x())
+        _ybin = _prof.GetYaxis().FindBin(self._pixels[pid].y())
+        return _prof.GetBinContent(_xbin, _ybin)
+
     #------------------------------
     def get_psn_param(self, sid, N, mu_x, mu_y, sig_x, sig_y):
         _sum = 0
