@@ -121,7 +121,7 @@ if __name__ == "__main__":
     pixel_table = PixelTable(cfg['prodDir'], cfg['pixelSpacing'], cfg['nsipms'])
 
     # start reconstruction
-    reco_helper = RecoHelper.RecoHelper(args.input, pixel_table.getPixels(), cfg)
+    reco_helper = RecoHelper.RecoHelper(args.input, pixel_table.getPixels(), args.output, cfg)
     reco_helper.reconstruct()
     
 
