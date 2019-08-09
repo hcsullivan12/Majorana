@@ -18,6 +18,7 @@ class RecoHelper:
         while _s < self._disk_radius:
             _s += spacing
             self._pixel_range += 2
+        self._gaus = ROOT.TF2('_gaus', 'bigaus', -1*self._disk_radius, self._disk_radius, -1*self._disk_radius, self._disk_radius)
 
     #------------------------------
     def reconstruct(self):
@@ -81,10 +82,10 @@ class RecoHelper:
                    sig_x=_sx, error_sig_x=0.1*_sx, limit_sig_x=(0.1,3.),
                    sig_y=_sy, error_sig_y=0.1*_sy, limit_sig_y=(0.1,3.))
         print m.migrad()
-        m.fixed['N'] = False
-        m.fixed['sig_x'] = True
-        m.fixed['sig_y'] = True
-        print m.migrad()
+        #m.fixed['N'] = False
+        #m.fixed['sig_x'] = True
+        #m.fixed['sig_y'] = True
+        #print m.migrad()
 
         # draw it!
         self.save_image(ent, m.values)
@@ -92,15 +93,10 @@ class RecoHelper:
     #------------------------------
     def get_kernel(self, pixel, N, mu_x, mu_y, sig_x, sig_y):
         # we have a new gaussian
-        _gaus = ROOT.TF2('_gaus', 'bigaus', -1*self._disk_radius, self._disk_radius, -1*self._disk_radius, self._disk_radius)
-        _gaus.SetParameters(1./(2*math.pi*sig_x*sig_y), mu_x, sig_x, mu_y, sig_y, 0)
-        _prof = ROOT.TH2D('prof', 'prof', self._pixel_range,-1*self._disk_radius, self._disk_radius, self._pixel_range, -1*self._disk_radius, self._disk_radius)
-        # fire!
-        _prof.FillRandom('_gaus', int(N))
-
-        _xbin = _prof.GetXaxis().FindBin(pixel.x())
-        _ybin = _prof.GetYaxis().FindBin(pixel.y())
-        return _prof.GetBinContent(_xbin, _ybin)
+        _a = N * (2*math.pi*sig_x*sig_y)**-1
+        _ex = math.exp( (-2*sig_x*sig_x)**-1 * (pixel.x() - mu_x)**2 )
+        _ey = math.exp( (-2*sig_y*sig_y)**-1 * (pixel.y() - mu_y)**2 )
+        return _a * _ex * _ey * self._spacing**2
 
     #------------------------------
     def least_squares(self, N, mu_x, mu_y, sig_x, sig_y):
@@ -115,7 +111,6 @@ class RecoHelper:
     def neg_log_likelihood(self, N, mu_x, mu_y, sig_x, sig_y):
         _sum = 0
         for sid,count in self._data.iteritems():
-            print sid
             _v = self.get_psn_param(sid, N, mu_x, mu_y, sig_x, sig_y)
             if _v < 0.001:
                 _v = 0.001
