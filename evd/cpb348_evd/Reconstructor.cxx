@@ -182,7 +182,7 @@ void Reconstructor::DoChi2(const size_t& upStop)
 
   // For the sigma, let's use the distance to where our chi2 metric doubles 
   // in value from the minimum
-  float value(1.5*fChi2Pixel.chi2);
+  float value(2.5*fChi2Pixel.chi2);
   std::sort( accumulator.begin(), accumulator.end(), [](const auto& l, const auto& r) {return l[0] < r[0];} );
   auto it = std::find_if( accumulator.begin(), accumulator.end(), [value](const auto& v) {return v[0] > value;} );
   // default (if something goes wrong)
@@ -194,6 +194,7 @@ void Reconstructor::DoChi2(const size_t& upStop)
     float diffY = it->at(2) - fChi2Pixel.vertex[1];
     sigma = std::sqrt(diffX*diffX + diffY*diffY);
   }
+  std::cout << "\t\t"<<sigma<<std::endl;
 
   std::cout << "\nChi2 pixel information:"
             << "\nChi2 = " << fChi2Pixel.chi2
@@ -216,24 +217,32 @@ void Reconstructor::DoChi2(const size_t& upStop)
   }
   fEstimateTotalLight = tempNum/tempDen;
 
-  fMLGauss = new TF2("g", "bigaus", -fDiskRadius, fDiskRadius, -fDiskRadius, fDiskRadius);
-  fMLGauss->SetParameters(fEstimateTotalLight, fChi2Pixel.vertex[0], sigma, fChi2Pixel.vertex[1], sigma, 0);
-  fMLGauss->SetParameter(0, fEstimateTotalLight/(2*M_PI*sigma*sigma));
+  fMLGauss = new TF2("imggauss", "bigaus", -fDiskRadius, fDiskRadius, -fDiskRadius, fDiskRadius);
+  fMLGauss->SetParameters(1., fChi2Pixel.vertex[0], sigma, fChi2Pixel.vertex[1], sigma, 0);
+  /*for (int iPh = 1; iPh <= fEstimateTotalLight; iPh++)
+  {
+    Double_t x=0, y=0;
+    fMLGauss->GetRandom2(x,y);
+    if(std::sqrt(x*x+y*y)>fDiskRadius)continue;
+    fMLHist->Fill(x,y);
+  }*/
+  fMLHist->FillRandom("imggauss", fEstimateTotalLight);
+  for (int xbin=1; xbin<=fMLHist->GetNbinsX(); xbin++)
+  {
+    for (int ybin=1; ybin<=fMLHist->GetNbinsY(); ybin++)
+    {
+      auto x = fMLHist->GetXaxis()->GetBinCenter(xbin);
+      auto y = fMLHist->GetYaxis()->GetBinCenter(ybin);
+      auto content = fMLHist->GetBinContent(xbin, ybin);
+      if(std::sqrt(x*x+y*y)>fDiskRadius)fMLHist->SetBinContent(xbin,ybin,0);
+      else if(content<1)fMLHist->SetBinContent(xbin, ybin, 1);//plotting
+    }
+  }  
 
   Double_t x, y;
   fMLGauss->GetMaximumXY(x, y);
   fEstimateX = x;
   fEstimateY = y;
-
-  // Fill reco image
-  for (const auto& pixel : *fPixelVec) 
-  {
-    auto content = fMLGauss->Eval(pixel.X(), pixel.Y());
-    if (content < 5) content = 5; // plotting 
-    auto xBin = fMLHist->GetXaxis()->FindBin(pixel.X());
-    auto yBin = fMLHist->GetYaxis()->FindBin(pixel.Y());
-    fMLHist->SetBinContent(xBin, yBin, content);
-  }
 }
 
 //------------------------------------------------------------------------

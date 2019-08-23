@@ -525,6 +525,7 @@ void MyMainFrame::UpdatePlots()
       chi2Hist->Draw("colz");
 
       c2->cd();
+      c2->SetLogz();
       c2->Update();
     } else {cout << "\nWARNING: Couldn't find chi2 hist...\n";}
   } else {cout << "\nWARNING: Couldn't open root file...\n";}
