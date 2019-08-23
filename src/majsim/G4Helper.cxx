@@ -170,9 +170,9 @@ void G4Helper::RunG4()
     }
     
     // Write true distribution
-    TFile f(config->SimulateOutputPath().c_str(), "UPDATE");
-    fGeneratorAction->GetPrimHist()->Write();
-    f.Close();
+    //TFile f(config->SimulateOutputPath().c_str(), "UPDATE");
+    //fGeneratorAction->GetPrimHist()->Write();
+    //f.Close();
 
     // Fill our ntuple
     analyzer.Fill(e);

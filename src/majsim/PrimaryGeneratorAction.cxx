@@ -65,7 +65,7 @@ void PrimaryGeneratorAction::Reset(const G4double& r,
   double diskRadius = Configuration::Instance()->DiskRadius()/CLHEP::cm;
   size_t nBins = 2*std::floor(diskRadius/(binSize/CLHEP::cm)) + 1; // this assumes there is a pixel at the origin
 
-  if (!fPrimHist) fPrimHist = new TH2I("primHist", "primHist", nBins, -diskRadius, diskRadius, nBins, -diskRadius, diskRadius);
+  //if (!fPrimHist) fPrimHist = new TH2I("primHist", "primHist", nBins, -diskRadius, diskRadius, nBins, -diskRadius, diskRadius);
 }
 
 //------------------------------------------------------------------------
@@ -83,7 +83,7 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
   CLHEP::RandFlat   flat(fRandomEngine);
 
   auto diskRadius = Configuration::Instance()->DiskRadius()/CLHEP::cm;
-  for (unsigned xbin = 1; xbin <= fPrimHist->GetXaxis()->GetNbins(); xbin++)
+  /*for (unsigned xbin = 1; xbin <= fPrimHist->GetXaxis()->GetNbins(); xbin++)
   {
     for (unsigned ybin = 1; ybin <= fPrimHist->GetYaxis()->GetNbins(); ybin++) 
     {
@@ -92,7 +92,7 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
       if ((xV*xV + yV*yV) > diskRadius*diskRadius) continue;
       fPrimHist->SetBinContent(xbin, ybin, 1); // this gives a nicer plot
     }
-  }
+  }*/
 
   // Loop over the primaries  
   for (unsigned primary = 0; primary < fNPrimaries; primary++)
@@ -109,7 +109,7 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 
       float xTemp = x/10;
       float yTemp = y/10;
-      if((xTemp*xTemp+yTemp*yTemp) < diskRadius*diskRadius) fPrimHist->Fill(xTemp, yTemp);
+      //if((xTemp*xTemp+yTemp*yTemp) < diskRadius*diskRadius) fPrimHist->Fill(xTemp, yTemp);
     }
     else
     {
