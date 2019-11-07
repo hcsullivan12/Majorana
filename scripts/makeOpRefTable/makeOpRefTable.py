@@ -8,7 +8,7 @@ import math
 parser = argparse.ArgumentParser(description="Make pixels")
 parser.add_argument("-s", "--source", type=str, help="The sim ntuple file", required=True)
 parser.add_argument("-p", "--pixel", type=str, help="The pixelization file", required=True)
-#parser.add_argument("-n", "--events", type=str, help="Number of events simulated for each pixel", required=True)
+parser.add_argument("-o", "--output", type=str, help="Lookup table", required=True)
 args = parser.parse_args()
 
 # read in pixels
@@ -135,3 +135,11 @@ ax=fig.add_subplot(111)
 img = ax.scatter(_x, _y, c=_z, s=80, marker=',', cmap='gist_stern')
 fig.colorbar(img)
 plt.show()
+
+# write to file
+with open(args.output, 'w') as of:
+    of.write('pixelID mppcID probability\n')
+    for pid,lkt in _lookup_table.iteritems():
+        for sid,p in lkt.iteritems():
+            of.write(str(pid)+' '+str(sid)+' '+str(p/100000.)+'\n')
+
