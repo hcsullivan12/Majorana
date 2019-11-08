@@ -5,10 +5,9 @@
 import ROOT
 from array import array
 
-febChannels = [12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27]
-sipmIds     = [ 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 ]
-sipmGains      = [57.72,60.21,59.33,59.16,60.03,58.42,59.77,58.08,58.91,62.64,50.51,48.67,37.07,37.78,25,18.46]
-#sipmGains    = [60,60,60,60,60,60,60,60,60,60,60,60,60,60,60,60]
+febChannels  = [12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27]
+sipmIds      = [ 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 ]
+sipmGains    = [57.72,60.21,59.33,59.16,60.03,58.42,59.77,58.08,58.91,62.64,50.51,48.67,37.07,37.78,25,18.46]
 sipmPed      = [50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50]
 ledTriggers  = 60000.0
 
@@ -32,6 +31,7 @@ class analyzer:
 
         # integral container
         tempCounts = [0 for x in febChannels]
+        print theTree.GetEntries()
         for entry in theTree: 
             # Fill the histos
             for hist, febId, c in zip(self._hists, febChannels, range(0, len(febChannels))):
@@ -39,6 +39,7 @@ class analyzer:
                 tempCounts[c] += entry.chg[febId]
 
         # normalize to one trigger
+        print 'here'
         self._counts = [0 for x in sipmGains]
         for c,g,counter in zip(tempCounts, sipmGains, range(0, len(sipmGains))):
             n = c/ledTriggers

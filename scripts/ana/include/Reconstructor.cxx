@@ -18,8 +18,6 @@
 #include <iostream>
 #include <cmath>
 
-namespace majreco
-{
 
 //------------------------------------------------------------------------
 Reconstructor::Reconstructor(const std::map<size_t, size_t>&              data,
@@ -470,6 +468,4 @@ void Reconstructor::Dump()
             << "\nEstimate for Y:     " << fEstimateY
             << "\nEstimate for LY:    " << fEstimateTotalLight
             << "\n";
-}
-
 }

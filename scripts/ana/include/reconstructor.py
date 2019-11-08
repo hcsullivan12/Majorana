@@ -91,7 +91,7 @@ class reconstructor:
         self._converter.theMap.clear()
         for s in range(1, len(counts)):
             self._converter.AddEntry(s, counts[s-1])
-            
+
         reco = ROOT.Reconstructor(self._converter.theMap, self._recoHelper.thePixelVec, self._recoHelper.theDiskRadius)
         if self._recoHelper.theMethod == 'chi2':
             reco.DoChi2(1)
