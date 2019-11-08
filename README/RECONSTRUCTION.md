@@ -18,11 +18,27 @@ The posterior can be written as *P*<sub>*B*</sub>(*x*|*y*) = *P*<sub>*L*</su
  A recursive formula can be derived using an expectation-maximization procedure
 
 <p align="center">
-<img align="center" src="map.png">
+<img align="center" src="map2.png">
 
+where *x*<sub>*j*</sub><sup>*k*</sup> is the *k-th* estimate of the number of photons emitted from the *j-th* pixel, *P*<sub>*ij*</sub> is the probability of a photon leaving the *j-th* pixel being detected by the *i-th* SiPM, and *y*<sub>*i*</sub> is the number of photons seen by the *i-th* SiPM. The *P*<sub>*ij*</sub> is what we get from simulation.
 
+The variables that are tunable are the parameters characterizing the prior distribution and the number of iterations to be performed (convergence checker could be implemented). This algorithm naturally reconstructs the energy and spatial distribution of the source.
 
-where *x*<sub>*j*</sub><sup>*k*</sup> is the *k-th* estimate of the number of photons emitted from the *j-th* pixel and *a*<sub>*ij*</sub> is the probability of a photon leaving the *j-th* pixel being detected by the *i-th* SiPM. The *a*<sub>*ij*</sub> is what we get from simulation.
+## Chi-Squared Method
+The chi-squared method is a simplier, faster algorithm. A chi-squared metric is constructed and minimized using the information from the lookup-table
+
+<p align="center">
+<img align="center" src="chi2_1.png">
+
+The minimization of this quantity gives an estimate of the mean position (pixel) of the light source. So unlike the MAP method, the chi-squared method returns a mean position instead of a spatial distribution. 
+
+Assuming that all of the photons were emitted from the reconstructed pixel site, the number of incident photons (energy), *η*, is reconstructed by minimizing the quantity
+
+<p align="center">
+<img align="center" src="chi2_2.png">
+
+with respect to *η*, where the tilde represents the probabilities associated with the reconstructed pixel site.
+
 
 ## Optimization and Generating Other Lookup-Tables
 By using a brute-force method (firing photons from every pixel), when scaling to larger disks or more SiPMs, the number of pixels becomes large resulting in significantly longer simulations. Therefore, there is a need for something smarter than the brute-force way.
