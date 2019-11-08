@@ -43,4 +43,4 @@ See these pages for further information on the configuration, reconstruction, an
  2. [Reconstruction](https://github.com/hcsullivan12/Majorana/README/RECONSTRUCTION.md)
  3. [Visualization](https://github.com/hcsullivan12/Majorana/README/VISUALIZATION.md)
 
- ![et](https://github.com/hcsullivan12/Majorana/README/et.png)
+ ![et](README/et.png)

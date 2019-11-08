@@ -10,11 +10,19 @@ There is a sample script in `scripts/makeOpRefTable/` that will produce the look
 ## Maximum A Posteriori Method
 This MAP method is based on an [algorithm](https://ieeexplore.ieee.org/document/4307826) used in Emission Computed Tomography. Among many others, this algorithm was chosen because of its simplicity and our assumed point-like light source.
 
-The likelihood function is constructed assuming independent Possionian distributions modeling the photon counts for each SiPM. In principle, the prior distribution can take any form, but we chose a Gaussian form given our point-like source. A recursive formula can be derived using an expectation-maximization procedure:
+The posterior can be written as *P*<sub>*B*</sub>(*x*|*y*) = *P*<sub>*L*</sub>(*y*|*x*)*P*<sub>*A*</sub>(*x*)/*P*(*y*), where *P*<sub>*L*</sub>(*y*|*x*) is the likelihood function and *P*<sub>*A*</sub>(*x*) is the prior. The likelihood function is constructed assuming independent Possionian distributions modeling the photon counts for each SiPM. In principle, the prior distribution can take any form, but we chose a Gaussian form given our point-like source
 
-![map](https://github.com/hcsullivan12/Majorana/README/map.png)
+<p align="center">
+<img align="center" src="map_prior.png">
 
-where ![map_x](https://github.com/hcsullivan12/Majorana/README/map_x.png) is interpreted as the *k-th* estimate of the number of photons emitted from the *j-th* pixel, 
+ A recursive formula can be derived using an expectation-maximization procedure
+
+<p align="center">
+<img align="center" src="map.png">
+
+
+
+where *x*<sub>*j*</sub><sup>*k*</sup> is the *k-th* estimate of the number of photons emitted from the *j-th* pixel and *a*<sub>*ij*</sub> is the probability of a photon leaving the *j-th* pixel being detected by the *i-th* SiPM. The *a*<sub>*ij*</sub> is what we get from simulation.
 
 ## Optimization and Generating Other Lookup-Tables
 By using a brute-force method (firing photons from every pixel), when scaling to larger disks or more SiPMs, the number of pixels becomes large resulting in significantly longer simulations. Therefore, there is a need for something smarter than the brute-force way.
