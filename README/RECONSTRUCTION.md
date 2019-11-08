@@ -3,7 +3,7 @@ Majorana also provides methods for reconstructing quantities from SiPM data. Cur
 1. Maximum A Posteriori (MAP) Method 
 2. Chi-Squared Method
 
-Fundementally, the reconstruction algorithms require the probability that a photon leaving any position will be detected by any SiPM. Therefore, you must generate an optical lookup-table from the `simulateOutput.root` ntuple that was produced using a particular pixelization scheme in pixel mode. 
+Fundamentally, the reconstruction algorithms require the probability that a photon leaving any position will be detected by any SiPM. Therefore, you must generate an optical lookup-table from the `simulateOutput.root` ntuple that was produced using a particular pixelization scheme in pixel mode. 
 
 There is a sample script in `scripts/makeOpRefTable/` that will produce the lookup-table. Simply make a class that points to the ntuple, and copy over the code in the sample `makeOpRefTable.C`. You will need to edit the parameters in the script to fit your application (WARNING: Some things are hardcoded). The script essentially takes the number of emitted and detected photons for each event and converts to a probability for each pixel/SiPM combination (e.g. See the optimization section below for further discussion on generating lookup-tables). Running this script will generate a text file named `NPIXELSp_NSIPMSs_opReferenceTable.txt`. The reconstructing algorithms will use the probabilities in this file.
 
@@ -15,12 +15,23 @@ The posterior can be written as *P*<sub>*B*</sub>(*x*|*y*) = *P*<sub>*L*</su
 <p align="center">
 <img align="center" src="map3.png">
 
- A recursive formula can be derived using an expectation-maximization procedure
+ Assuming *H* is diagonal, a recursive formula can be derived using an Expectation Maximization (EM) procedure
+
+<p align="center">
+<img align="center" src="map4.png">
+
+where 
 
 <p align="center">
 <img align="center" src="map2.png">
 
-where *x*<sub>*j*</sub><sup>*k*</sup> is the *k-th* estimate of the number of photons emitted from the *j-th* pixel, *P*<sub>*ij*</sub> is the probability of a photon leaving the *j-th* pixel being detected by the *i-th* SiPM, and *y*<sub>*i*</sub> is the number of photons seen by the *i-th* SiPM. The *P*<sub>*ij*</sub> is what we get from simulation.
+Here *x*<sub>*j*</sub><sup>*k*</sup> is the *k-th* estimate of the number of photons emitted from the *j-th* pixel, *P*<sub>*ij*</sub> is the probability of a photon leaving the *j-th* pixel being detected by the *i-th* SiPM, and *y*<sub>*i*</sub> is the number of photons seen by the *i-th* SiPM. The *P*<sub>*ij*</sub> is what we get from simulation.
+
+In the limit that *γ* → 0, the MAP method reduces to the Maximum Likelihood Expectation Maximization (ML EM) method. Therefore, Majorana identifies two versions of this algorithm:
+1. Unpenalized Method (*γ* = 0)
+2. Penalized Method (*γ* != 0)
+
+Both versions should be able to run independently.
 
 The variables that are tunable are the parameters characterizing the prior distribution and the number of iterations to be performed (convergence checker could be implemented). This algorithm naturally reconstructs the energy and spatial distribution of the source.
 
