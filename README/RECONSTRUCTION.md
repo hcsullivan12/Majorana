@@ -5,7 +5,7 @@ Majorana also provides methods for reconstructing quantities from SiPM data. Cur
 
 Fundementally, the reconstruction algorithms require the probability that a photon leaving any position will be detected by any SiPM. Therefore, you must generate an optical lookup-table from the `simulateOutput.root` ntuple that was produced using a particular pixelization scheme in pixel mode. 
 
-There is a sample script in `scripts/makeOpRefTable/` that will produce the lookup-table. Simply make a class using the `scripts/makeClass.C` script that points to the ntuple, and copy over the code in the sample `makeOpRefTable.C`. You will need to edit the parameters in the script to fit your application (WARNING: Some things are hardcoded). The script essentially takes the number of emitted and detected photons for each event and converts to a probability for each pixel/SiPM combination (e.g. See the optimization section below for further discussion on generating lookup-tables). Running this script will generate a text file named `NPIXELSp_NSIPMSs_opReferenceTable.txt`. The reconstructing algorithms will use the probabilities in this file.
+There is a sample script in `scripts/makeOpRefTable/` that will produce the lookup-table. Simply make a class that points to the ntuple, and copy over the code in the sample `makeOpRefTable.C`. You will need to edit the parameters in the script to fit your application (WARNING: Some things are hardcoded). The script essentially takes the number of emitted and detected photons for each event and converts to a probability for each pixel/SiPM combination (e.g. See the optimization section below for further discussion on generating lookup-tables). Running this script will generate a text file named `NPIXELSp_NSIPMSs_opReferenceTable.txt`. The reconstructing algorithms will use the probabilities in this file.
 
 ## Maximum A Posteriori Method
 This MAP method is based on an [algorithm](https://ieeexplore.ieee.org/document/4307826) used in Emission Computed Tomography. Among many others, this algorithm was chosen because of its simplicity and our assumed point-like light source.
@@ -41,12 +41,12 @@ with respect to *η*, where the tilde represents the probabilities associated wi
 
 
 ## Optimization and Generating Other Lookup-Tables
-By using a brute-force method (firing photons from every pixel), when scaling to larger disks or more SiPMs, the number of pixels becomes large resulting in significantly longer simulations. Therefore, there is a need for something smarter than the brute-force way.
+By using a brute-force simulation (firing photons from every pixel), when scaling to larger disks, the number of pixels becomes large resulting in significantly longer simulations. Therefore, there is a need for something smarter than the brute-force way.
 
 There are two procedures practiced in Majorana that can have a significant impact on simulation time.
 
 #### 1) Table Generation
-Given the geometry, we actually have a multifold redundancy in the brute-force simulation. More explicity, since our SiPMs are equally spaced, we have a `1/numberOfSipms`-fold redundancy. In otherwords, the lookup-table is completely and uniquely determined by simulating one "pie piece" of the disk (e.g. the space between 2 adjacent SiPMs). Once this space is simulated, it is but a simple rotation (perhaps with some interpolation) to convert to the remaining spaces. As an example, for a 64-SiPM array, this symmetrical procedure could cut simulation time by 98%!
+Given the geometry, we actually have a multifold redundancy in the brute-force simulation. More explicity, since our SiPMs are equally spaced, we have a `1/numberOfSipms`-fold redundancy. In otherwords, the lookup-table is completely and uniquely determined by simulating one "pie piece" of the disk (e.g. the space between 2 adjacent SiPMs). Once this space is simulated, it is but a simple rotation (perhaps with some interpolation) to generate the table for the remaining spaces. As an example, for a 64-SiPM array, this symmetrical procedure could cut simulation time by 98%!
 
 To avoid interpolation, the "pie piece" chosen is 1/4th of the disk. Therefore, with a symmetrical pixelization scheme, a *n * 90* degree rotation is an isomorphic transformation to the pixels located in the other respective pie pieces, reducing simulation time by 75% compared to the brute-force method. The script `scripts/makeOpRefTable_symmetry.py` is an example of this procedure.
 
