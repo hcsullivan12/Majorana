@@ -13,7 +13,7 @@ This MAP method is based on an [algorithm](https://ieeexplore.ieee.org/document/
 The posterior can be written as *P*<sub>*B*</sub>(*x*|*y*) = *P*<sub>*L*</sub>(*y*|*x*)*P*<sub>*A*</sub>(*x*)/*P*(*y*), where *P*<sub>*L*</sub>(*y*|*x*) is the likelihood function and *P*<sub>*A*</sub>(*x*) is the prior. The likelihood function is constructed assuming independent Possionian distributions modeling the photon counts for each SiPM. In principle, the prior distribution can take any form, but we chose a Gaussian form given our point-like source
 
 <p align="center">
-<img align="center" src="map_prior.png">
+<img align="center" src="map3.png">
 
  A recursive formula can be derived using an expectation-maximization procedure
 
