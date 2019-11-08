@@ -15,7 +15,7 @@ print('Running G4 sim...')
 print('')
 
 # start a g4 session
-g4_cmd = 'gnome-terminal -- /bin/sh -c \'cd '+top_dir+'/build; ./simulate -c ../config/SimConfiguration.ini -E ON; echo "Press Enter to exit simulation..."; read var\''
+g4_cmd = 'gnome-terminal -- /bin/sh -c \'cd '+top_dir+'/build; ./simulate -c ../config/MthShip_SimConfiguration.ini -E ON; echo "Press Enter to exit simulation..."; read var\''
 os.system(g4_cmd)
 
 
@@ -23,5 +23,5 @@ print('')
 print('Opening event display...')
 print('')
 
-command = 'root -l \'./cpb348_evd/EventDisplay.C(\"'+top_dir+'\")\''
+command = 'root -l \'./mthship_evd/EventDisplay.C(\"'+top_dir+'\")\''
 os.system(command)

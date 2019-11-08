@@ -48,7 +48,7 @@ private:
    TTimer      *fTimer     = nullptr;
    std::string fDataFilePath = "./daq/data.txt";
    std::string fTrueDistPath = "../output/simulateOutput.root";
-   double      fDiskR      = 14.5;
+   double      fDiskR      = 50.561875;
    int         fNsipms     = 64;
    int         fPixelSize  = 5;
    size_t      fUnpenalizedIter = 100;
@@ -407,8 +407,8 @@ void MyMainFrame::ChangeStartLabel()
 //------------------------------------------------------------------------
 void MyMainFrame::UpdateRecoHelper()
 {
-  std::string pixelizationPath = fTopDir+"/production/production_v1_1/"+std::to_string(fPixelSize)+"mm/pixelization.txt";
-  std::string opRefTablePath   = fTopDir+"/production/production_v1_1/"+std::to_string(fPixelSize)+"mm/"+std::to_string(fNsipms)+"sipms/splinedOpRefTable.txt";
+  std::string pixelizationPath = fTopDir+"/production/mothership/"+std::to_string(fPixelSize)+"mm/pixelization.txt";
+  std::string opRefTablePath   = fTopDir+"/production/mothership/"+std::to_string(fPixelSize)+"mm/opRefTable.txt";
   
   // if these are new, we will load the new pixel scheme
   std::string oldPixelPath  = fRecoHelper.thePixelPath;
@@ -494,14 +494,16 @@ void MyMainFrame::UpdatePlots()
     TH2F *recoHist = nullptr;
     f.GetObject("histFinal", recoHist);
     if (recoHist) {
+
+      cout << "HEYYY " << recoHist->GetMaximum() << endl;
       recoHist->SetTitle("Reconstructed Image");
       recoHist->GetXaxis()->SetTitle("X [cm]");
       recoHist->GetYaxis()->SetTitle("Y [cm]");
       recoHist->Draw("colz");
       if (fDataType == "mc")
       {
-        recoHist->SetMinimum(0);
-        recoHist->SetMaximum(fPrimHist->GetMaximum());
+        //recoHist->SetMinimum(0);
+        //recoHist->SetMaximum(fPrimHist->GetMaximum());
       }
       c1->cd();
       c1->Update();
