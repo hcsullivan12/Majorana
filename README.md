@@ -35,12 +35,16 @@ $ make
 ## Running the simulation
 After updating the configuration file `config/Configuration.ini`, run a simulation with
 ``` 
- $ ./simulate -c ../config/Configuration.ini 
+ $ ./simulate -c ../config/SimConfiguration.ini 
+```
+or reconstruction using results of simulation
+```
+$ ./reconstruct -c ../config/RecoConfiguration.ini 
 ```
 
 See these pages for further information on the configuration, reconstruction, and visualization:
- 1. [Configuration](https://github.com/hcsullivan12/Majorana/README/CONFIGURATION.md)
- 2. [Reconstruction](https://github.com/hcsullivan12/Majorana/README/RECONSTRUCTION.md)
- 3. [Visualization](https://github.com/hcsullivan12/Majorana/README/VISUALIZATION.md)
+ 1. [Configuration](README/CONFIGURATION.md)
+ 2. [Reconstruction](README/RECONSTRUCTION.md)
+ 3. [Visualization](README/VISUALIZATION.md)
 
  ![et](README/et.png)
