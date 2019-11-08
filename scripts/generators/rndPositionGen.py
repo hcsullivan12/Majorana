@@ -3,15 +3,16 @@
 import argparse
 import random
 
-def getPosition(diskradius):
+def getEntry(diskradius, nprim):
     x = random.uniform(-diskradius, diskradius)
     y = random.uniform(-diskradius, diskradius)
+    n = random.uniform(nprim-20000, nprim+20000)
 
     r = (x*x+y*y)**0.5
     if r >= (diskradius-1): 
-      return getPosition(diskradius)
+      return getEntry(diskradius, nprim)
     else:
-      return x, y
+      return x,y,n
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Make pixels")
@@ -29,5 +30,5 @@ if __name__ == "__main__":
 
         f.write('x y n\n')
         for p in range(1,npos):
-            x,y = getPosition(diskradius)
-            f.write(str(x)+' '+str(y)+' '+str(nprimaries)+'\n')
+            x,y,n = getEntry(diskradius, nprimaries)
+            f.write(str(x)+' '+str(y)+' '+str(n)+'\n')

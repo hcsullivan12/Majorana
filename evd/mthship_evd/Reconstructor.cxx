@@ -33,7 +33,8 @@ Reconstructor::Reconstructor(const std::map<size_t, size_t>&              data,
    fEstimateTotalLight(0),
    fMLHist(nullptr),
    fMLGauss(nullptr),
-   fChi2Hist(nullptr)
+   fChi2Hist(nullptr),
+   fMethod("none")
 {
   fPixelVec = std::make_shared<std::vector<majutil::Pixel>>();
   fPixelVec.get()->clear();
@@ -79,6 +80,8 @@ void Reconstructor::DoEmMl(const float&  gamma,
                            const size_t& pStop,
                            const bool&   doPenalized)
 {
+  fMethod = "EmMl";
+
   // Initialize variables
   fPenalizedIterStop   = pStop;
   fUnpenalizedIterStop = upStop;
@@ -97,7 +100,7 @@ void Reconstructor::DoEmMl(const float&  gamma,
   fMLGauss->GetMaximumXY(maxX, maxY);
   fEstimateX          = maxX;
   fEstimateY          = maxY;
-
+  
   // option to do penalized
   if (doPenalized) 
   {
@@ -119,9 +122,9 @@ void Reconstructor::DoEmMl(const float&  gamma,
  * formed using the minimum chi2 X and Y value.
  * 
  */
-void Reconstructor::DoChi2(const size_t& upStop)
+void Reconstructor::DoChi2()
 {
-  fUnpenalizedIterStop = upStop;
+  fMethod = "Chi2";
 
   // Total amount of light seen
   double totalCounts(0);
@@ -182,7 +185,7 @@ void Reconstructor::DoChi2(const size_t& upStop)
 
   // For the sigma, let's use the distance to where our chi2 metric doubles 
   // in value from the minimum
-  float value(1.5*fChi2Pixel.chi2);
+  float value(2.5*fChi2Pixel.chi2);
   std::sort( accumulator.begin(), accumulator.end(), [](const auto& l, const auto& r) {return l[0] < r[0];} );
   auto it = std::find_if( accumulator.begin(), accumulator.end(), [value](const auto& v) {return v[0] > value;} );
   // default (if something goes wrong)
@@ -216,35 +219,62 @@ void Reconstructor::DoChi2(const size_t& upStop)
   }
   fEstimateTotalLight = tempNum/tempDen;
 
-  fMLGauss = new TF2("g", "bigaus", -fDiskRadius, fDiskRadius, -fDiskRadius, fDiskRadius);
-  fMLGauss->SetParameters(fEstimateTotalLight, fChi2Pixel.vertex[0], sigma, fChi2Pixel.vertex[1], sigma, 0);
-  fMLGauss->SetParameter(0, fEstimateTotalLight/(2*M_PI*sigma*sigma));
+  fMLGauss = new TF2("imggauss", "bigaus", -fDiskRadius, fDiskRadius, -fDiskRadius, fDiskRadius);
+  fMLGauss->SetParameters(1., fChi2Pixel.vertex[0], sigma, fChi2Pixel.vertex[1], sigma, 0);
+  /*for (int iPh = 1; iPh <= fEstimateTotalLight; iPh++)
+  {
+    Double_t x=0, y=0;
+    fMLGauss->GetRandom2(x,y);
+    if(std::sqrt(x*x+y*y)>fDiskRadius)continue;
+    fMLHist->Fill(x,y);
+  }*/
+  fMLHist->FillRandom("imggauss", fEstimateTotalLight);
+  for (int xbin=1; xbin<=fMLHist->GetNbinsX(); xbin++)
+  {
+    for (int ybin=1; ybin<=fMLHist->GetNbinsY(); ybin++)
+    {
+      auto x = fMLHist->GetXaxis()->GetBinCenter(xbin);
+      auto y = fMLHist->GetYaxis()->GetBinCenter(ybin);
+      auto content = fMLHist->GetBinContent(xbin, ybin);
+      if(std::sqrt(x*x+y*y)>fDiskRadius)fMLHist->SetBinContent(xbin,ybin,0);
+      else if(content<1)fMLHist->SetBinContent(xbin, ybin, 1);//plotting
+    }
+  }  
 
   Double_t x, y;
   fMLGauss->GetMaximumXY(x, y);
   fEstimateX = x;
   fEstimateY = y;
-
-  // Fill reco image
-  for (const auto& pixel : *fPixelVec) 
-  {
-    auto content = fMLGauss->Eval(pixel.X(), pixel.Y());
-    if (content < 5) content = 5; // plotting 
-    auto xBin = fMLHist->GetXaxis()->FindBin(pixel.X());
-    auto yBin = fMLHist->GetYaxis()->FindBin(pixel.Y());
-    fMLHist->SetBinContent(xBin, yBin, content);
-  }
 }
 
 //------------------------------------------------------------------------
 const std::map<size_t, size_t> Reconstructor::ExpectedCounts()
 {
   std::map<size_t, size_t> expCounts;
-  auto opTable = (*fPixelVec)[fChi2Pixel.id].ReferenceTable();
-  for (size_t d = 1; d <= fData.size(); d++)
+  if (fMethod=="Chi2")
   {
-    double expected = fEstimateTotalLight * opTable[d-1];
-    expCounts.emplace(d, expected);
+    auto opTable = (*fPixelVec)[fChi2Pixel.id].ReferenceTable();
+    for (size_t d = 1; d <= fData.size(); d++)
+    {
+      double expected = fEstimateTotalLight * opTable[d-1];
+      expCounts.emplace(d, expected);
+    }
+  }
+  else if (fMethod=="EmMl")
+  { 
+    for (size_t d = 1; d <= fData.size(); d++)
+    {
+      int expected(0);
+      for (const auto& pixel : *fPixelVec)
+      {
+        auto opTable = pixel.ReferenceTable();
+        auto xBin = fMLHist->GetXaxis()->FindBin(pixel.X());
+        auto yBin = fMLHist->GetYaxis()->FindBin(pixel.Y());
+        auto content = fMLHist->GetBinContent(xBin, yBin);
+        expected += opTable[d-1]*content;
+      }
+      expCounts.emplace(d, expected);
+    }
   }
   return expCounts;
 }
