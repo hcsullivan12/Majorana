@@ -12,6 +12,7 @@ class reconstructor:
         # recreate our output file
         self._outputpath = outputpath
 
+
         # parse config file
         self._configpath = configpath
         config = self.parse_config()
@@ -71,7 +72,7 @@ class reconstructor:
 
         # get path to pixelization
         pixelpath = str(self._config['pixelSpacing']+'mm/pixelization.txt')
-        oprefpath = str(self._config['pixelSpacing']+'mm/'+self._config['nsipms']+'sipms/splinedOpRefTable.txt')
+        oprefpath = str(self._config['pixelSpacing']+'mm/'+self._config['nsipms']+'_sipm/splinedOpRefTable.txt')
         recoHelper.thePixelPath = os.path.join(str(self._config['topDir']), pixelpath)
         recoHelper.theOpRefPath = os.path.join(str(self._config['topDir']), oprefpath)
 
@@ -82,7 +83,7 @@ class reconstructor:
         return recoHelper
     
     #------------------------------------------------------------------------
-    def reconstruct(self, counts, event):
+    def reconstruct(self, counts,TName, event):
         ROOT.gInterpreter.Declare('#include "include/Reconstructor.h"')
         ROOT.gSystem.Load("include/libReconstructor.so")
 
@@ -99,13 +100,15 @@ class reconstructor:
         else:
             print 'Need to update the reconstructor!'
             
-        self.update(reco, event)
+        self.update(reco,TName, event)
 
     #------------------------------------------------------------------------
-    def update(self, reco, event):
+    def update(self, reco,TName, event):
+        MLI=TName+"_MLI"
+        CHI= TName + "_Chi"
         f = ROOT.TFile.Open(self._outputpath, 'UPDATE')
-        reco.MLImage().Write()
-        reco.Chi2Image().Write()
+        reco.MLImage().Write(MLI)
+        reco.Chi2Image().Write(CHI)
         f.Close()
 
 
