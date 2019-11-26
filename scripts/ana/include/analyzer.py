@@ -5,12 +5,11 @@
 import ROOT
 from array import array
 
-febChannels = [12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27]
-sipmIds     = [ 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 ]
-sipmGains      = [57.72,60.21,59.33,59.16,60.03,58.42,59.77,58.08,58.91,62.64,50.51,48.67,37.07,37.78,25,18.46]
-#sipmGains    = [60,60,60,60,60,60,60,60,60,60,60,60,60,60,60,60]
+febChannels  = [6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
+sipmIds      = [ 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 ]
+sipmGains    = [51.85,63.21,67.41,67.19,47.46,63.8,55.83,58.44,59.94,55.59,49.93,51.39,51.68,47.52,45.4,53.45]
 sipmPed      = [50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50]
-ledTriggers  = 60000.0
+ledTriggers  = 5000
 
 class analyzer:
     #------------------------------------------------------------------------
@@ -18,9 +17,9 @@ class analyzer:
         self._outputpath = outputpath
 
     #------------------------------------------------------------------------
-    def analyze(self, daqtreepath, event):  
+    def analyze(self, daqtreepath,event,TrigSize,reco,Th):
         ROOT.gROOT.SetBatch(True)
-
+        TName = daqtreepath.replace("/home/ilker/Desktop/for_ilker/evd/test/", "").strip(".root")
         # initialize histogram
         self.initHistos()
         assert(len(febChannels) == len(sipmIds) == len(sipmGains) )
@@ -32,23 +31,80 @@ class analyzer:
 
         # integral container
         tempCounts = [0 for x in febChannels]
-        for entry in theTree: 
+        self._counts = [0 for x in sipmGains]
+
+        print theTree.GetEntries()
+
+        subEvent=1
+        subEventCount=1
+        ProblemList=[]
+
+        for entry in theTree:
+            for febID,cnt in zip(febChannels,range(0,len(febChannels))):
+
+                #Apply the threshold
+                if(Th>0):
+                    if(entry.chg[febID]>=Th):
+                        tempCounts[cnt] +=entry.chg[febID]
+                else:
+                    tempCounts[cnt] += entry.chg[febID]
+
+
+            # Compares the TrigSize with event
+            if (TrigSize == subEvent or subEvent==theTree.GetEntries()):
+                print 'Analyzing Event id: ' + str(subEventCount)
+
+                #Obtain number of PEs.
+                for c, g, counter in zip(tempCounts, sipmGains, range(0, len(sipmGains))):
+                    n= c/TrigSize
+                    n = int(n / g)
+                    self._counts[counter] = n
+
+
+                subEventCount += subEvent
+                FileName = str(subEventCount) + "_" + TName
+
+                TotalCounts = sum(self._counts) # Total number of PEs
+
+                #Checks if Number of PEs are too low to cause issue
+                if (TotalCounts > 0):
+                    reco.reconstruct(self._counts, FileName,event)
+                else:
+                    error = "Problem --> File : " + TName + ".root eventID= " + str(subEvent) + "=" + str(
+                        TotalCounts) + " photons !"
+                    print(error)
+                    ProblemList.append(error)
+
+                tempCounts = [0 for x in febChannels]
+                self._counts = [0 for x in sipmGains]
+                subEvent = 0
+
+            subEvent += 1
             # Fill the histos
-            for hist, febId, c in zip(self._hists, febChannels, range(0, len(febChannels))):
+            """ for hist, febId, c in zip(self._hists, febChannels, range(0, len(febChannels))):
                 hist.Fill(entry.chg[febId])
                 tempCounts[c] += entry.chg[febId]
-
+            """
         # normalize to one trigger
-        self._counts = [0 for x in sipmGains]
-        for c,g,counter in zip(tempCounts, sipmGains, range(0, len(sipmGains))):
-            n = c/ledTriggers
-            n = int(n/g)
-            self._counts[counter] = n
-        for sid, c in zip(sipmIds, self._counts):
-            print 'SiPM', sid, 'saw', c, 'photons'
+
+        """ 
+         
+          for c,g,counter in zip(tempCounts, sipmGains, range(0, len(sipmGains))):
+             n = c/ledTriggers
+             n = int(n/g)
+             self._counts[counter] = n
+            
+           for sid, c in zip(sipmIds, self._counts):
+             print 'SiPM', sid, 'saw', c, 'photons'
+
+        """
 
         # plotting
-        self.plotHists(event)
+        #self.plotHists(event)
+
+        #List the problems
+        for i in ProblemList:
+            print("\n" + i)
 
     #------------------------------------------------------------------------
     def initHistos(self):
@@ -62,7 +118,7 @@ class analyzer:
         ROOT.gStyle.SetOptFit(1)
 
         # Draw
-        name = 'sipmspectra_'+str(event)
+        name = 'SIPMspectra_'+str(event)
         c1 = ROOT.TCanvas(name, 'SiPM Spectra', 1000, 1000)
         xL = 4
         yL = 4

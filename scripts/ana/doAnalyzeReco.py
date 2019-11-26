@@ -9,6 +9,8 @@ if __name__ == "__main__":
     parser.add_argument("-i", "--input", type=str, help="Input list of root files", required=True)
     parser.add_argument("-o", "--output", type=str, help="Output path for histograms and reconstruction results", required=True)
     parser.add_argument("-c", "--config", type=str, help="Path to reconstruction configuration", required=True)
+    parser.add_argument("-t", "--trigsize", type=str, help="Trigger Size", required=True)
+    parser.add_argument("-th", "--threshold", type=str, help="Threshold to filter the noise", required=True)
     args = parser.parse_args()
 
     # create output file
@@ -18,7 +20,11 @@ if __name__ == "__main__":
     # initalize 
     ana  = analyzer.analyzer(args.output)
     reco = reconstructor.reconstructor(args.config, args.output)
+    TrigSize=int(args.trigsize)
+    Th=int(args.threshold)
 
+    print 'Trigger Size: ' + args.trigsize
+    print 'Threshold: ' + args.threshold
     # if just a single root file
     if args.input[-4:] == 'root': 
         print ' '
@@ -29,12 +35,14 @@ if __name__ == "__main__":
     else:
         # loop over the files and run the analyzer
         with open(args.input) as theFileList:
+
             event = 1
-            for theFile in theFileList: 
+            ProblemFileList=[]
+            TotalCounts = 0
+
+            for theFile in theFileList:
                 theFile = theFile.replace('\r', '').replace('\n', '')
-                print ' '
+
                 print 'Analyzing the file', theFile
-                ana.analyze(theFile, event)
-                print 'Reconstructing the file', theFile
-                reco.reconstruct(ana.getCounts(), event)
-                event += 1
+                print 'Event id: ' + str(event)
+                ana.analyze(theFile, event,TrigSize,reco,Th)
