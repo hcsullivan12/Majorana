@@ -39,7 +39,7 @@ public:
    * @param path The filepath to the lookup table.
    */
   void LoadReferenceTable(const std::string& path);
-
+  float fRadius;
   std::shared_ptr<std::vector<Pixel>> GetPixels() const { return fPixelVec; };
   Pixel* GetPixel(const unsigned& id); 
   double GetSpacing() const { return fSpacing; }

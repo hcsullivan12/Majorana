@@ -1,0 +1,13 @@
+# gun: particle
+/dmx/gun/verbose 1
+/dmx/gun/particle alpha
+/dmx/gun/energytype Mono
+/dmx/gun/energy 5.486 MeV
+
+# Gun menu :
+/gui/addMenu agun AlphaGun
+/gui/addButton agun "1 eV" "/gun/energy 1 keV"
+/gui/addButton agun "2.98 eV" "/gun/energy 1 MeV"
+/gui/addButton agun "5 eV" "/gun/energy 5 MeV"
+/gui/addButton agun "9.68 eV" "/gun/energy 50 MeV"
+

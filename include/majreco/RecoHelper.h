@@ -9,6 +9,9 @@
 #ifndef MAJRECO_RECOHELPER_H
 #define MAJRECO_RECOHELPER_H
 
+#include "iostream"
+#include "vector"
+
 namespace majreco
 {
 
@@ -17,13 +20,16 @@ class RecoHelper
   public:
     static RecoHelper* Instance();
     static RecoHelper* CreateInstance();
+    int CountEvents=0;
     ~RecoHelper();
 
     /**
      * @brief Main entry point.
      * 
      */
+    void getSIPMGains (std::string Path,std::vector<float> &Gains);
     void Start();
+
 
   private:
     RecoHelper();

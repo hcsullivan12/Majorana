@@ -27,7 +27,7 @@ list(APPEND CMAKE_MODULE_PATH $ENV{ROOTSYS}/etc/cmake)
 find_package(ROOT COMPONENTS REQUIRED)
 include_directories(${ROOT_INCLUDE_DIRS})
 add_definitions(${ROOT_CXX_FLAGS})
-
+include(${ROOT_USE_FILE})
 # Project includes
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
@@ -47,23 +47,23 @@ target_link_libraries(simulate ${Geant4_LIBRARIES})
 target_link_libraries(reconstruct ${ROOT_LIBRARIES})
 
 # build tests
-add_custom_target(tests ALL COMMAND ${CMAKE_COMMAND} -E make_directory tests)
+#add_custom_target(tests ALL COMMAND ${CMAKE_COMMAND} -E make_directory tests)
 
-enable_testing()
-add_executable(simtest ${PROJECT_SOURCE_DIR}/tests/simtest.cxx ${simsources} ${simheaders} ${utilsources} ${utilheaders})
-add_executable(recotest ${PROJECT_SOURCE_DIR}/tests/recotest.cxx ${recosources} ${recoheaders} ${utilsources} ${utilheaders})
+#enable_testing()
+#add_executable(simtest ${PROJECT_SOURCE_DIR}/tests/simtest.cxx ${simsources} ${simheaders} ${utilsources} ${utilheaders})
+#add_executable(recotest ${PROJECT_SOURCE_DIR}/tests/recotest.cxx ${recosources} ${recoheaders} ${utilsources} ${utilheaders})
 
-set_target_properties(simtest PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/tests)
-set_target_properties(recotest PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/tests)
+#set_target_properties(simtest PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/tests)
+#set_target_properties(recotest PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/tests)
 
-target_link_libraries(simtest ${ROOT_LIBRARIES})
-target_link_libraries(simtest ${Geant4_LIBRARIES})
-target_link_libraries(recotest ${ROOT_LIBRARIES})
+#target_link_libraries(simtest ${ROOT_LIBRARIES})
+#target_link_libraries(simtest ${Geant4_LIBRARIES})
+#target_link_libraries(recotest ${ROOT_LIBRARIES})
 
-add_test(NAME simtest COMMAND simtest)
-add_test(NAME recoTest COMMAND recotest)
+#add_test(NAME simtest COMMAND simtest)
+#add_test(NAME recoTest COMMAND recotest)
 
-file(COPY ${PROJECT_SOURCE_DIR}/tests/SimConfiguration.ini
-     DESTINATION ${PROJECT_BINARY_DIR}/tests/)
-file(COPY ${PROJECT_SOURCE_DIR}/tests/RecoConfiguration.ini
-     DESTINATION ${PROJECT_BINARY_DIR}/tests/)
+#file(COPY ${PROJECT_SOURCE_DIR}/tests/SimConfiguration.ini
+#     DESTINATION ${PROJECT_BINARY_DIR}/tests/)
+#file(COPY ${PROJECT_SOURCE_DIR}/tests/RecoConfiguration.ini
+#     DESTINATION ${PROJECT_BINARY_DIR}/tests/)

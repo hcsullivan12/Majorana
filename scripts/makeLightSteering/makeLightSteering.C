@@ -5,7 +5,7 @@ unsigned nVoxels    = 225;
 // With voxelsX odd, we can add the origin
 unsigned voxelsX    = std::sqrt(nVoxels); 
 unsigned voxelsY    = std::sqrt(nVoxels);
-float    diskRadius = 14.5;
+float    diskRadius = 15;
 float    inc        = 2*diskRadius/voxelsX;
 unsigned nEvents    = 50;
 

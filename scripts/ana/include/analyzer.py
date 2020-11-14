@@ -9,7 +9,7 @@ febChannels  = [6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
 sipmIds      = [ 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 ]
 sipmGains    = [51.85,63.21,67.41,67.19,47.46,63.8,55.83,58.44,59.94,55.59,49.93,51.39,51.68,47.52,45.4,53.45]
 sipmPed      = [50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50]
-ledTriggers  = 5000
+ProblemList=[]
 
 class analyzer:
     #------------------------------------------------------------------------
@@ -17,9 +17,13 @@ class analyzer:
         self._outputpath = outputpath
 
     #------------------------------------------------------------------------
-    def analyze(self, daqtreepath,event,TrigSize,reco,Th):
+    def analyze(self, daqtreepath,event,TrigSize,reco,Th,Method,TrueInfo,DataFileName):
         ROOT.gROOT.SetBatch(True)
-        TName = daqtreepath.replace("/home/ilker/Desktop/for_ilker/evd/test/", "").strip(".root")
+
+        #obtain the file name
+        TheFile=daqtreepath.split("/")
+        TName = TheFile[len(TheFile)-1].strip(".root")
+
         # initialize histogram
         self.initHistos()
         assert(len(febChannels) == len(sipmIds) == len(sipmGains) )
@@ -33,78 +37,104 @@ class analyzer:
         tempCounts = [0 for x in febChannels]
         self._counts = [0 for x in sipmGains]
 
-        print theTree.GetEntries()
 
-        subEvent=1
-        subEventCount=1
+
+        Nentries=int(theTree.GetEntries())
+        TrackTrigger=0
+        EventID=1
         ProblemList=[]
+        EventCount=0
+        AnaEventCount=0
+        FilteredEventsCount=0
+
 
         for entry in theTree:
-            for febID,cnt in zip(febChannels,range(0,len(febChannels))):
+            EventCount += 1
+            TrackTrigger += 1
 
-                #Apply the threshold
+            for histo, febID,cnt in zip(self._hists,febChannels,range(0,len(febChannels))):
+
+                # Apply the threshold
                 if(Th>0):
-                    if(entry.chg[febID]>=Th):
+                    if((entry.chg[febID]>=Th and febID%2==0) and (entry.chg[febID+1]>=Th)):
                         tempCounts[cnt] +=entry.chg[febID]
+                        tempCounts[cnt+1] +=entry.chg[febID+1]
+                        self._hists[cnt].Fill(entry.chg[febID])
+
+                        self._hists[cnt+1].Fill(entry.chg[febID+1])
+                    else:
+                        FilteredEventsCount += 1
+
                 else:
                     tempCounts[cnt] += entry.chg[febID]
-
+                    self._hists[cnt].Fill(entry.chg[febID])
 
             # Compares the TrigSize with event
-            if (TrigSize == subEvent or subEvent==theTree.GetEntries()):
-                print 'Analyzing Event id: ' + str(subEventCount)
+            if ((TrigSize == TrackTrigger or EventCount==Nentries) and Method==1):
 
-                #Obtain number of PEs.
-                for c, g, counter in zip(tempCounts, sipmGains, range(0, len(sipmGains))):
-                    n= c/TrigSize
-                    n = int(n / g)
-                    self._counts[counter] = n
+                self.AnaMain(reco,tempCounts,TrigSize,EventID,TName,Method,EventCount,Nentries,TrueInfo,DataFileName)
+                AnaEventCount += TrackTrigger
+                TrackTrigger = 0
+                EventID += 1  # How many time we are in this loop
 
 
-                subEventCount += subEvent
-                FileName = str(subEventCount) + "_" + TName
+            elif(EventCount==Nentries and Method==0):
 
-                TotalCounts = sum(self._counts) # Total number of PEs
+                self.AnaMain(reco,tempCounts,TrigSize,EventID,TName,Method,EventCount,Nentries,TrueInfo,DataFileName)
 
-                #Checks if Number of PEs are too low to cause issue
-                if (TotalCounts > 0):
-                    reco.reconstruct(self._counts, FileName,event)
-                else:
-                    error = "Problem --> File : " + TName + ".root eventID= " + str(subEvent) + "=" + str(
-                        TotalCounts) + " photons !"
-                    print(error)
-                    ProblemList.append(error)
+                AnaEventCount += TrackTrigger
+                TrackTrigger = 0
+                EventID += 1  # How many time we are in this loop
 
-                tempCounts = [0 for x in febChannels]
-                self._counts = [0 for x in sipmGains]
-                subEvent = 0
-
-            subEvent += 1
-            # Fill the histos
-            """ for hist, febId, c in zip(self._hists, febChannels, range(0, len(febChannels))):
-                hist.Fill(entry.chg[febId])
-                tempCounts[c] += entry.chg[febId]
-            """
-        # normalize to one trigger
-
-        """ 
-         
-          for c,g,counter in zip(tempCounts, sipmGains, range(0, len(sipmGains))):
-             n = c/ledTriggers
-             n = int(n/g)
-             self._counts[counter] = n
-            
-           for sid, c in zip(sipmIds, self._counts):
-             print 'SiPM', sid, 'saw', c, 'photons'
-
-        """
-
-        # plotting
-        #self.plotHists(event)
 
         #List the problems
         for i in ProblemList:
             print("\n" + i)
+
+        FilteredEventsCount=FilteredEventsCount/len(sipmGains)
+        AnaEventCount=AnaEventCount-FilteredEventsCount
+        print "\n---Summary---"
+        print "Threshold: " + str(Th)
+        print "TriggerSize: " +str(TrigSize)
+        print "\nTotal Events: " +str(Nentries)
+        print "Total Events analyzed: " + str(AnaEventCount)
+        print "Missed Events: " + str(EventCount-AnaEventCount)
+        print "Filtered Events: " + str(FilteredEventsCount)
+
+
+    #------------------------------------------------------------------------
+    def AnaMain(self,reco,tempCounts,TrigSize,EventID,TName,Method,EventCount,Nentries,TrueInfo,DataFileName):
+        print 'Analyzing Event id: ' + str(EventID)
+        # Obtain number of PEs.
+        for c, g, counter in zip(tempCounts, sipmGains, range(0, len(sipmGains))):
+            if(Method==1 and (EventCount%TrigSize)!=0 and EventCount==Nentries):
+                n=c / (EventCount%TrigSize)
+            else:
+                n= c / TrigSize
+            n = int(n / g)
+            self._counts[counter] = n
+
+        FileName = str(EventID) + "_" + TName
+
+        TotalCounts = sum(self._counts)  # Total number PEs
+
+        # Checks if Number of PEs are too low to cause issue
+        if (TotalCounts > 0):
+            reco.reconstruct(self._counts, FileName, EventID,TrueInfo,DataFileName)
+        else:
+            error = "Problem --> File : " + TName + ".root eventID= " + str(EventID) + "=" + str(
+                TotalCounts) + " photons !"
+            print(error)
+            ProblemList.append(error)
+
+        tempCounts = [0 for x in febChannels]
+        self._counts = [0 for x in sipmGains]
+
+        # Plotting the Histogram
+        self.plotHists(FileName)
+
+
+
 
     #------------------------------------------------------------------------
     def initHistos(self):
@@ -114,11 +144,11 @@ class analyzer:
             self._hists.append( ROOT.TH1F(name, name, 200, 0, 2000) )
 
     #------------------------------------------------------------------------
-    def plotHists(self, event):
+    def plotHists(self, Name):
         ROOT.gStyle.SetOptFit(1)
 
         # Draw
-        name = 'SIPMspectra_'+str(event)
+        name = 'SIPMspectra_' +Name
         c1 = ROOT.TCanvas(name, 'SiPM Spectra', 1000, 1000)
         xL = 4
         yL = 4

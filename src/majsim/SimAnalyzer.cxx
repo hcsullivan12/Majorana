@@ -22,13 +22,17 @@ SimAnalyzer::SimAnalyzer(const std::string& simOutputPath)
  : fAnaTree(NULL),
    fSimulateOutputPath(simOutputPath)
 {
-  // Reset variables
+    f= new TFile(fSimulateOutputPath.c_str(), "RECREATE");
+    // Reset variables
   ResetVars();
   // Get config
   Configuration* config = Configuration::Instance();
-  
+
   fAnaTree = new TTree("anatree", "analysis tree");
-  fAnaTree->Branch("event",      &fEvent, "event/I");
+    fAnaTree->SetAutoSave(50);
+    fAnaTree->SetAutoFlush(50);
+    fAnaTree->SetDirectory(f);
+    fAnaTree->Branch("event",      &fEvent, "event/I");
   fAnaTree->Branch("nPixels",    &fNPixels, "nPixels/I");
   //fAnaTree->Branch("pixelX", fPixelX, "pixelX[nPixels]/D");
   //fAnaTree->Branch("pixelY", fPixelY, "pixelY[nPixels]/D");
@@ -41,21 +45,37 @@ SimAnalyzer::SimAnalyzer(const std::string& simOutputPath)
   fAnaTree->Branch("mppcToSourceR", &fMPPCToSourceR);
   fAnaTree->Branch("mppcToSourceT", &fMPPCToSourceT);
   fAnaTree->Branch("nPhotonsAbsorbed", &fNPhotonsAbs, "nPhotonsAbsorbed/I");
+
+
+  fAnaTree->Branch("Pressure",&fpressure,"Pressure/I");
+  fAnaTree->Branch("NeutronE", &fNeutronEnergies);
+  fAnaTree->Branch("PhotonE", &fPhotonEnergies);
+  fAnaTree->Branch("AlphaE", &fAlphaEnergies);
+  fAnaTree->Branch("ElectronE", &fElectronEnergies);
+  fAnaTree->Branch("TrueX",&fTrueX,"TrueX/D");
+  fAnaTree->Branch("TrueY",&fTrueY,"TrueY/D");
+  fCountEventsToSave=0;
+
+
 }
 
 //------------------------------------------------------------------------
 SimAnalyzer::~SimAnalyzer()
 {
-  TFile f(fSimulateOutputPath.c_str(), "UPDATE");
-  fAnaTree->Write();
-  f.Close();
 
+  fAnaTree->AutoSave();
   if (fAnaTree) delete fAnaTree;
+  f->Close();
+
+//  delete f;
+
+
 }
 
 //------------------------------------------------------------------------
 void SimAnalyzer::Fill(const unsigned& e)
 {
+
   ResetVars();
 
   // Get the necessary information
@@ -63,13 +83,24 @@ void SimAnalyzer::Fill(const unsigned& e)
   majsim::G4Helper*          g4Helper    = majsim::G4Helper::Instance();
   majsim::Configuration*     config      = majsim::Configuration::Instance();
 
+  auto xyzVec = g4Helper->GetActionInitialization()->GetGeneratorAction()->GetSourcePositionXYZ();
+  auto rtzVec = g4Helper->GetActionInitialization()->GetGeneratorAction()->GetSourcePositionRTZ();
+
   fEvent        = e;
   fNMPPCs       = g4Helper->GetDetectorConstruction()->WheelGeometry()->NMPPCs();
   fDiskRadius   = g4Helper->GetDetectorConstruction()->WheelGeometry()->Radius()/10; // convert to cm
   fNPrimaries   = g4Helper->GetActionInitialization()->GetGeneratorAction()->GetNPrimaries();
+  fpressure     = g4Helper->GetDetectorConstruction()->GetVolWorldGeometry()->GetMaterial()->GetPressure()/atmosphere;
+  fAlphaEnergies=  photonTable->GetProAlphaEs();
+  fElectronEnergies=  photonTable->GetProElectronEs();
+  fNeutronEnergies= photonTable->GetProNeutronEs();
+  fPhotonEnergies= photonTable->GetProPhotonEs();
+  fTrueX=xyzVec[0]/CLHEP::cm;
+  if (fNMPPCs>32) fTrueX        =-1*xyzVec[0]/CLHEP::cm;
+  fTrueY=xyzVec[1]/CLHEP::cm;
 
-  auto xyzVec = g4Helper->GetActionInitialization()->GetGeneratorAction()->GetSourcePositionXYZ();
-  auto rtzVec = g4Helper->GetActionInitialization()->GetGeneratorAction()->GetSourcePositionRTZ();
+
+
   fSourcePosXYZ.push_back(xyzVec[0]/CLHEP::cm);  
   fSourcePosXYZ.push_back(xyzVec[1]/CLHEP::cm);  
   fSourcePosXYZ.push_back(xyzVec[2]/CLHEP::cm); 
@@ -80,7 +111,13 @@ void SimAnalyzer::Fill(const unsigned& e)
   auto photonsDetected = photonTable->GetPhotonsDetected();
   //photonTable->Dump();
 
+
   fNPhotonsAbs = photonTable->GetNPhotonsAbsorbed();
+  // Printing Some Values for Confirmation
+  std::cout<<"photonsAbsorbed =" << fNPhotonsAbs <<std::endl;
+  photonTable->PrintParticleCounts();
+  std::cout<<"Sourpos =" << xyzVec[0]<<" "<< xyzVec[1]<<" "<< xyzVec[2]<<std::endl;
+
 
   // Get the number of photons detected per sipm
   for (unsigned m = 1; m <= fNMPPCs; m++)
@@ -104,7 +141,18 @@ void SimAnalyzer::Fill(const unsigned& e)
     fMPPCToSourceR.push_back(R);
     fMPPCToSourceT.push_back(alphaDeg);
   }
+
   fAnaTree->Fill();
+
+  if(fCountEventsToSave>50)
+  {
+      fAnaTree->AutoSave();
+      fCountEventsToSave=0;
+
+      std::cout<<"--------- File is Saved ----------"<<std::endl;
+  }
+  fCountEventsToSave++;
+
 }
 
 //------------------------------------------------------------------------
@@ -123,6 +171,13 @@ void SimAnalyzer::ResetVars()
   fMPPCToSourceR.clear();
   fMPPCToSourceT.clear();
   fNPhotonsAbs = -99999;
+  fNeutronEnergies.clear();
+  fPhotonEnergies.clear();
+  fElectronEnergies.clear();
+  fAlphaEnergies.clear();
+  fpressure = -99999;
+  fTrueX=-99999;
+  fTrueY=-99999;
 }
 
 }

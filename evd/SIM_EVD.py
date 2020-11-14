@@ -14,10 +14,10 @@ print('')
 print('Running G4 sim...')
 print('')
 
-# start a g4 session
+'''# start a g4 session
 g4_cmd = 'gnome-terminal -- /bin/sh -c \'cd '+top_dir+'/build; ./simulate -c ../config/MthShip_SimConfiguration.ini -E ON; echo "Press Enter to exit simulation..."; read var\''
 os.system(g4_cmd)
-
+'''
 
 print('')
 print('Opening event display...')

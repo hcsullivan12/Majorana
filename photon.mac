@@ -1,0 +1,5 @@
+/control/verbose 2
+/tracking/verbose 2
+/gun/particle opticalphoton
+/gun/energy 9.68 eV
+/gun/number 10

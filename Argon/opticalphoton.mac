@@ -1,0 +1,7 @@
+#Optical Photon
+/gun/particle opticalphoton
+/gun/polarization 1 1 1
+/gun/energy 2.98 eV
+
+
+

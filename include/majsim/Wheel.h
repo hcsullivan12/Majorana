@@ -17,6 +17,8 @@
 #include "G4Box.hh"
 #include "G4OpticalSurface.hh"
 #include "G4LogicalSkinSurface.hh"
+#include "majsim/MaterialManager.h"
+
 
 namespace majsim
 {
@@ -68,6 +70,9 @@ class Wheel
 
     G4LogicalVolume*   fVolDisk;
     G4LogicalVolume*   fVolMPPC;
+    G4LogicalVolume*   fTPBVolLogic;
+    Configuration *    config;
+
 
     std::vector<G4ThreeVector> fMPPCPositions;
 

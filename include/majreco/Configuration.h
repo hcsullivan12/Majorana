@@ -52,8 +52,17 @@ class Configuration
     std::string PixelizationPath()     const { return fPixelizationPath; };
     std::string OpReferenceTablePath() const { return fOpReferenceTablePath; };
     std::string RecoOutputPath()       const { return fRecoOutputPath; };
-    
-  private:
+    float diskRadius()                 const { return fdiskRadius; };
+    std::string TrueFilePath()         const { return fTrueFilePath; };
+    std::string FileName()             const { return fFileName; };
+    std::string GetRecoDataFilePath()  const {return fRecoDataFilePath;};
+    std::string GetPathToSavePics()    const {return fPathToSavePics;};
+    std::string GetPathToDeadChannels()  const{return fPathToDeadChanels;};
+
+
+
+
+private:
     Configuration();
     static Configuration* instance;
 
@@ -68,10 +77,16 @@ class Configuration
     std::string fRecoOutputPath;         ///< Output path for reconstruction anatree
     std::string fPixelizationPath;       ///< Path to pixelization scheme
     std::string fOpReferenceTablePath;   ///< Path to optical lookup table
+    std::string fTrueFilePath;           ///< Path to True Data points
+    std::string fFileName;               ///< FileName
     size_t      fPenalizedStopId;        ///< Iteration number to stop penalized reconstruction
     size_t      fUnpenalizedStopId;      ///< Iteration number to stop unpenalized reconstruction
     float       fGamma;                  ///< Strength parameter used for penalized reconstruction
-    bool        fDoPenalized;            ///< Option to run penalized reconstruction 
+    bool        fDoPenalized;            ///< Option to run penalized reconstruction
+    float       fdiskRadius;
+    std::string fRecoDataFilePath;
+    std::string fPathToSavePics;
+    std::string fPathToDeadChanels;
 };
 }
 

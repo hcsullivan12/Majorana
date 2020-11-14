@@ -81,11 +81,22 @@ void Configuration::ReadConfigFile()
   fPenalizedStopId    = boost::lexical_cast<size_t>(recoSect.get_child("penalizedStopId").get_value(""));
   fUnpenalizedStopId  = boost::lexical_cast<size_t>(recoSect.get_child("unpenalizedStopId").get_value(""));
   fGamma              = boost::lexical_cast<float>(recoSect.get_child("gamma").get_value(""));
-  // Files
-  fSimulateOutputPath   = std::string(majoranaDir)+"/"+filesSect.get_child("simulateOutputPath").get_value("");
-  fRecoOutputPath       = std::string(majoranaDir)+"/"+filesSect.get_child("recoOutputPath").get_value("");
+  fdiskRadius         = boost::lexical_cast<float>(recoSect.get_child("diskRadius").get_value(""));
+  fFileName           = filesSect.get_child("TrueFileName").get_value("");
+  fRecoDataFilePath   = filesSect.get_child("RecoDataFilePath").get_value("");
+  fPathToSavePics     = filesSect.get_child("PathToSavePics").get_value("");
+
+
+
+    // Files
+  fSimulateOutputPath   = std::string(majoranaDir)+"/output/"+filesSect.get_child("simulateOutputPath").get_value("");
+  fRecoOutputPath       = std::string(majoranaDir)+"/output/"+filesSect.get_child("recoOutputPath").get_value("");
   fOpReferenceTablePath = std::string(majoranaDir)+"/"+filesSect.get_child("opReferenceTablePath").get_value("");
-  fPixelizationPath     = std::string(majoranaDir)+"/"+filesSect.get_child("pixelizationPath").get_value(""); 
+  fPixelizationPath     = std::string(majoranaDir)+"/"+filesSect.get_child("pixelizationPath").get_value("");
+  fTrueFilePath         = std::string(majoranaDir)+"/config/"+filesSect.get_child("TrueFileName").get_value("");
+  fPathToDeadChanels  =   std::string(majoranaDir)+"/"+filesSect.get_child("PathToDeadChannels").get_value("");
+
+
 }
 
 //------------------------------------------------------------------------

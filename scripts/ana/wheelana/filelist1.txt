@@ -1,0 +1,17 @@
+/home/ilker/Desktop/RAW_DATA/DATA/D_21.root
+/home/ilker/Desktop/RAW_DATA/DATA/D_22.root
+/home/ilker/Desktop/RAW_DATA/DATA/D_23.root
+/home/ilker/Desktop/RAW_DATA/DATA/D_24.root
+/home/ilker/Desktop/RAW_DATA/DATA/D_25.root
+/home/ilker/Desktop/RAW_DATA/DATA/D_26.root
+/home/ilker/Desktop/RAW_DATA/DATA/D_27.root
+/home/ilker/Desktop/RAW_DATA/DATA/D_28.root
+/home/ilker/Desktop/RAW_DATA/DATA/D_29.root
+/home/ilker/Desktop/RAW_DATA/DATA/D_2.root
+/home/ilker/Desktop/RAW_DATA/DATA/D_3.root
+/home/ilker/Desktop/RAW_DATA/DATA/D_4.root
+/home/ilker/Desktop/RAW_DATA/DATA/D_5.root
+/home/ilker/Desktop/RAW_DATA/DATA/D_6.root
+/home/ilker/Desktop/RAW_DATA/DATA/D_7.root
+/home/ilker/Desktop/RAW_DATA/DATA/D_8.root
+/home/ilker/Desktop/RAW_DATA/DATA/D_9.root

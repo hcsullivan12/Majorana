@@ -154,9 +154,17 @@ void PixelTable::Initialize(const std::string& pixelizationPath)
     std::getline(f, string3);
 
     unsigned pixelID = std::stoi(string1);
-    float    x       = std::stof(string2);
+
+    float    x=stof(string2);       ;
+
+    if(fRadius>16)
+        x=stof(string2)*cos(3.14);
+    else
+        x=stof(string2);
+
     float    y       = std::stof(string3);
-    thePixelCount++;
+
+     thePixelCount++;
     if (thePixelCount == 1) aPixelPos = x; 
     else min = std::abs(aPixelPos-x) < min && std::abs(aPixelPos-x) > 0 ? std::abs(aPixelPos-x) : min;
         

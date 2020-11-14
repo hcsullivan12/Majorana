@@ -5,16 +5,20 @@
  * @date 07-04-2019
  * 
  */
-
+#include<stdio.h>
+#include<stdlib.h>
+#include<sys/wait.h>
+#include<unistd.h>
 #include "majsim/G4Helper.h"
 #include "majutil/OpDetPhotonTable.h"
 #include "majutil/PixelTable.h"
 #include "majsim/Configuration.h"
 #include "majsim/SimAnalyzer.h"
-
+#include "G4VisManager.hh"
 #include <assert.h>
 
 #include <TFile.h>
+
 
 namespace majsim
 {
@@ -81,27 +85,33 @@ G4Helper::G4Helper()
 
   fRunManager->SetUserInitialization(fActionInitialization);
   fRunManager->Initialize();
+
 }
 
 //------------------------------------------------------------------------
 G4Helper::~G4Helper()
 {
   //if (fUIManager)  delete fUIManager;
-  #ifdef G4VIS_USE
+  //#ifdef G4VIS_USE
+
   if (fVisManager) delete fVisManager;
-  #endif 
+  //#endif
   if (fRunManager) delete fRunManager;
 }
 
 //------------------------------------------------------------------------
-void G4Helper::StartG4()
+Int_t G4Helper::StartG4(G4UIExecutive* ui)
 {
   // Set verbosities
-  HandleVerbosities();
-  // Handle visualization
-  HandleVisualization();
+    HandleVerbosities();
+    fActionInitialization->DumpResults();
+    //Handling Visualization
+    HandleVisualization(ui);
   // Start main G4 loop
-  RunG4();
+    return RunG4();
+
+
+
 }
 
 //------------------------------------------------------------------------
@@ -111,27 +121,97 @@ void G4Helper::HandleVerbosities()
   fUIManager->ApplyCommand("/event/verbose 0");    // max = 2
   fUIManager->ApplyCommand("/tracking/verbose 0"); // max = 4
   G4HadronicProcessStore::Instance()->SetVerbose(0);
-  fPhysicsList->GetOpticalPhysics()->GetBoundaryProcess()->SetVerboseLevel(0); // max 1
+  //fPhysicsList->GetOpticalPhysics()->GetBoundaryProcess()->SetVerboseLevel(0); // max 1
 }
 
 //------------------------------------------------------------------------
-void G4Helper::RunG4()
+Int_t G4Helper::RunG4()
 {
-  // Get config
-  Configuration* config = Configuration::Instance();
-  // Initialize photon table
-  // This will help reduce overhead
-  majutil::OpDetPhotonTable* photonTable = majutil::OpDetPhotonTable::CreateInstance(config->NMPPCs());
-  // Get steering table
-  Configuration::SteeringTable steeringTable = config->GetSteeringTable();
-  size_t nEvents = steeringTable.size();
-  // Make new analyzer
-  SimAnalyzer analyzer(config->SimulateOutputPath());
- 
-  // Run G4 nEvents times
-  for (size_t e = 0; e < nEvents; e++)
+    // Get config
+    Configuration* config = Configuration::Instance();
+    // Initialize photon table
+    // Get steering table
+    Configuration::SteeringTable steeringTable = config->GetSteeringTable();
+    size_t nEvents = steeringTable.size();
+
+    // Handle visualization
+   // Run G4 nEvents times
+    int StartEvent=0;
+
+    size_t TotalEvents=nEvents;
+
+    std::string PathForUpdate;
+
+    int status=0;
+    if (nEvents>100 and !fShowVis)
+   {
+       //Defining First Child
+       pid_t f1 =fork();
+
+       // Creating Second Child and GrandChild
+       pid_t f2=fork();
+       if(f1>0 && f2>0)
+       {
+           StartEvent=3*(TotalEvents/4);
+           nEvents=TotalEvents;
+
+           PathForUpdate=config->SimulateOutputPath()+"_p4.root";
+
+           //wait(NULL);
+           //wait(NULL);
+           std::cout<<"Processing Parent ID "<<getppid() <<" "<<getpid()<<std::endl;
+
+       }
+       else if(f1==0 && f2>0) // 1st Child Process
+       {
+           StartEvent=(TotalEvents/2);
+           nEvents=3*(TotalEvents/4);
+           PathForUpdate=PathForUpdate;
+
+           PathForUpdate=config->SimulateOutputPath()+"_p3.root";
+           //wait(NULL);
+           std::cout<<"Processing first Child Event "<<getppid() <<" "<<getpid()<<std::endl;
+           status=1;
+       }else if(f1>0 && f2==0) // Second Child Process
+       {
+
+           StartEvent=TotalEvents/4;
+           nEvents=(TotalEvents/2);
+           PathForUpdate=PathForUpdate;
+           std::cout<<"Processing Second Child Event "<< getppid() <<" "<<getpid()<<std::endl;
+           PathForUpdate=config->SimulateOutputPath()+"_p2.root";
+           status=1;
+       }else if(f1==0 && f2==0) // third Child Process
+       {
+
+           StartEvent=0;
+           nEvents=TotalEvents/4;
+           PathForUpdate=PathForUpdate;
+           std::cout<<"Processing Third Child Event "<< getppid() <<" "<<getpid()<<std::endl;
+           PathForUpdate=config->SimulateOutputPath()+"_p1.root";
+           status=1;
+
+
+       }
+       else {std::cout<<"Fork Failed"<<std::endl; return 0;}
+
+    } else
+        {
+            PathForUpdate=config->SimulateOutputPath()+".root";
+        }
+
+
+        // Make new analyzer
+        SimAnalyzer analyzer(PathForUpdate.c_str());
+        // This will help reduce overhead
+        majutil::OpDetPhotonTable* photonTable = majutil::OpDetPhotonTable::CreateInstance(config->NMPPCs());
+
+
+        for (size_t e = StartEvent; e < nEvents; e++)
   {
-    G4cout << "\n****  EVENT #" << e << "  ****" << G4endl;
+
+    std::cout << "\n****  EVENT #" << e << "  ****" << std::endl;
+
     // Reset the generator
     if (config->SourceMode() == "pixel")
     {
@@ -158,9 +238,9 @@ void G4Helper::RunG4()
       auto n         = steeringTable[e].n;
       fGeneratorAction->Reset(r, thetaDeg, x, y, z, n);
     }
-    
-    // Start run!
-    fRunManager->BeamOn(1);
+
+      // Start run!
+      if (!fShowVis) fRunManager->BeamOn(1);
     // Update DAQ file if in evd mode
     if (config->EvdMode())
     {
@@ -175,28 +255,40 @@ void G4Helper::RunG4()
     //f.Close();
 
     // Fill our ntuple
-    analyzer.Fill(e);
+      if (!fShowVis) analyzer.Fill(e);
     // Clear the photon table!
     photonTable->Reset();
   
     // Sleep if in evd mode
     if (config->EvdMode()) sleep(3);
+
+
   }
+
+    return status;
+
 }
 
 //------------------------------------------------------------------------
-void G4Helper::HandleVisualization()
+void G4Helper::HandleVisualization(G4UIExecutive* ui)
 {
-  #ifdef G4VIS_USE
-  if (fShowVis) 
+  //#ifdef G4VIS_USE  Version 10.2
+
+  if (fShowVis)
   {
-    fVisManager = new G4VisExecutive();
+      fVisManager = new G4VisExecutive();
     fVisManager->SetVerboseLevel(0); // max = 6
     fVisManager->Initialize();
     std::string command = "/control/execute " + fVisMacroPath;
     fUIManager->ApplyCommand(command);
+    ui->SessionStart();
+    //delete ui;
+
   }
-  #endif
+
+    //#endif Version 10.2
+
+
 }
 
 }

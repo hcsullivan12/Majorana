@@ -4,15 +4,15 @@
 
 import ROOT
 from array import array
-import os
+import os,glob
 
 class reconstructor:
     #------------------------------------------------------------------------
     def __init__(self, configpath, outputpath):
         # recreate our output file
+        FileCount=0
+
         self._outputpath = outputpath
-
-
         # parse config file
         self._configpath = configpath
         config = self.parse_config()
@@ -83,7 +83,7 @@ class reconstructor:
         return recoHelper
     
     #------------------------------------------------------------------------
-    def reconstruct(self, counts,TName, event):
+    def reconstruct(self, counts,TName, event,TrueInfo,DataFileName):
         ROOT.gInterpreter.Declare('#include "include/Reconstructor.h"')
         ROOT.gSystem.Load("include/libReconstructor.so")
 
@@ -97,21 +97,47 @@ class reconstructor:
         if self._recoHelper.theMethod == 'chi2':
             reco.DoChi2(1)
             reco.Dump()
+            values=reco.EstimatedValues().split(",")
         else:
             print 'Need to update the reconstructor!'
+
+        Condition=TName.split("_")
+        TotalPe=str(sum(counts))
+        File=open(DataFileName,"a+")
+        for f,tx,ty in TrueInfo:
+            if(Condition[1]==f):
+                Full = Condition[0] + " " + f + " " + Condition[2] + " " + Condition[3] +  " " + tx +  " " + ty +  " " + TotalPe + " " + values[0] +  " " + values[1] +  " " + values[2] + "\n"
+                File.write(Full)
+
+        File.close()
             
         self.update(reco,TName, event)
 
+
     #------------------------------------------------------------------------
     def update(self, reco,TName, event):
-        MLI=TName+"_MLI"
-        CHI= TName + "_Chi"
+        MLI= "MLI_" + TName
+        CHI= "Chi_" + TName
         f = ROOT.TFile.Open(self._outputpath, 'UPDATE')
         reco.MLImage().Write(MLI)
         reco.Chi2Image().Write(CHI)
         f.Close()
 
+    #------------------------------------------------------------------------
+    def PlotGraph(self,x,y,Name,CTitle,XTitle,YTitle,Mode):
+        gr=ROOT.TGraph(len(x),x,y)
+        Canvas=TCanvas(Name,CTitle,200,10,700,500)
+        Canvas.SetFillColor(42)
+        gr.SetLineColor(2)
+        gr.SetLineWidth(4)
+        gr.SetMarkerStyle(21)
+        gr.GetXaxis().SetTitle(XTitle)
+        gr.GetYaxis().SetTitle(YTitle)
+        gr.Draw(Mode)
+        f = ROOT.TFile(self._outputpath, 'UPDATE')
+        Canvas.Write(Name)
+        f.Close()
 
 
-
-
+    def GetInfo(self):
+        return self._Info()

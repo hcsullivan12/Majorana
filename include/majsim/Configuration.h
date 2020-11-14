@@ -92,6 +92,10 @@ class Configuration
     G4double    SourcePeakESigma()     const { return fSourcePeakESigma; };
     G4double    SurfaceRoughness()     const { return fSurfaceRoughness; };
     G4double    SurfaceAbsorption()    const { return fSurfaceAbsorption; };
+    G4double    GetPressure()    const { return fpressure; };
+    int    GetBaseMaterial()    const { return fBaseMaterial; };
+    int    GetSourceType()    const { return fSourceType; };
+
     const SteeringTable& GetSteeringTable()   const { return fSteeringTable; };
     
   private:
@@ -124,6 +128,10 @@ class Configuration
     bool        fShowVis;                ///< Option to render visualization
     bool        fEvdMode;                ///< Option for running with event display
     std::vector<SteeringTableIndex> fSteeringTable; ///< Container for information on each event to be simulated 
+    G4double fpressure=1; // 1 atm default
+    int fSourceType; //  type of the Source
+    int fBaseMaterial;
+
 };
 }
 

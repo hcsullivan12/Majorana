@@ -1,0 +1,13 @@
+File	x	y
+pos1	-12	8
+pos2	-9	8
+pos3	-6	8
+pos4	-6	15
+pos5	-6	1
+pos6	-3	8
+pos7	-3	15
+pos8	-3	1
+pos9	3	8
+pos10	8	8
+pos11	8	15
+pos12	8	1

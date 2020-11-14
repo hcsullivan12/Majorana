@@ -1,0 +1,11 @@
+# gun: particle
+/gun/particle alpha
+/gun/energy 5.486 MeV
+
+# Gun menu :
+/gui/addMenu agun AlphaGun
+/gui/addButton agun "1 keV" "/gun/energy 1 keV"
+/gui/addButton agun "1 MeV" "/gun/energy 1 MeV"
+/gui/addButton agun "5.486 MeV" "/gun/energy 5.486 MeV"
+/gui/addButton agun "50 MeV" "/gun/energy 50 MeV"
+

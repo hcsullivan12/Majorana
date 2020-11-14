@@ -227,7 +227,9 @@ void Reconstructor::DoChi2(const size_t& upStop)
   for (const auto& pixel : *fPixelVec) 
   {
     auto content = fMLGauss->Eval(pixel.X(), pixel.Y());
-    if (content < 5) content = 5; // plotting 
+    //if (content < 5) content = 5; // plotting
+
+
     auto xBin = fMLHist->GetXaxis()->FindBin(pixel.X());
     auto yBin = fMLHist->GetYaxis()->FindBin(pixel.Y());
     fMLHist->SetBinContent(xBin, yBin, content);
@@ -468,4 +470,9 @@ void Reconstructor::Dump()
             << "\nEstimate for Y:     " << fEstimateY
             << "\nEstimate for LY:    " << fEstimateTotalLight
             << "\n";
+}
+std::string Reconstructor::EstimatedValues()
+{
+ std::string Values=std::to_string(fEstimateX) + "," +std::to_string(fEstimateY) + "," +std::to_string(fEstimateTotalLight) +","+ std::to_string(fPixelVec->size());
+ return Values;
 }

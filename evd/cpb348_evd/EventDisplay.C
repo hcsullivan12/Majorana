@@ -7,7 +7,7 @@
 #include <TRootEmbeddedCanvas.h>
 #include <RQ_OBJECT.h>
 
-#include <sys/stat.h>
+/*#include <sys/stat.h>*/
 #include "doReconstruct.C"
 
 class MyMainFrame {

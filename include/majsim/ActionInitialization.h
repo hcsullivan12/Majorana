@@ -25,12 +25,20 @@ class ActionInitialization : public G4VUserActionInitialization
     virtual ~ActionInitialization();
 
     virtual void Build() const;
+    //virtual void BuildForMaster() const;
+    //virtual G4VSteppingVerbose* InitializeSteppingVerbose() const;
 
     PrimaryGeneratorAction* GetGeneratorAction() const { return fGeneratorAction; };
+    void DumpResults();
 
-  private:
+
+private:
     PrimaryGeneratorAction*  fGeneratorAction; ///< Pointer to generator action 
     SteppingAction*          fSteppingAction;  ///< Pointer to stepping action
+    G4int                    fScintCount;
+    G4int                    fCerenkovCount;
+    G4int                    fOWLSCount;
+
 };
 
 }

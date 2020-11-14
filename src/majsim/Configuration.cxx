@@ -83,6 +83,7 @@ void Configuration::ReadConfigFile()
   fSimulateOutputPath   = std::string(majoranaDir)+"/"+filesSect.get_child("simulateOutputPath").get_value("");
   fSteeringFilePath     = std::string(majoranaDir)+"/"+filesSect.get_child("steeringFilePath").get_value("");
   fDAQFilePath          = std::string(majoranaDir)+"/"+filesSect.get_child("daqFilePath").get_value("");
+
   if (fShowVis)               fVisMacroPath = std::string(majoranaDir)+"/"+filesSect.get_child("visMacroPath").get_value("");
   if (fSourceMode == "pixel") fPixelizationPath = std::string(majoranaDir)+"/"+filesSect.get_child("pixelizationPath").get_value(""); 
 
@@ -97,6 +98,10 @@ void Configuration::ReadConfigFile()
   fSurfaceRoughness     =           boost::lexical_cast<double>(simSect.get_child("surfaceRoughness").get_value(""));
   fSurfaceAbsorption    =           boost::lexical_cast<double>(simSect.get_child("surfaceAbsorption").get_value(""));
   fSourcePosSigma       = CLHEP::cm*boost::lexical_cast<double>(simSect.get_child("sourcePosSigma").get_value(""));
+  fpressure             =           boost::lexical_cast<double>(simSect.get_child("Pressure").get_value(""));
+  fSourceType           =         boost::lexical_cast<int>(simSect.get_child("SourceType").get_value(""));
+  fBaseMaterial         =         boost::lexical_cast<int>(simSect.get_child("DetectorMaterial").get_value(""));
+
 }
 
 //------------------------------------------------------------------------
@@ -136,19 +141,19 @@ void Configuration::PrintConfiguration()
             << "DiskRadius         " << fDiskRadius/CLHEP::cm     << " cm"  << std::endl
             << "DiskThickness      " << fDiskThickness/CLHEP::cm  << " cm"  << std::endl;
   std::cout << std::setfill('-') << std::setw(60) << "-" << std::setfill(' ')  << std::endl;
-}  
+}
 
 //------------------------------------------------------------------------
 void Configuration::ReadSteeringFile()
 {
-  std::ifstream f(fSteeringFilePath.c_str()); 
+  std::ifstream f(fSteeringFilePath.c_str());
   if (!f.is_open())
   {
     std::cerr << "Configuration::ReadSteeringFile() Error! Cannot open steering file!\n";
     exit(1);
   }
   std::cout << "\nReading light steering file..." << std::endl;
-  
+
   // We have different modes here:
   //
   //   SteeringFile in pixel mode
@@ -157,13 +162,13 @@ void Configuration::ReadSteeringFile()
   //        r theta n or x y n
   if (fSourceMode == "pixel")
   {
-    // First read top line 
+    // First read top line
     std::string string1, string2;
     std::getline(f, string1, ' ');
     std::getline(f, string2);
     if (string1 != "pixelID" || string2 != "n")
     {
-      std::cout << "Error! LightSteeringFile in pixel mode must have " 
+      std::cout << "Error! LightSteeringFile in pixel mode must have "
              << "\'pixelID n\' on the top row.\n"
              << std::endl;
       exit(1);
@@ -189,25 +194,25 @@ void Configuration::ReadSteeringFile()
   std::getline(f, string1, ' ');
   std::getline(f, string2, ' ');
   std::getline(f, string3);
-  
+  std::cout << string1 << " " <<string2<<  " " <<string3<<std::endl;
   bool sourcePosXY;
   if (string1 == "r" && string2 == "theta")  sourcePosXY = false;
   else if (string1 == "x" && string2 == "y") sourcePosXY = true;
-  else 
+  else
   {
     std::cout << "Error! LightSteeringFile in point mode must have "
-           << "\"r theta n\" or \"x y n\" on top row.\n" 
+           << "\"r theta n\" or \"x y n\" on top row.\n"
            << std::endl;
     exit(1);
   }
   if (string3 != "n")
   {
     std::cout << "Error! LightSteeringFile in point mode must have "
-           << "\"r theta n\" or \"x y n\" on top row.\n" 
+           << "\"r theta n\" or \"x y n\" on top row.\n"
            << std::endl;
     exit(1);
   }
-   
+
   // Read the rest of the file
   while (std::getline(f, string1, ' '))
   {
@@ -224,14 +229,14 @@ void Configuration::ReadSteeringFile()
       x = value1;
       y = value2;
       r = std::sqrt(x*x + y*y);
-    
+
       if (r > 0.01) thetaDeg = std::asin(std::abs(y/r))*180/pi;
       // Handle theta convention
       if (x <  0 && y >= 0) thetaDeg = 180 - thetaDeg;
       if (x <  0 && y <  0) thetaDeg = 180 + thetaDeg;
       if (x >= 0 && y <  0) thetaDeg = 360 - thetaDeg;
     }
-    else 
+    else
     {
       r        = value1;
       thetaDeg = value2;
@@ -240,7 +245,7 @@ void Configuration::ReadSteeringFile()
     }
 
     SteeringTableIndex s;
-    s.r        = r*CLHEP::cm;        
+    s.r        = r*CLHEP::cm;
     s.thetaDeg = thetaDeg*deg;
     s.x        = x*CLHEP::cm;
     s.y        = y*CLHEP::cm;

@@ -1,0 +1,4 @@
+File	x	y
+pos1	-12	8
+pos2	-1	1
+

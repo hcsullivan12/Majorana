@@ -1,1 +1,1 @@
-python doAnalyzeReco.py -i /home/ilker/Desktop/for_ilker/evd/test/filelist.txt -o anaOutput.root -c RecoConfiguration.cfg -t 5000 -th 0
+python doAnalyzeReco.py -i /home/asaadi/Desktop/Analysis/Third_Data/thirddata.list -o /home/asaadi/Desktop/Analysis/Third_Data/ThirdDatasingle2.root -c RecoConfiguration.cfg -t 1 -th 220 -m 1

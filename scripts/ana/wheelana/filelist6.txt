@@ -1,0 +1,3 @@
+/home/ilker/Desktop/RAW_DATA/DATA/D_27.root
+/home/ilker/Desktop/RAW_DATA/DATA/D_28.root
+/home/ilker/Desktop/RAW_DATA/DATA/D_29.root

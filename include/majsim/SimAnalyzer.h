@@ -34,13 +34,23 @@ class SimAnalyzer
     int    fNPixels;
     int    fNMPPCs;
     double fDiskRadius;
+    double fTrueX;
+    double fTrueY;
     int    fNPrimaries;
     int    fNPhotonsAbs;
+    int    fpressure;
     std::vector<float> fSourcePosXYZ;
     std::vector<float> fSourcePosRTZ;
     std::vector<float> fMPPCToLY;
     std::vector<float> fMPPCToSourceR;
     std::vector<float> fMPPCToSourceT;
+    std::vector<double> fElectronEnergies;
+    std::vector<double> fAlphaEnergies;
+    std::vector<double> fPhotonEnergies;
+    std::vector<double> fNeutronEnergies;
+    size_t fCountEventsToSave;
+    TFile *f;
+
     std::string fSimulateOutputPath;
 };
 }

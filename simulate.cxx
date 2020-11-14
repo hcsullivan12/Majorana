@@ -18,6 +18,8 @@ void DisplayHelp();
 //------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
+
+    G4UIExecutive* ui = new G4UIExecutive(argc,argv);
   // Initialize configuration
   majsim::Configuration* simConfig = majsim::Configuration::CreateInstance();
   // Handle runtime args
@@ -34,8 +36,11 @@ int main(int argc, char **argv)
   
   // Start G4
   majsim::G4Helper* g4Helper = majsim::G4Helper::CreateInstance();
-  g4Helper->StartG4();
-
+  int status;
+  status=g4Helper->StartG4(ui);
+  delete ui;
+  if (status)
+    _exit(0);
   return 0;
 }
 
@@ -104,8 +109,11 @@ void DisplayHelp()
 //------------------------------------------------------------------------
 void InitializeFiles(const majsim::Configuration* simConfig)
 {
-  TFile f1(simConfig->SimulateOutputPath().c_str(), "RECREATE");
+  std::string FixTitle;
+  FixTitle=simConfig->SimulateOutputPath()+".root";
+  TFile f1(FixTitle.c_str(), "RECREATE");
   f1.Close();
+  std::cout<<FixTitle <<"  is initilatized"<<std::endl;
 }
 
 

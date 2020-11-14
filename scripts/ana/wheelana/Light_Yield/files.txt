@@ -1,0 +1,10 @@
+/home/asaadi/Desktop/CAEN_Board/Light_Yield/D_1_0.5.root
+/home/asaadi/Desktop/CAEN_Board/Light_Yield/D_2_1.root
+/home/asaadi/Desktop/CAEN_Board/Light_Yield/D_3_1-5.root
+/home/asaadi/Desktop/CAEN_Board/Light_Yield/D_4_2.root
+/home/asaadi/Desktop/CAEN_Board/Light_Yield/D_5_2-5.root
+/home/asaadi/Desktop/CAEN_Board/Light_Yield/D_6_3.root
+/home/asaadi/Desktop/CAEN_Board/Light_Yield/D_7_6.root
+
+
+

@@ -10,6 +10,7 @@
 #define MAJSIM_MATERIALMANAGER_H
 
 #include "G4Material.hh"
+#include "Configuration.h"
 
 namespace majsim
 {
@@ -23,7 +24,7 @@ class MaterialManager
 
     void        ConstructMaterials();
     G4Material* FindMaterial(const G4String& name);
-
+    Configuration * config;
     std::vector<float> GetPhotonEnergies() const { return fTPBEmissionE; };
 
   private:
@@ -32,10 +33,17 @@ class MaterialManager
 
     void DefineAir();
     void DefineAcrylic();
+
     void DefineMPPCMaterial();
+    void DefineArgon();
+    void DefineTPB();
+
  
     std::vector<float> fTPBEmissionE;
-    std::vector<float> fTPBEmissionSpect; 
+    std::vector<float> fTPBEmissionSpect;
+
+    std::vector<float> fTPBAbsE;
+    std::vector<float> fTPBAbsSpect;
 };
 }
 

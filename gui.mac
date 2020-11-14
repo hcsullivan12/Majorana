@@ -1,0 +1,13 @@
+/control/verbose 2
+/tracking/verbose 2
+# File menu :
+/gui/addMenu file File
+/gui/addButton file Quit exit
+# Run menu :
+/gui/addMenu run Run
+/gui/addButton run "beamOn 1" "/run/beamOn 1"
+/gui/addButton run "beamOn 20" "/run/beamOn 20"
+# Visual menu :
+/gui/addMenu run Run
+/gui/addButton run "OpticalPhoton" "/control/execute photon.mac"
+/gui/addButton run "Cf252" "/control/execute Cf252.mac"

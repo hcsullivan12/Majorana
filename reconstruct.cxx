@@ -26,6 +26,7 @@ int main(int argc, char **argv)
   InitializeFiles(recoConfig);
   // Initialize pixels 
   majutil::PixelTable* pixelTable = majutil::PixelTable::CreateInstance();
+  pixelTable->fRadius=recoConfig->diskRadius();
   pixelTable->Initialize(recoConfig->PixelizationPath());
   pixelTable->LoadReferenceTable(recoConfig->OpReferenceTablePath());
 
@@ -42,8 +43,8 @@ void HandleArgs(int argc, char **argv, majreco::Configuration* recoConfig)
   std::string configPath("");
 
   if (argc < 2) DisplayHelp();
-  for (unsigned arg = 0; arg < argc; arg++) if (std::string(argv[arg]) == "-h") DisplayHelp();
-  for (unsigned arg = 0; arg < (argc-1); arg++)
+  for (int arg = 0; arg < argc; arg++) if (std::string(argv[arg]) == "-h") DisplayHelp();
+  for (int arg = 0; arg < (argc-1); arg++)
   {
     if (std::string(argv[arg]) == "-c") configPath = std::string(argv[arg+1]);
   }

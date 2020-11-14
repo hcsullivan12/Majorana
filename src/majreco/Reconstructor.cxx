@@ -17,14 +17,14 @@
 
 #include <iostream>
 #include <cmath>
-
 namespace majreco
 {
 
 //------------------------------------------------------------------------
 Reconstructor::Reconstructor(const std::map<size_t, size_t>&              data,
                              std::shared_ptr<std::vector<majutil::Pixel>> pixelVec,
-                             const float&                                 diskRadius)
+                             const float&                                 diskRadius,
+                             const int &                                  entry)
  : fData(data),
    fDiskRadius(diskRadius),
    fGamma(0),
@@ -39,42 +39,55 @@ Reconstructor::Reconstructor(const std::map<size_t, size_t>&              data,
   fPixelVec.get()->clear();
   fPixelVec.reset();
   fPixelVec = pixelVec;
+  fentry    = entry;
 
   fDenomSums.clear();
   fDenomSums.resize(fData.size());
   fLogLikehs.clear();
-
+  SimData= nullptr;
   // Initialize histogram and gaussian
   float pixelSpacing = (*fPixelVec).front().Size();
   size_t n = 2*fDiskRadius/pixelSpacing - 1; // assuming pixel is in the center
-  if (!fMLHist)   fMLHist  = new TH2F("histFinal", "histFinal", n, -fDiskRadius, fDiskRadius, n, -fDiskRadius, fDiskRadius);
-  if (!fMLGauss)  fMLGauss = new TF2("g", "bigaus", -fDiskRadius, fDiskRadius, -fDiskRadius, fDiskRadius);
-  if (!fChi2Hist) fChi2Hist = new TH2F("chi2Final", "chi2Final", n, -fDiskRadius, fDiskRadius, n, -fDiskRadius, fDiskRadius);
+  if (!fMLHist)   fMLHist  = new TH2F("pos","pos", n, -fDiskRadius-diff, fDiskRadius+diff, n, -fDiskRadius-diff, fDiskRadius+diff);
+  if (!fMLGauss)  fMLGauss = new TF2("g", "bigaus", -fDiskRadius-diff, fDiskRadius+diff, -fDiskRadius-diff, fDiskRadius+diff);
+  if (!fChi2Hist) fChi2Hist = new TH2F("chi2Final", "chi2Final", n, -fDiskRadius-diff, fDiskRadius+diff, n, -fDiskRadius-diff, fDiskRadius+diff);
+  if (!fMeasured)  fMeasured = new TH1I ("measured", "Measured;SIPM id;Activity", fData.size(), 0.5, fData.size()+0.5);
+  if (!fExpected)  fExpected = new TH1I ("exp", "Expected;SIPM id;Activity", fData.size(), 0.5, fData.size()+0.5);
+  fconfig= Configuration::Instance();
+  fPathToDeadChannels= fconfig->GetPathToDeadChannels();
 }
-
-
 //------------------------------------------------------------------------
 Reconstructor::~Reconstructor()
 {
-  if (fMLHist)   delete fMLHist;
-  if (fMLGauss)  delete fMLGauss;
-  if (fChi2Hist) delete fChi2Hist;
+  // Deleting Histograms
+  //if (fMLHist)   delete fMLHist;
+  //if (fMLGauss)  delete fMLGauss;
+ // if (fChi2Hist) delete fChi2Hist;
+  //if (fMeasured) delete fMeasured;
+  //if (fExpected) delete fExpected;
+  delete gROOT->FindObject("pos");
+  delete gROOT->FindObject("g");
+  delete gROOT->FindObject("chi2Final");
+  delete gROOT->FindObject("measured");
+  delete gROOT->FindObject("exp");
+
+
 }
 
 /**
- * @brief Reconstructs the image by maximizing the likelihood. 
- * 
- * There are two versions: unpenalized and penalized. 
- * The unpenalized method uses expectation maximization to minimize 
- * the likelihood. The resulting 'Money Formula' is applied. The result 
+ * @brief Reconstructs the image by maximizing the likelihood.
+ *
+ * There are two versions: unpenalized and penalized.
+ * The unpenalized method uses expectation maximization to minimize
+ * the likelihood. The resulting 'Money Formula' is applied. The result
  * is an image of reconstructed pixel colors.
- * The penalized method introduces a prior and maximizes the posterior. 
+ * The penalized method introduces a prior and maximizes the posterior.
  * This reduces to minimizing the likelihood where a regularization function
- * has been added to the likelihood function. The regularization function is 
- * chosen so that the prior is gaussian. 
- * 
+ * has been added to the likelihood function. The regularization function is
+ * chosen so that the prior is gaussian.
+ *
  */
-void Reconstructor::DoEmMl(const float&  gamma, 
+void Reconstructor::DoEmMl(const float&  gamma,
                            const size_t& upStop,
                            const size_t& pStop,
                            const bool&   doPenalized)
@@ -99,7 +112,7 @@ void Reconstructor::DoEmMl(const float&  gamma,
   fEstimateY          = maxY;
 
   // option to do penalized
-  if (doPenalized) 
+  if (doPenalized)
   {
     // Initialize our priors
     InitializePriors();
@@ -110,26 +123,50 @@ void Reconstructor::DoEmMl(const float&  gamma,
   }
 }
 
+
+//Reading the Dead Channels for MotherShip
+    void Reconstructor::DeadChs (std::vector<unsigned> &Dead)
+    {
+        std::ifstream file(fPathToDeadChannels);
+        std::string str;
+        while (std::getline(file,str)) {
+            Dead.push_back(std::stoi(str));
+            std::cout<< "DeadChannels -> " + str<< std::endl;
+        }
+        if(Dead.size()>0)
+            std::cout<<"Dead SIPM are obtained from the file"<<std::endl;
+
+
+    }
+
+
 /**
  * @brief Reconstructs mean position based on minimizing a chi2 metric.
- * 
- * This method uses the lookup tables to estimate the expected number of 
- * counts for each detector. A Chi2 is calculated and minimized using the 
+ *
+ * This method uses the lookup tables to estimate the expected number of
+ * counts for each detector. A Chi2 is calculated and minimized using the
  * expected and the measured counts. After minimization, a 2D gaussian is
  * formed using the minimum chi2 X and Y value.
- * 
+ *
  */
 void Reconstructor::DoChi2(const size_t& upStop)
 {
   fUnpenalizedIterStop = upStop;
 
+  // For Mothership Dead Channels
+  fDeadSIPMs.clear();
+  if(fPathToDeadChannels!="None" || fPathToDeadChannels!="")
+    DeadChs(fDeadSIPMs);
+
   // Total amount of light seen
   double totalCounts(0);
-  for (const auto& d : fData) totalCounts += d.second;
-
+  for (const auto& d : fData){
+      if(std::find(fDeadSIPMs.begin(),fDeadSIPMs.end(),d.first-1)==fDeadSIPMs.end())
+        totalCounts += d.second;
+  }
   float chi2Min(std::numeric_limits<float>::max());
   size_t nDet = fData.size();
-  
+
   // Loop over pixels
   size_t iPix(0);
   std::vector<std::vector<float>> accumulator;
@@ -145,19 +182,28 @@ void Reconstructor::DoChi2(const size_t& upStop)
     for (size_t d = 1; d <= nDet; d++)
     {
       // How much light do we expect?
-      expectedWeight.emplace(d, lookupTable[d-1]);
-      totalExpectedWeight += lookupTable[d-1];
-    } 
+        if(std::find(fDeadSIPMs.begin(),fDeadSIPMs.end(),d-1)==fDeadSIPMs.end()) {   // Filter Dead SIPMs
+
+                expectedWeight.emplace(d, lookupTable[d - 1]);
+                totalExpectedWeight += lookupTable[d - 1];
+        }
+        else expectedWeight.emplace(d, 0);
+
+
+    }
 
     // Now calculate chi2 for this
     float chi2(0);
     for (size_t d = 1; d <= nDet; d++)
     {
-      double expected = expectedWeight.find(d)->second/totalExpectedWeight;
-      double measured = fData.find(d)->second/totalCounts;
+        if(std::find(fDeadSIPMs.begin(),fDeadSIPMs.end(),d-1)==fDeadSIPMs.end()) {   // Filter Dead SIPMs
 
-      float diff2 = (expected - measured)*(expected - measured);
-      chi2 = chi2 + diff2/expected;
+            double expected = expectedWeight.find(d)->second / totalExpectedWeight;
+            double measured = fData.find(d)->second / totalCounts;
+
+            float diff2 = (expected - measured) * (expected - measured);
+            chi2 = chi2 + diff2 / expected;
+        }
     }
 
     // Fill chi2 distribution
@@ -180,60 +226,79 @@ void Reconstructor::DoChi2(const size_t& upStop)
     iPix++;
   }
 
-  // For the sigma, let's use the distance to where our chi2 metric doubles 
+  // For the sigma, let's use the distance to where our chi2 metric doubles
   // in value from the minimum
   float value(1.5*fChi2Pixel.chi2);
   std::sort( accumulator.begin(), accumulator.end(), [](const auto& l, const auto& r) {return l[0] < r[0];} );
   auto it = std::find_if( accumulator.begin(), accumulator.end(), [value](const auto& v) {return v[0] > value;} );
   // default (if something goes wrong)
   float sigma(2.);
+
+  /*
   if (it != accumulator.end())
   {
     // 2d distance from minimum point
     float diffX = it->at(1) - fChi2Pixel.vertex[0];
     float diffY = it->at(2) - fChi2Pixel.vertex[1];
     sigma = std::sqrt(diffX*diffX + diffY*diffY);
-  }
+
+  }*/
 
   std::cout << "\nChi2 pixel information:"
             << "\nChi2 = " << fChi2Pixel.chi2
-            << "\nX    = " << fChi2Pixel.vertex[0] 
+            << "\nX    = " << fChi2Pixel.vertex[0]
             << "\nY    = " << fChi2Pixel.vertex[1]
             << "\nId   = " << fChi2Pixel.id
             << "\n";
 
   // form a 2D gaussian hypothesis centered on chi2 prediction
   if (fMLGauss) delete fMLGauss;
-  
-  /// @todo What do we use for the sigma in the gaussian? 
+
+  /// @todo What do we use for the sigma in the gaussian?
   double tempNum(0);
   double tempDen(0);
   auto lookupTable = (*fPixelVec)[fChi2Pixel.id].ReferenceTable();
+  SimData=new Double_t[nDet];
+  // Measured Data
+  std::string MeasuredTitle="Measured;SIPM id;Activity";
+  fMeasured= new TH1I("measured", MeasuredTitle.c_str(), nDet, 0.5, nDet+0.5);
   for (size_t d = 1; d <= nDet; d++)
   {
-    tempNum += lookupTable[d-1]*fData.find(d)->second;
-    tempDen += lookupTable[d-1]*lookupTable[d-1];
+      if(std::find(fDeadSIPMs.begin(),fDeadSIPMs.end(),d-1)==fDeadSIPMs.end()) {   // Filter Dead SIPMs
+
+          tempNum += lookupTable[d-1]*fData.find(d)->second;
+          tempDen += lookupTable[d-1]*lookupTable[d-1];
+          fMeasured->SetBinContent(d,fData.find(d)->second);
+          SimData[d-1]=fData.find(d)->second;
+      }else{  fMeasured->SetBinContent(d,0);
+              SimData[d-1]=fData.find(d)->second;
+      }
+
   }
   fEstimateTotalLight = tempNum/tempDen;
 
-  fMLGauss = new TF2("g", "bigaus", -fDiskRadius, fDiskRadius, -fDiskRadius, fDiskRadius);
+  fMLGauss = new TF2("g", "bigaus", -fDiskRadius-diff, fDiskRadius+diff, -fDiskRadius-diff, fDiskRadius+diff);
   fMLGauss->SetParameters(fEstimateTotalLight, fChi2Pixel.vertex[0], sigma, fChi2Pixel.vertex[1], sigma, 0);
-  fMLGauss->SetParameter(0, fEstimateTotalLight/(2*M_PI*sigma*sigma));
+  //fMLGauss->SetParameter(0, fEstimateTotalLight/(2*M_PI*sigma*sigma));
 
   Double_t x, y;
   fMLGauss->GetMaximumXY(x, y);
   fEstimateX = x;
   fEstimateY = y;
 
+
   // Fill reco image
-  for (const auto& pixel : *fPixelVec) 
+  for (const auto& pixel : *fPixelVec)
   {
     auto content = fMLGauss->Eval(pixel.X(), pixel.Y());
-    if (content < 5) content = 5; // plotting 
+    if (content < 3) content = 3; // plotting
     auto xBin = fMLHist->GetXaxis()->FindBin(pixel.X());
     auto yBin = fMLHist->GetYaxis()->FindBin(pixel.Y());
     fMLHist->SetBinContent(xBin, yBin, content);
   }
+
+  HistoExpectedCounts();
+
 }
 
 //------------------------------------------------------------------------
@@ -249,12 +314,24 @@ const std::map<size_t, size_t> Reconstructor::ExpectedCounts()
   return expCounts;
 }
 
+void Reconstructor::HistoExpectedCounts()
+{
+    fExpected = new TH1I ("exp", "Expected;SIPM id;Activity", fData.size(), 0.5, fData.size()+0.5);
+    auto opTable = (*fPixelVec)[fChi2Pixel.id].ReferenceTable();
+    for (size_t d = 1; d <= fData.size(); d++)
+    {
+        double expected = fEstimateTotalLight * opTable[d-1];
+        fExpected->SetBinContent(d,expected);
+    }
+
+}
+
 //------------------------------------------------------------------------
 void Reconstructor::InitializePriors()
 {
   // We should an updated gaussian fit now
   fPriors.resize(fPixelVec->size());
-  for (const auto& pixel : *fPixelVec) 
+  for (const auto& pixel : *fPixelVec)
   {
     auto content = fMLGauss->Eval(pixel.X(), pixel.Y());
     auto xBin = fMLHist->GetXaxis()->FindBin(pixel.X());
@@ -265,14 +342,14 @@ void Reconstructor::InitializePriors()
 
 /**
  * @brief Do unpenalized version of reconstruction.
- * 
+ *
  * The procedure is as follows:
  * 1) Make initial estimates for pixel intensities
  * 2) Make next prediction
  * 3) Check for convergence
  *      if yes, save, return
  *      if not, old estimates = current estimates -> 2)
- * 
+ *
  */
 void Reconstructor::DoUnpenalized()
 {
@@ -288,13 +365,13 @@ void Reconstructor::UnpenalizedEstimate()
   // To reduce complexity, find denominator sum seperately
   for (const auto& d : fData)
   {
-    float denomSum = DenominatorSum(d.first); 
+    float denomSum = DenominatorSum(d.first);
     fDenomSums[d.first-1] = denomSum;
   }
   for (auto& pixel : *fPixelVec)
   {
     // Get the current estimate, and reference table
-    float              theEst      = pixel.Intensity(); 
+    float              theEst      = pixel.Intensity();
     std::vector<float> theRefTable = pixel.ReferenceTable();
     // Apply the money formula
     float nextEst = MoneyFormula(theEst, theRefTable);
@@ -304,17 +381,17 @@ void Reconstructor::UnpenalizedEstimate()
 }
 
 /**
- * @brief Do penalized version of reconstruction. Same as 
+ * @brief Do penalized version of reconstruction. Same as
  *        unpenalized except uses different formula to update
  *        estimates.
- * 
+ *
  */
 void Reconstructor::DoPenalized()
 {
   // Initialize the pixels
   InitPixelList();
   // Start iterating
-  for (size_t iter = 1; iter <= fPenalizedIterStop; iter++) 
+  for (size_t iter = 1; iter <= fPenalizedIterStop; iter++)
   {
     PenalizedEstimate();
   }
@@ -327,7 +404,7 @@ void Reconstructor::PenalizedEstimate()
   UnpenalizedEstimate();
 
   // Apply penalized formula
-  // We will assume an identity matrix for now 
+  // We will assume an identity matrix for now
   float var = 1.0;
   for (auto& pixel : *fPixelVec)
   {
@@ -384,6 +461,7 @@ float Reconstructor::CalculateMean(const size_t& sipmID)
     auto opRefTable = pixel.ReferenceTable();
     sum = sum + opRefTable[sipmID-1]*pixel.Intensity();
   }
+  return sum;
 }
 
 //------------------------------------------------------------------------
@@ -423,7 +501,7 @@ float Reconstructor::DenominatorSum(const size_t& mppcID)
     auto opRefTable = pixel.ReferenceTable();
     if (mppcID > opRefTable.size())
     {
-      std::cerr << "Uh oh! Could not find MPPC" 
+      std::cerr << "Uh oh! Could not find MPPC"
                 << mppcID << " in reference table!" << std::endl;
     }
     else p = opRefTable[mppcID-1];
@@ -439,10 +517,10 @@ bool Reconstructor::CheckConvergence()
 }
 
 /**
- * @brief Updates the ML histogram with current estimates. Fits 
+ * @brief Updates the ML histogram with current estimates. Fits
  *        distribution using a 2D gaussian function to find the
  *        mean x and y coordinates.
- * 
+ *
  */
 void Reconstructor::UpdateHistogram()
 {
@@ -454,7 +532,7 @@ void Reconstructor::UpdateHistogram()
     size_t ybin = fMLHist->GetYaxis()->FindBin(v.Y());
     fMLHist->SetBinContent(xbin, ybin, v.Intensity());
     totalInt = totalInt + v.Intensity();
-  } 
+  }
   fEstimateTotalLight = totalInt;
 }
 
@@ -470,6 +548,29 @@ void Reconstructor::Dump()
             << "\nEstimate for Y:     " << fEstimateY
             << "\nEstimate for LY:    " << fEstimateTotalLight
             << "\n";
+
+  std::string pos;
+  pos= "Position_"+std::to_string(fentry);
+  fMLHist->Write(pos.c_str());
+  std::cout<<"Writing " << pos<< std::endl;
+
+  pos= "Gauss_"+std::to_string(fentry);
+  fMLGauss->Write(pos.c_str());
+  std::cout<<"Writing " << pos<< std::endl;
+
+  pos= "Chi_"+std::to_string(fentry);
+  fChi2Hist->Write(pos.c_str());
+  std::cout<<"Writing " << pos<< std::endl;
+
+  pos= "Expected_"+std::to_string(fentry);
+  //fExpected->Write(pos.c_str());
+  std::cout<<"Writing " << pos<< std::endl;
+
+  pos= "Measured_"+std::to_string(fentry);
+  fMeasured->Write(pos.c_str());
+  std::cout<<"Writing " << pos<< std::endl;
+
+
 }
 
 }

@@ -1,0 +1,1 @@
+/home/ilker/Projects/v4_Majorana/evd/daq/D_1.root

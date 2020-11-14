@@ -1,23 +1,25 @@
 # Use these open statements to open selected visualization
 #
 # Use this open statement to create an OpenGL view:
-/vis/open OGLS 1200x1200-0+0
+/vis/open OGL 1200x1200-0+0
 # Disable auto refresh and quieten vis messages whilst scene and
 # trajectories are established:
-/vis/viewer/set/autoRefresh false
-/vis/verbose quiet
+#/vis/verbose quiet
 #
+/vis/viewer/set/autoRefresh false
 # Draw geometry:
-/vis/drawVolume 
+/control/execute gui.mac
+/vis/drawVolume
+/tracking/verbose 1
 #
 # Specify view angle:
 /vis/viewer/set/lightsVector -1 -1 0.2
-/vis/viewer/zoom 3
+/vis/viewer/zoom 4
 #
 # Specify style (surface, wireframe, auxiliary edges,...)
 #/vis/viewer/set/style wireframe
 #/vis/viewer/set/auxiliaryEdge true
-/vis/viewer/set/lineSegmentsPerCircle 100
+#/vis/viewer/set/lineSegmentsPerCircle 100
 #
 # Draw smooth trajectories at end of event, showing trajectory points
 # as markers 2 pixels wide:
@@ -28,7 +30,20 @@
 /vis/modeling/trajectories/drawByCharge-0/default/setLineColour yellow
 /vis/modeling/trajectories/drawByCharge-0/default/setStepPtsColour red
 
-/tracking/storeTrajectory 1
+#/vis/scene/add/trajectories smooth
+#/vis/modeling/trajectories/create/drawByParticleID
+#/vis/modeling/trajectories/drawByParticleID-0/set e- red
+#/vis/modeling/trajectories/drawByParticleID-0/set e+ blue
+#/vis/modeling/trajectories/drawByParticleID-0/set nu_e white
+#/vis/modeling/trajectories/drawByParticleID-0/set anti_nu_e white
+#/vis/modeling/trajectories/drawByParticleID-0/set geantino white
+#/vis/modeling/trajectories/drawByParticleID-0/set gamma blue
+#/vis/modeling/trajectories/drawByParticleID-0/set alpha yellow
+#/vis/modeling/trajectories/drawByParticleID-0/set GenericIon grey
+#/vis/modeling/trajectories/drawByParticleID-0/set opticalphoton green
+
+/vis/scene/add/hits
+/tracking/storeTrajectory 2
 # To superimpose all of the events from a given run:
 /vis/scene/endOfEventAction accumulate
 # Axes, scale, etc.
@@ -37,36 +52,35 @@
 #/vis/scene/add/text 0 0 0 mm 40 -100 -200 LogVol:Absorber
 /vis/scene/add/eventID # Drawn at end of event
 #/vis/scene/add/date    # Date stamp
-/vis/scene/add/logo2D  # Simple logo
+#/vis/scene/add/logo2D  # Simple logo
 #/vis/scene/add/logo    # 3D logo
 # Frame
 /vis/set/colour red
-/vis/set/lineWidth 2
+/vis/set/lineWidth 5
 /vis/scene/add/frame   # Simple frame around the view
-/vis/set/colour        # Revert to default colour (white)
+/vis/set/colour        # Revert to default colour (red)
 /vis/set/lineWidth     # Revert to default line width (1.)
 #
 # Attach text to one edge of Shape1, with a small, fixed offset
-#/vis/scene/add/text 0 6 -4 cm 18 4 4 World
+#/vis/scene/add/text 0 6 -4 cm 18 4 4 world
 # Attach text to one corner of Shape2, with a small, fixed offset
 #/vis/scene/add/text 6 7 10 cm 18 4 4 Shape2
 #
 # To get nice view
-/vis/geometry/set/visibility World 0 false
+/vis/geometry/set/visibility world 0 true
 /vis/viewer/set/style surface
 #/vis/viewer/set/hiddenMarker true
 #/vis/viewer/set/viewpointThetaPhi 70 20
 /vis/viewer/set/upVector 0 0 1
 #/vis/viewer/set/targetPoint 10 0 0
 /vis/viewer/set/viewpointVector 0 -0.1 0.7
-
 #
 # Re-establish auto refreshing and verbosity:
 /vis/viewer/set/autoRefresh true
-/vis/verbose quiet
+/vis/verbose warnings
 #
 # For file-based drivers, use this to create an empty detector view:
 #/vis/viewer/flush
-
-/vis/scene/endOfEventAction accumulate 10000
+/vis/scene/endOfEventAction accumulate 1000
 /vis/ogl/set/displayListLimit 10000000
+

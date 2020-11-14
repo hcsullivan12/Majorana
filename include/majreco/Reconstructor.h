@@ -10,6 +10,8 @@
 #define MAJRECO_RECONSTRUCTOR_H
 
 #include "majutil/Pixel.h"
+#include "majreco/Configuration.h"
+
 
 #include <map>
 #include <list>
@@ -17,6 +19,8 @@
 
 #include "TH2.h"
 #include "TF2.h"
+#include <fstream>
+
 
 namespace majreco
 {
@@ -43,11 +47,12 @@ public:
    */
   Reconstructor(const std::map<size_t, size_t>&              data,
                 std::shared_ptr<std::vector<majutil::Pixel>> pixelVec,
-                const float&                                 diskRadius);
+                const float&                                 diskRadius,
+                const int&                                   entry);
   ~Reconstructor();
 
 
-  void Clean() { if(!fMLHist) delete fMLHist; if(!fMLGauss) delete fMLGauss; if(!fChi2Hist) delete fChi2Hist;}
+  void Clean() { if(!fMLHist) delete fMLHist; if(!fMLGauss) delete fMLGauss; if(!fChi2Hist) delete fChi2Hist;if(!fMeasured) delete fMeasured;if(!fExpected) delete fExpected;}
 
 
   /**
@@ -67,9 +72,14 @@ public:
    * @brief Reconstructs mean position based on Chi2 minimization.
    * 
    */
-  void DoChi2(const size_t& iter);              
+  void DoChi2(const size_t& iter);
 
-  /**
+
+    // Obtain DeadChannels
+  void DeadChs (std::vector<unsigned> &Dead);
+
+
+    /**
    * @brief Dump configuration and reconstruction results.
    * 
    */
@@ -78,11 +88,25 @@ public:
   const double   ML()    const { return fMLLogLikelihood; }
   const float    X()     const { return fEstimateX; }
   const float    Y()     const { return fEstimateY; }
-  const size_t   TotalLight() const { return fEstimateTotalLight; }
+  const float    Chi2()     const { return fChi2Pixel.chi2; }
+  const int   Chi2ID()     const { return (int)fChi2Pixel.id; }
+  const std::vector<float>   Chi2Vertex()     const { return fChi2Pixel.vertex; }
+
+
+
+
+    const size_t   TotalLight() const { return fEstimateTotalLight; }
   TH2F*          MLImage() { return fMLHist; }
+  TF2*           getGaus() {return fMLGauss;}
   TH2F*          Chi2Image() { return fChi2Hist; }
-  const std::map<size_t,size_t> ExpectedCounts();
-    
+  TH1I*          MeasuredImage() { return fMeasured; }
+  TH1I*          ExpectedImage() { return fExpected; }
+  const Double_t * GetSimData(){ return SimData;};
+
+
+    const std::map<size_t,size_t> ExpectedCounts();
+  void HistoExpectedCounts();
+
 private:
   
   /**
@@ -180,10 +204,11 @@ private:
    * 
    */
   void InitializePriors();
-   
-  TH2F*                        fMLHist;                ///< The reconstructed image 
+  TH2F*                        fMLHist;                ///< The reconstructed image
   TH2F*                        fChi2Hist;              ///< The Chi2 image
   TF2*                         fMLGauss;               ///< Gaussian fit to point source
+  TH1I*                         fExpected;               ///< Expected Counts
+  TH1I*                         fMeasured;               ///< Measured Counts
   double                       fMLLogLikelihood;       ///< Log likelihood for the MLE
   size_t                       fEstimateTotalLight;    ///< MLE for total light
   float                        fEstimateX;             ///< MLE for x (cm)
@@ -198,6 +223,15 @@ private:
   size_t                       fUnpenalizedIterStop;   ///< Iteration number to hault unpenalized reconstruction
   size_t                       fPenalizedIterStop;     ///< Iteration number to hault penalized reconstruction
   Chi2Pixel                    fChi2Pixel;
+  int                          fentry;
+  Double_t *                   SimData;
+  size_t diff = 10;
+  Configuration * fconfig;
+
+  //Reading the Dead Channels
+  std::string fPathToDeadChannels;
+  std::vector<unsigned > fDeadSIPMs;
+
 };
 }
 

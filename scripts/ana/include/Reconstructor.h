@@ -71,6 +71,7 @@ public:
    * 
    */
   void Dump();
+  std::string EstimatedValues();
 
   const double   ML()    const { return fMLLogLikelihood; }
   const float    X()     const { return fEstimateX; }

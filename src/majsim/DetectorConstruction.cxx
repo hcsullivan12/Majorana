@@ -7,11 +7,10 @@
  */
 
 #include "majsim/DetectorConstruction.h"
-#include "majsim/Configuration.h"
-#include "majsim/MaterialManager.h"
 
 #include "G4Color.hh"
 #include "G4VisAttributes.hh"
+#include <G4LogicalBorderSurface.hh>
 
 namespace majsim
 {
@@ -27,7 +26,7 @@ DetectorConstruction::DetectorConstruction()
   MaterialManager* matMan = MaterialManager::CreateInstance();
 
   // Pass configuration to our other volumes
-  Configuration* config = Configuration::Instance();
+  config = Configuration::Instance();
   fWheel = new Wheel(config->NMPPCs(),
                      config->MPPCHalfLength(),
                      config->DiskRadius(), 
@@ -76,19 +75,40 @@ void DetectorConstruction::InitializeDetector()
   G4Box* solWorld = new G4Box("solWorld", 
                                fWheel->Radius()*4, 
                                fWheel->Radius()*4, 
-                               fWheel->Thickness()*4);
-  fVolWorld    = new G4LogicalVolume(solWorld, 
+                               fWheel->Radius()*4);
+
+  /*fVolWorld    = new G4LogicalVolume(solWorld,
                                      matMan->FindMaterial("G4_AIR"), 
-                                     "volWorld");
-  fPVWorld = new G4PVPlacement(0, 
+                                     "volWorld"); */
+  switch (config->GetBaseMaterial()){
+      case 0:
+          fVolWorld    = new G4LogicalVolume(solWorld,matMan->FindMaterial("G4_AIR"),"volWorld");
+          break;
+      case 1:
+          fVolWorld    = new G4LogicalVolume(solWorld,matMan->FindMaterial("GasAr"),"volWorld");
+          break;
+      default:
+          if(config->NMPPCs()<32)
+              fVolWorld    = new G4LogicalVolume(solWorld,matMan->FindMaterial("G4_AIR"),"volWorld");
+          else
+              fVolWorld    = new G4LogicalVolume(solWorld,matMan->FindMaterial("GasAr"),"volWorld");
+
+  }
+
+
+
+  fPVWorld = new G4PVPlacement(0,
                                G4ThreeVector(), 
                                fVolWorld, 
                                fVolWorld->GetName(), 
                                0, 
                                false, 
                                0);
+  std::cout<<"---Detector Information---"<<std::endl;
+  std::cout<<"Detector Material : "<<fVolWorld->GetMaterial()->GetName()<<std::endl;
+  std::cout<<"Pressure(atm) : "<<fVolWorld->GetMaterial()->GetPressure()/atmosphere<<std::endl;
 
-  // vis
+    // vis
   G4Colour worldC(0,0,0);
   G4VisAttributes* worldVA = new G4VisAttributes(worldC);
   worldVA->SetForceWireframe(true);

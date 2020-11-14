@@ -13,6 +13,13 @@
 #include "G4Track.hh"
 #include "G4StepPoint.hh"
 #include "G4ProcessManager.hh"
+#include "G4OpticalPhoton.hh"
+#include "G4UserSteppingAction.hh"
+#include "G4ParticleTypes.hh"
+
+#include "majutil/OpDetPhotonTable.h"
+
+
 
 namespace majsim {
 
@@ -23,9 +30,19 @@ class SteppingAction : public G4UserSteppingAction
     virtual ~SteppingAction();
 
     virtual void UserSteppingAction(const G4Step*);
-  
-  private: 
+    void PhDetectCount(){fPhDetecCount++;}
+    void PhAbsCount(){fPhAbsCount++;}
+    G4int GetPhDetectCount(){return fPhDetecCount;}
+    G4int GetPhAbsCount(){return fPhAbsCount;}
+    bool CheckDetection(const G4Track& theTrack, const G4Step& theStep);
+
+
+private:
     CLHEP::HepJamesRandom fRandomEngine;
+    G4int                    fPhAbsCount;
+    G4int                    fPhDetecCount;
+    majutil::OpDetPhotonTable* Counts ;
+
 };
 }
 #endif

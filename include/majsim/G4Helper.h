@@ -17,14 +17,16 @@
 // Geant4 includes
 #include "G4RunManager.hh"
 #include "G4UImanager.hh"
+#include "G4UIsession.hh"
+#include "G4UIQt.hh"
 #include "G4UIExecutive.hh"
 #include "G4StateManager.hh"
 #include "G4HadronicProcessStore.hh"
-#ifdef G4VIS_USE
+
+//#ifdef G4VIS_USE  Version 10.2
 #include "G4VisExecutive.hh"
-#endif
-
-
+#include "G4UIExecutive.hh"
+//#endif        Version 10.2
 namespace majsim
 {
 
@@ -34,6 +36,7 @@ class G4Helper
     static G4Helper* Instance();
     static G4Helper* CreateInstance();
     ~G4Helper();
+
 
     /**
      * @brief Container for light source positions for all events.
@@ -48,10 +51,11 @@ class G4Helper
      * @brief Begin main geant4 simulation.
      * 
      */
-    void StartG4();
+    Int_t StartG4(G4UIExecutive* ui);
 
     ActionInitialization* GetActionInitialization() const { return fActionInitialization; };
     DetectorConstruction* GetDetectorConstruction() const { return fDetector; };
+    bool GetShowVis(){return fShowVis;}
 
   private:
     G4Helper();
@@ -61,13 +65,13 @@ class G4Helper
      * @brief Initialize the visualization manager.
      * 
      */
-    void HandleVisualization();
+    void HandleVisualization(G4UIExecutive* ui);
 
     /**
      * @brief Initializes event generator and tells geant4 to run.
      * 
      */
-    void RunG4();
+    Int_t RunG4();
 
     /**
      * @brief Set verbosities for simulation.
@@ -77,16 +81,17 @@ class G4Helper
 
     G4RunManager*           fRunManager;            
     G4UImanager*            fUIManager;             
-    G4VisExecutive*         fVisManager;           
-    ActionInitialization*   fActionInitialization;   
+    G4VisExecutive*         fVisManager; // For 10.02 GEANT4 Version
+    ActionInitialization*   fActionInitialization;
     PrimaryGeneratorAction* fGeneratorAction;       ///< Generator that handles emission 
     DetectorConstruction*   fDetector;              ///< Pointer to geometries
     PhysicsList*            fPhysicsList;           
     SteeringTable           fSteeringTable;         
     std::string             fSteeringFilePath;       
-    bool                    fShowVis;                
-    std::string             fVisMacroPath;           
-    std::string             fSimulateOutputPath;     
+    std::string             fVisMacroPath;
+    std::string             fSimulateOutputPath;
+    bool                    fShowVis;
+
 };
 }
 

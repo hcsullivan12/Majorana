@@ -8,7 +8,7 @@
 
 #ifndef MAJUTIL_OPDETPHOTONTABLE_HH
 #define MAJUTIL_OPDETPHOTONTABLE_HH
-
+#include <iostream>
 #include <vector>
 #include <map>
 
@@ -34,6 +34,15 @@ class OpDetPhotonTable
     static OpDetPhotonTable* Instance();
     static OpDetPhotonTable* CreateInstance(const size_t& nMPPCs);
     ~OpDetPhotonTable();
+    void PrintParticleCounts(){
+
+        std::cout<<"------------SecndParticleCounts-----"<<std::endl;
+        std::cout<<"Photons : "<<fProPhotonE.size()<<std::endl;
+        std::cout<<"Electrons : "<<fProElectronE.size()<<std::endl;
+        std::cout<<"Neutrons : "<<fProNeutronE.size()<<std::endl;
+        std::cout<<"Alphas : "<<fProAlphaE.size()<<std::endl;
+
+    };
 
     /**
      * @brief Add photon to table.
@@ -43,7 +52,15 @@ class OpDetPhotonTable
      */
     void AddPhoton(const unsigned& opchannel, const Photon& photon);
 
-    inline void Reset() { fPhotonsDetected.clear(); fNPhotonsAbs=0; Initialize(); };
+    inline void Reset() {
+        fPhotonsDetected.clear();
+        fNPhotonsAbs=0; Initialize();
+        fProPhotonE.clear();
+        fProElectronE.clear();
+        fProNeutronE.clear();
+        fProAlphaE.clear();
+
+    };
     inline void IncPhotonsAbs() { fNPhotonsAbs++; };
 
     /**
@@ -60,14 +77,29 @@ class OpDetPhotonTable
 
     const PhotonsDetected& GetPhotonsDetected() const { return fPhotonsDetected; };
     const unsigned         GetNPhotonsAbsorbed() const { return fNPhotonsAbs; };
+    void AddElectronE(double E){fProElectronE.push_back(E);};
+    void AddPhotonE(double E){fProPhotonE.push_back(E);};
+    void AddNeutronE(double E){fProNeutronE.push_back(E);};
+    void AddAlphaE(double E){fProAlphaE.push_back(E);};
+    std::vector<double>  GetProPhotonEs  (){ return fProPhotonE;};
+    std::vector<double> GetProElectronEs  (){ return fProElectronE;};
+    std::vector<double> GetProNeutronEs  (){ return fProNeutronE;};
+    std::vector<double> GetProAlphaEs  (){ return fProAlphaE;};
 
-  private:
+
+private:
     OpDetPhotonTable(const size_t& nMPPCs);
     static OpDetPhotonTable* instance;
 
     PhotonsDetected fPhotonsDetected; ///< Map between the channel ID and the number of photons detected
     unsigned        fNPhotonsAbs;     ///< Number of photons absorbed 
     unsigned        fNOpDet;          ///< Number of detectors used in table
+
+    //Energies of the Produced Photons and Electrons
+    std::vector<double>   fProPhotonE;
+    std::vector<double>   fProElectronE;
+    std::vector<double>   fProNeutronE;
+    std::vector<double>   fProAlphaE;
 };
 }
 #endif

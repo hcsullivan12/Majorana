@@ -15,6 +15,8 @@
 #include "G4LogicalVolume.hh"
 #include "G4VPhysicalVolume.hh"
 #include "G4Cache.hh"
+#include "majsim/Configuration.h"
+#include "majsim/MaterialManager.h"
 
 namespace majsim
 {
@@ -28,8 +30,11 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     virtual void               ConstructSDandField();
    
     const Wheel* WheelGeometry() const { return fWheel; };
+    const G4VPhysicalVolume* GetPVWorldGeometry() const { return fPVWorld; };
+    const G4LogicalVolume* GetVolWorldGeometry() const { return fVolWorld; };
 
-  private:
+
+private:
 
     /**
      * @brief Initialize materials to be used for our geometries.
@@ -46,6 +51,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4LogicalVolume*   fVolWorld; ///< Pointer to the world logical volume
     G4VPhysicalVolume* fPVWorld;  ///< Pointer to world physical volume
     Wheel*             fWheel;    ///< The SiPM wheel geometry
+    Configuration*     config;
 };
 }
 
